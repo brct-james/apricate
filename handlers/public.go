@@ -18,34 +18,6 @@ import (
 
 // Helper Functions
 
-// // Attempt to get user from db
-// func publicGetUser(w http.ResponseWriter, r *http.Request, username string, token string) (bool, schema.User, rdb.Database) {
-// 	// Get udb from context
-// 	udb, udbErr := GetUdbFromCtx(r)
-// 	if udbErr != nil {
-// 		// Fail state getting context
-// 		log.Error.Printf("Could not get UserDBContext in publicGetUser")
-// 		responses.SendRes(w, responses.No_UDB_Context, nil, "in publicGetUser")
-// 		return false, schema.User{}, rdb.Database{}
-// 	}
-// 	// Check db for user
-// 	thisUser, userFound, getUserErr := schema.GetUserFromDB(token, udb)
-// 	if getUserErr != nil {
-// 		// fail state
-// 		getErrorMsg := fmt.Sprintf("in publicGetUser, could not get from DB for username: %s, error: %v", username, getUserErr)
-// 		responses.SendRes(w, responses.UDB_Get_Failure, nil, getErrorMsg)
-// 		return false, schema.User{}, rdb.Database{}
-// 	}
-// 	if !userFound {
-// 		// fail state - user not found
-// 		userNotFoundMsg := fmt.Sprintf("in publicGetUser, no user found in DB with username: %s", username)
-// 		responses.SendRes(w, responses.User_Not_Found, nil, userNotFoundMsg)
-// 		return false, schema.User{}, rdb.Database{}
-// 	}
-// 	// Success case
-// 	return true, thisUser, udb
-// }
-
 // Handler Functions
 
 // Handler function for the route: /
@@ -53,6 +25,60 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- Homepage --"))
 	responses.SendRes(w, responses.Unimplemented, nil, "Homepage")
 	log.Debug.Println(log.Cyan("-- End Homepage --"))
+}
+
+// Handler function for the route: /api/users
+func UsersSummary(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- usersSummary --"))
+	res := metrics.AssembleUsersMetrics()
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End usersSummary --"))
+}
+
+// Handler function for the route: /api/users/{username}
+type UsernameInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *UsernameInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- usernameInfo --"))
+	// Get username from route
+	route_vars := mux.Vars(r)
+	username := route_vars["username"]
+	log.Debug.Printf("UsernameInfo Requested for: %s", username)
+	// Get username info from DB
+	token, genTokenErr := tokengen.GenerateToken(username)
+	if genTokenErr != nil {
+		// fail state
+		log.Important.Printf("in UsernameInfo: Attempted to generate token using username %s but was unsuccessful with error: %v", username, genTokenErr)
+		genErrorMsg := fmt.Sprintf("Could not get, failed to convert username to DB token. Username: %v | GenerateTokenErr: %v", username, genTokenErr)
+		responses.SendRes(w, responses.Generate_Token_Failure, nil, genErrorMsg)
+		return
+	}
+	udb := (*h.Dbs)["users"]
+	// Check db for user
+	userData, userFound, getUserErr := schema.GetUserFromDB(token, udb)
+	if getUserErr != nil {
+		// fail state
+		getErrorMsg := fmt.Sprintf("in publicGetUser, could not get from DB for username: %s, error: %v", username, getUserErr)
+		responses.SendRes(w, responses.UDB_Get_Failure, nil, getErrorMsg)
+		return
+	}
+	if !userFound {
+		// fail state - user not found
+		userNotFoundMsg := fmt.Sprintf("in publicGetUser, no user found in DB with username: %s", username)
+		responses.SendRes(w, responses.User_Not_Found, nil, userNotFoundMsg)
+		return
+	}
+	// success state
+	resData := schema.PublicInfo{
+		Username: userData.Username,
+		Title: userData.Title,
+		Ledger: userData.Ledger,
+		Achievements: userData.Achievements,
+		UserSince: userData.UserSince,
+	}
+	responses.SendRes(w, responses.Generic_Success, resData, "")
+	log.Debug.Println(log.Cyan("-- End usernameInfo --"))
 }
 
 // Handler function for the route: /api/users/{username}/claim

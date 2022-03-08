@@ -8,7 +8,7 @@ type Metric struct {
 
 type UsersMetricEndpointResponse struct {
 	UniqueUsers []string `json:"unique-users" binding:"required"`
-	// ActiveUsers []string `json:"active-users" binding:"required"`
+	ActiveUsers []string `json:"active-users" binding:"required"`
 	// UsersByAchievement []AchievementMetric `json:"users-by-achievement" binding:"required"`
 }
 
@@ -18,15 +18,15 @@ type UniqueUsersMetric struct {
 	Usernames []string `json:"usernames" binding:"required"` //usernames
 }
 
-// // Active Users
-// type ActiveUsersMetric struct {
-// 	Metric
-// 	UserActivity []UserCallTimestamp `json:"user-activity" binding:"required"` //usernames
-// }
-// type UserCallTimestamp struct {
-// 	Username string `json:"username" binding:"required"`
-// 	LastCallTimestamp int64 `json:"last-call-timestamp" binding:"required"`
-// }
+// Active Users
+type ActiveUsersMetric struct {
+	Metric
+	UserActivity []UserCallTimestamp `json:"user-activity" binding:"required"` //usernames
+}
+type UserCallTimestamp struct {
+	Username string `json:"username" binding:"required"`
+	LastCallTimestamp int64 `json:"last-call-timestamp" binding:"required"`
+}
 
 // // Users by Achievement
 // type UsersByAchievementMetric struct {

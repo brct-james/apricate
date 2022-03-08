@@ -14,7 +14,10 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 
 ### Endpoints
 
+- `GET: /api/users` returns lists of registered usernames with various filters: unique, active, etc.
+- `GET: /api/users/{username}` returns the public user data
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
+- `GET: /api/my/account` returns the private user data (includes token)
 
 ---
 
@@ -98,6 +101,9 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 
 - Basic setup
 - Add user claiming endpoint
+- Add user info endpoint
+- Add secure account info endpoint
+- Add active users tracking
 
 ## Reference
 

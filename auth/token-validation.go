@@ -13,6 +13,7 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
+
 	"github.com/golang-jwt/jwt"
 )
 
@@ -62,6 +63,7 @@ func VerifyTokenFormatAndDecode(r *http.Request) (jwt.Token, error) {
 	tokenString, ok := ExtractToken(r)
 	if !ok {
 		// Report failure to extract token
+		log.Debug.Print("VerifyTokenFormatAndDecode: Error extracting token")
 		return jwt.Token{}, fmt.Errorf("token extraction from header failed")
 	}
 	log.Debug.Printf("Token string: %s", tokenString)
@@ -71,8 +73,12 @@ func VerifyTokenFormatAndDecode(r *http.Request) (jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		// return gg_access_secret to parser for decoding
-		return []byte(os.Getenv("GG_ACCESS_SECRET")), nil
+		// return apricate_access_secret to parser for decoding
+		access_secret := []byte(os.Getenv("APRICATE_ACCESS_SECRET"))
+		if len(access_secret) == 0 {
+			return nil, fmt.Errorf("internal error: could not get access secret from env")
+		}
+		return access_secret, nil
 	})
 	// Pass parse errors through to calling funcs
 	if err != nil {
@@ -87,11 +93,11 @@ func ExtractTokenMetadata(r *http.Request) (ValidationPair, error) {
 	// Verify format and decode
 	token, err := VerifyTokenFormatAndDecode(r)
 	log.Debug.Printf("ExtractTokenMetadata:\nToken:\n%v\nError:\n%v\n", token, err)
-  if err != nil {
-     return ValidationPair{}, err
-  }
+	if err != nil {
+		return ValidationPair{}, err
+	}
 	// ensure token.Claims is jwt.MapClaims
-  claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	log.Debug.Printf("claims %v ok %v\n", claims, ok)
 	log.Debug.Printf("token.Valid %v\n", token.Valid)
 	if !ok || !token.Valid {
@@ -162,8 +168,8 @@ func GenerateTokenValidationMiddlewareFunc(userDB rdb.Database) func(http.Handle
 			username, token, validateTokenErr := ValidateUserToken(r, userDB)
 			if validateTokenErr != nil {
 				// Failed to validate, return failure message
-				w.WriteHeader(http.StatusUnauthorized)
-				responses.SendRes(w, responses.Auth_Failure, nil, "")
+				msg := fmt.Sprintf("%v", validateTokenErr)
+				responses.SendRes(w, responses.Auth_Failure, nil, msg)
 				return
 			}
 			// Create validation pair
