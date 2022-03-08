@@ -1,16 +1,59 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	
+
+	"apricate/auth"
 	"apricate/handlers"
 	"apricate/log"
+	"apricate/rdb"
 
 	"github.com/gorilla/mux"
 )
 
+// Global Vars
+var (
+	ListenPort = ":50250"
+	RedisAddr = "localhost:6382"
+	apiVersion = "0.1.0"
+	// Define relationship between string database name and redis db
+	dbs = make(map[string]rdb.Database)
+	flush_DBs = true
+	regenerate_auth_secret = true
+)
+
+func initialize_dbs() {
+	dbs["users"] = rdb.NewDatabase(RedisAddr, 0)
+	dbs["assistants"] = rdb.NewDatabase(RedisAddr, 1)
+	dbs["farms"] = rdb.NewDatabase(RedisAddr, 2)
+	dbs["contracts"] = rdb.NewDatabase(RedisAddr, 3)
+	dbs["inventories"] = rdb.NewDatabase(RedisAddr, 4)
+	dbs["clearinghouse"] = rdb.NewDatabase(RedisAddr, 5)
+	dbs["plots"] = rdb.NewDatabase(RedisAddr, 6)
+
+	if flush_DBs || regenerate_auth_secret {
+		for _, db := range dbs {
+			db.Flush()
+		}
+	}
+}
+
 func main() {
+	log.Info.Printf("Guild-Golems Rest API Server %s", apiVersion)
+	log.Info.Printf("Connecting to Redis DB")
+
+	// Setup redis databases for each namespace
+	initialize_dbs()
+
+	// Handle auth secret generation if requested
+	if regenerate_auth_secret {
+		log.Important.Printf("(Re)Generating Auth Secret")
+		auth.CreateOrUpdateAuthSecretInFile()
+	}
+
+	log.Info.Println("Loading secrets from envfile")
+	auth.LoadSecretsToEnv()
+
 	// Begin Serving
 	handle_requests()
 }
@@ -27,7 +70,7 @@ func handle_requests() {
 	// mxr.HandleFunc("/api/v0/leaderboards/{board}", handlers.GetLeaderboards).Methods("GET")
 	// mxr.HandleFunc("/api/v0/users", handlers.UsersSummary).Methods("GET")
 	// mxr.HandleFunc("/api/v0/users/{username}", handlers.UsernameInfo).Methods("GET")
-	// mxr.HandleFunc("/api/v0/users/{username}/claim", handlers.UsernameClaim).Methods("POST")
+	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs}).Methods("POST")
 	// mxr.HandleFunc("/api/v0/locations", handlers.LocationsOverview).Methods("GET")
 
 	// // secure subrouter for account-specific routes
@@ -51,7 +94,6 @@ func handle_requests() {
 	// secure.HandleFunc("/rituals/summon-merchant", handlers.NewMerchant).Methods("POST")
 
 	// Start listening
-	ListenPort := ":50250"
 	log.Info.Printf("Listening on %s", ListenPort)
 	log.Error.Fatal(http.ListenAndServe(ListenPort, mxr))
 }

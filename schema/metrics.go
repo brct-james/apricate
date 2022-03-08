@@ -1,0 +1,39 @@
+// Package schema defines database and JSON schema as structs, as well as functions for creating and using these structs
+package schema
+
+type Metric struct {
+	Name string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
+}
+
+type UsersMetricEndpointResponse struct {
+	UniqueUsers []string `json:"unique-users" binding:"required"`
+	// ActiveUsers []string `json:"active-users" binding:"required"`
+	// UsersByAchievement []AchievementMetric `json:"users-by-achievement" binding:"required"`
+}
+
+// Unique Users
+type UniqueUsersMetric struct {
+	Metric
+	Usernames []string `json:"usernames" binding:"required"` //usernames
+}
+
+// // Active Users
+// type ActiveUsersMetric struct {
+// 	Metric
+// 	UserActivity []UserCallTimestamp `json:"user-activity" binding:"required"` //usernames
+// }
+// type UserCallTimestamp struct {
+// 	Username string `json:"username" binding:"required"`
+// 	LastCallTimestamp int64 `json:"last-call-timestamp" binding:"required"`
+// }
+
+// // Users by Achievement
+// type UsersByAchievementMetric struct {
+// 	Metric
+// 	UsersByAchievement []AchievementMetric `json:"users-by-achievement" binding:"required"`
+// }
+// type AchievementMetric struct {
+// 	Thing // name,symbol,description of particular achievement - may want to substitute this once achievements are made
+// 	Users []string `json:"users" binding:"required"` //usernames
+// }
