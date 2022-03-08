@@ -84,6 +84,7 @@ func (h *UsernameInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Handler function for the route: /api/users/{username}/claim
 type UsernameClaim struct {
 	Dbs *map[string]rdb.Database
+	SlurFilter *[]string
 }
 func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- usernameClaim --"))
@@ -94,7 +95,7 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	username := route_vars["username"]
 	log.Debug.Printf("Username Requested: %s", username)
 	// Validate username (length & content, plus characters)
-	usernameValidationStatus := auth.ValidateUsername(username)
+	usernameValidationStatus := auth.ValidateUsername(username, h.SlurFilter)
 	if usernameValidationStatus != "OK" {
 		// fail state
 		validationErrorMessage := fmt.Sprintf("in UsernameClaim: Username: %v | ValidationResponse: %v", username, usernameValidationStatus)

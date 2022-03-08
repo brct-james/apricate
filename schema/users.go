@@ -15,10 +15,6 @@ import (
 type User struct {
 	Token string `json:"token" binding:"required"`
 	PublicInfo
-	Assistants []uint64 `json:"assistants" binding:"required"`
-	Farms []uint64 `json:"farms" binding:"required"`
-	Contracts []uint64 `json:"contracts" binding:"required"`
-	Inventories []uint64 `json:"inventories" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -28,6 +24,10 @@ type PublicInfo struct {
 	Ledger Ledger `json:"ledger" binding:"required"`
 	UserSince int64 `json:"user-since" binding:"required"`
 	Achievements []Achievement `json:"achievements" binding:"required"`
+	Contracts []uint64 `json:"contracts" binding:"required"`
+	Assistants []uint64 `json:"assistants" binding:"required"`
+	Farms []uint64 `json:"farms" binding:"required"`
+	Inventories []uint64 `json:"inventories" binding:"required"`
 }
 
 func NewUser(token string, username string) *User {
@@ -47,13 +47,13 @@ func NewUser(token string, username string) *User {
 				Favor: make(map[string]int8),
 				Escrow: make(map[string]uint64),
 			},
+			Contracts: []uint64{starting_contract_id},
+			Farms: []uint64{starting_farm_id},
+			Inventories: []uint64{starting_farm_inventory_id},
+			Assistants: []uint64{starting_assistant_id},
 			Achievements: []Achievement{Achievement_Noob},
 			UserSince: time.Now().Unix(),
 		},
-		Farms: []uint64{starting_farm_id},
-		Inventories: []uint64{starting_farm_inventory_id},
-		Contracts: []uint64{starting_contract_id},
-		Assistants: []uint64{starting_assistant_id},
 	}
 }
 

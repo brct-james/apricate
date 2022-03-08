@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"apricate/auth"
 	"apricate/filemngr"
@@ -56,6 +57,8 @@ func setup_my_character() {
 		}
 		// create new user in DB
 		newUser := schema.NewUser(token, username)
+		newUser.Title = schema.Achievement_Owner
+		newUser.Achievements = []schema.Achievement{schema.Achievement_Owner, schema.Achievement_Contributor, schema.Achievement_Noob}
 		saveUserErr := schema.SaveUserToDB(dbs["users"], newUser)
 		if saveUserErr != nil {
 			// fail state - could not save
@@ -120,11 +123,26 @@ func main() {
 
 	setup_my_character()
 
+	// Preload 
+	// Ensure exists
+	filemngr.Touch("slur_filter.txt")
+	// Read file to lines array splitting by newline
+	read_slur_filter, readErr := filemngr.ReadFileToLineSlice("slur_filter.txt")
+	if readErr != nil {
+		// Auth is mission-critical, using Fatal
+		log.Error.Fatalf("Could not read lines from slur_filter.txt. Err: %v", readErr)
+	}
+	slur_filter := make([]string, len(read_slur_filter))
+	for i, word := range read_slur_filter {
+		slur_filter[i] = strings.ToUpper(word)
+	}
+	log.Info.Printf("Created/Loaded Username Slur Filter")
+
 	// Begin Serving
-	handle_requests()
+	handle_requests(slur_filter)
 }
 
-func handle_requests() {
+func handle_requests(slur_filter []string) {
 	// Define Routes
 	//mux router
 	mxr := mux.NewRouter().StrictSlash(true)
@@ -136,7 +154,7 @@ func handle_requests() {
 	// mxr.HandleFunc("/api/v0/leaderboards/{board}", handlers.GetLeaderboards).Methods("GET")
 	mxr.HandleFunc("/api/users", handlers.UsersSummary).Methods("GET")
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
-	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs}).Methods("POST")
+	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
 	// mxr.HandleFunc("/api/v0/locations", handlers.LocationsOverview).Methods("GET")
 
 	// secure subrouter for account-specific routes

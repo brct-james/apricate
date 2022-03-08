@@ -20,9 +20,12 @@ import (
 // GENERATE & VALIDATE TOKENS
 
 // validate that username meets spec
-func ValidateUsername (username string) string {
+func ValidateUsername (username string, slurs *[]string) string {
 	// Defines acceptable chars
 	isAlphaNumeric := regexp.MustCompile(`^[A-Za-z0-9\-\_]+$`).MatchString
+	streamlinedName := strings.ToUpper(strings.Trim(strings.Trim(strings.Trim(strings.Trim(username, "-"), "_"), "-"), "_"))
+	log.Debug.Printf("Streamlined name received: %s", streamlinedName)
+	reservedSequences := []string{"NPC", "OWNER", "MOD-", "MOD_", "CONTRIBUTOR", "ADMIN-", "ADMIN_", "ADMINISTRATOR", "MODERATOR"}
 	if username == "" {
 		return "CANT_BE_BLANK"
 	} else if len(username) <= 0 {
@@ -30,6 +33,16 @@ func ValidateUsername (username string) string {
 	} else if !isAlphaNumeric(username) {
 		return "INVALID_CHARS"
 	} else {
+		for _, word := range reservedSequences {
+			if len(word) < len(streamlinedName) && streamlinedName[0:len(word)] == word {
+				return fmt.Sprintf("RESERVED_SEQUENCE-NAME_CANNOT_BEGIN_WITH_-_%s_-_CONTACT_DEVELOPER_IF_YOU_BELIEVE_THIS_IS_A_MISTAKE", word)
+			}
+		}
+		for _, slur := range *slurs {
+			if strings.Contains(streamlinedName, slur) {
+				return fmt.Sprintf("CONTAINS_SLUR-NAME_CANNOT_CONTAIN_-_%s_-_CONTACT_DEVELOPER_IF_YOU_BELIEVE_THIS_IS_A_MISTAKE", slur)
+			}
+		}
 		return "OK"
 	}
 }

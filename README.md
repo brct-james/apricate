@@ -7,13 +7,15 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - Basic account functionality
 - - Claim Account: `POST: https://apricate.io/api/users/{username}/claim`
 - - - Don't forget to save the token from the response to your claim request. You must use this as a bearer token in the auth header for secure `/my/` routes
-- - - Must include only letters, numbers, `-`, and `_`.
+- - - Usernames must include only letters, numbers, `-`, and `_`. There are some reserved sequences for game-specific prefixes. A slur filter exists, I hope never to need it.
 - - Get public user info at `/api/users/{username}` and get private user info including token at `/api/my/account`
 
 ---
 
 ### Endpoints
 
+<!-- - `GET: /api/v0/leaderboards` list all available leaderboards and their descriptions
+- `GET: /api/v0/leaderboards/{board}` get the specified leaderboard rankings -->
 - `GET: /api/users` returns lists of registered usernames with various filters: unique, active, etc.
 - `GET: /api/users/{username}` returns the public user data
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
@@ -79,6 +81,8 @@ Ensure resjon container is running on the correct port: `docker run -di -p 6382:
 
 For the first run, ensure `refreshAuthSecret` in `main.go` is true. Make sure to set this to false for second run.
 
+Either run once to generate, or manually create `slur_filter.txt` in root directory. Add words to filter, one per line, case-insensitive.
+
 Build and start with `go build; ./apricate`. Alternatively, `go run main.go`
 
 Listens on port `50250`
@@ -104,6 +108,9 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 - Add user info endpoint
 - Add secure account info endpoint
 - Add active users tracking
+- Add schemas for most currently planned datasets
+- Add username slur filter and reserved keyword filter
+- Add custom string representation of schema enums
 
 ## Reference
 
