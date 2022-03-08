@@ -4,13 +4,17 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 
 ## Features
 
-- It runs, kinda
+- Basic account functionality
+- - Claim Account: `POST: https://apricate.io/api/users/{username}/claim`
+- - - Don't forget to save the token from the response to your claim request. You must use this as a bearer token in the auth header for secure `/my/` routes
+- - - Must include only letters, numbers, `-`, and `_`.
+- - Get public user info at `/api/users/{username}` and get private user info including token at `/api/my/account`
 
 ---
 
 ### Endpoints
 
-- None yet
+- `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
 
 ---
 
@@ -92,7 +96,8 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 
 ### v0.1
 
-- Nothing yet
+- Basic setup
+- Add user claiming endpoint
 
 ## Reference
 
