@@ -7,8 +7,8 @@ type Metric struct {
 }
 
 type UsersMetricEndpointResponse struct {
-	UniqueUsers []string `json:"unique-users" binding:"required"`
-	ActiveUsers []string `json:"active-users" binding:"required"`
+	UniqueUsers []string `json:"unique_users" binding:"required"`
+	ActiveUsers []string `json:"active_users" binding:"required"`
 	// UsersByAchievement []AchievementMetric `json:"users-by-achievement" binding:"required"`
 }
 
@@ -21,17 +21,17 @@ type UniqueUsersMetric struct {
 // Active Users
 type ActiveUsersMetric struct {
 	Metric
-	UserActivity []UserCallTimestamp `json:"user-activity" binding:"required"` //usernames
+	UserActivity []UserCallTimestamp `json:"user_activity" binding:"required"` //usernames
 }
 type UserCallTimestamp struct {
 	Username string `json:"username" binding:"required"`
-	LastCallTimestamp int64 `json:"last-call-timestamp" binding:"required"`
+	LastCallTimestamp int64 `json:"last_call_timestamp" binding:"required"`
 }
 
 // // Users by Achievement
 // type UsersByAchievementMetric struct {
 // 	Metric
-// 	UsersByAchievement []AchievementMetric `json:"users-by-achievement" binding:"required"`
+// 	UsersByAchievement []AchievementMetric `json:"users_by_achievement" binding:"required"`
 // }
 // type AchievementMetric struct {
 // 	Thing // name,symbol,description of particular achievement - may want to substitute this once achievements are made
