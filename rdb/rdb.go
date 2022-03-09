@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"apricate/log"
+
 	goredis "github.com/go-redis/redis/v8"
 	rejson "github.com/nitishm/go-rejson/v4"
 )
@@ -72,6 +73,36 @@ func (db Database) GetJsonData(key string, path string) ([]uint8, error) {
 	if err != nil {
 		log.Debug.Printf("Failed to JSONGet (key: %s, path: %s), reason: '%v'", key, path, err)
 		return nil, err
+	}
+	return dataJSON, nil
+}
+
+// Get json data at path for multiple keys
+// 
+// Returns marshalled json byte array so make sure to unmarshall externally into an appropriate struct. 
+func (db Database) MGetJsonData(path string, keys []string) ([][]uint8, error) {
+	log.Debug.Printf("New attempt MGetJsonData")
+	log.Debug.Printf("Keys: '%s', Path: '%s'", keys, path)
+	// return bytevalue of jsonget for path at key
+	data, err := db.Rejson.JSONMGet(path, keys...)
+	if err != nil {
+		log.Debug.Printf("Failed to JSONMGet (keys: %s, path: %s), reason: '%v'", keys, path, err)
+		return nil, err
+	}
+	var dataJSON [][]byte
+	switch data := data.(type) {
+	case []interface{}:
+		dataJSON = make([][]byte, len(data))
+		for i, datum := range data {
+			bit, bitErr := Bytes(datum, nil)
+			if bitErr != nil {
+				log.Debug.Printf("Failed to JSONMGet while decoding Bytes, reason: '%v'", bitErr)
+			}
+			dataJSON[i] = bit
+		}
+	default:
+		log.Error.Printf("JSONMGet return type not []interface{}")
+		return nil, errors.New("json data returned from DB in unexpected format, could not recover")
 	}
 	return dataJSON, nil
 }

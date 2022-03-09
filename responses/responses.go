@@ -30,7 +30,7 @@ const (
 	Username_Validation_Failure ResponseCode = 3
 	DB_Save_Failure ResponseCode = 4
 	Generate_Token_Failure ResponseCode = 5
-	// WDB_Get_Failure ResponseCode = 6
+	DB_Get_Failure ResponseCode = 6
 	UDB_Get_Failure ResponseCode = 7
 	// JSON_Unmarshal_Error ResponseCode = 8
 	// No_WDB_Context ResponseCode = 9
@@ -113,10 +113,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 		Message: "[Generate_Token_Failure] Username passed initial validation but could not generate token, contact Admin.",
 		HttpResponse: http.StatusInternalServerError,
 	},
-	// WDB_Get_Failure: {
-	// 	Message: "[WDB_Get_Failure] Could not get from world DB",
-	// 	HttpResponse: http.StatusInternalServerError,
-	// },
+	DB_Get_Failure: {
+		Message: "[DB_Get_Failure] Could not get requested information from DB",
+		HttpResponse: http.StatusInternalServerError,
+	},
 	UDB_Get_Failure: {
 		Message: "[UDB_Get_Failure] Could not get from user DB",
 		HttpResponse: http.StatusInternalServerError,

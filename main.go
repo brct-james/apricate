@@ -56,7 +56,7 @@ func setup_my_character() {
 			panic(genErrorMsg)
 		}
 		// create new user in DB
-		newUser := schema.NewUser(token, username)
+		newUser := schema.NewUser(token, username, dbs)
 		newUser.Title = schema.Achievement_Owner
 		newUser.Achievements = []schema.Achievement{schema.Achievement_Owner, schema.Achievement_Contributor, schema.Achievement_Noob}
 		saveUserErr := schema.SaveUserToDB(dbs["users"], newUser)
@@ -161,6 +161,8 @@ func handle_requests(slur_filter []string) {
 	secure := mxr.PathPrefix("/api/my").Subrouter()
 	secure.Use(auth.GenerateTokenValidationMiddlewareFunc(dbs["users"]))
 	secure.Handle("/account", &handlers.AccountInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/assistants", &handlers.AssistantsInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/assistants/{uuid}", &handlers.AssistantInfo{Dbs: &dbs}).Methods("GET")
 	// secure.HandleFunc("/inventories", handlers.InventoryInfo).Methods("GET")
 	// secure.HandleFunc("/itineraries", handlers.ItineraryInfo).Methods("GET")
 	// secure.HandleFunc("/markets", handlers.MarketInfo).Methods("GET")

@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // HELPER FUNCTIONS
@@ -80,7 +82,7 @@ func secureGetUser(w http.ResponseWriter, r *http.Request, udb rdb.Database) (bo
 
 // HANDLER FUNCTIONS
 
-// Handler function for the secure route: /api/v0/my/account
+// Handler function for the secure route: /api/my/account
 type AccountInfo struct {
 	Dbs *map[string]rdb.Database
 }
@@ -94,8 +96,67 @@ func (h *AccountInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	getUserJsonString, getUserJsonStringErr := responses.JSON(userData)
 	if getUserJsonStringErr != nil {
 		log.Error.Printf("Error in AccountInfo, could not format thisUser as JSON. userData: %v, error: %v", userData, getUserJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, userData, getUserJsonStringErr.Error())
+		return
 	}
 	log.Debug.Printf("Sending response for AccountInfo:\n%v", getUserJsonString)
 	responses.SendRes(w, responses.Generic_Success, userData, "")
 	log.Debug.Println(log.Cyan("-- End accountInfo --"))
+}
+
+// Handler function for the secure route: /api/my/assistants
+type AssistantsInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *AssistantsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AssistantsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in AssistantsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistants)
+	if getAssistantJsonStringErr != nil {
+		log.Error.Printf("Error in AssistantsInfo, could not format assistants as JSON. assistants: %v, error: %v", assistants, getAssistantJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, assistants, getAssistantJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for AssistantsInfo:\n%v", getAssistantJsonString)
+	responses.SendRes(w, responses.Generic_Success, assistants, "")
+	log.Debug.Println(log.Cyan("-- End AssistantsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/assistants/{uuid}
+type AssistantInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AssistantInfo --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	log.Debug.Printf("AssistantInfo Requested for: %s", uuid)
+	adb := (*h.Dbs)["assistants"]
+	assistant, foundAssistant, assistantsErr := schema.GetAssistantFromDB(uuid, adb)
+	if assistantsErr != nil || !foundAssistant {
+		log.Error.Printf("Error in AssistantInfo, could not get assistant from DB. foundAssistant: %v, error: %v", foundAssistant, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistant, assistantsErr.Error())
+		return
+	}
+	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistant)
+	if getAssistantJsonStringErr != nil {
+		log.Error.Printf("Error in AssistantInfo, could not format assistants as JSON. assistants: %v, error: %v", assistant, getAssistantJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, assistant, getAssistantJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for AssistantInfo:\n%v", getAssistantJsonString)
+	responses.SendRes(w, responses.Generic_Success, assistant, "")
+	log.Debug.Println(log.Cyan("-- End AssistantInfo --"))
 }

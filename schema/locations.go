@@ -5,8 +5,8 @@ package schema
 type Location struct {
 	Name string `json:"name" binding:"required"`
 	Description string `json:"description" binding:"required"`
-	Region Region `json:"region" binding:"required"`
+	RegionName string `json:"region_name" binding:"required"`
 	X uint8 `json:"x" binding:"required"`
 	Y uint8 `json:"y" binding:"required"`
-	NPCs []NPC `json:"npcs" binding:"required"`
+	NPCs []string `json:"npcs" binding:"required"`
 }

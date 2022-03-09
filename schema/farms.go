@@ -16,7 +16,7 @@ const (
 
 // Defines a farm
 type Farm struct {
-	UID uint64 `json:"uid" binding:"required"`
+	UUID string `json:"uuid" binding:"required"`
 	Location *Location `json:"location" binding:"required"`
 	Bonuses []FarmBonuses `json:"bonuses" binding:"required"`
 	Tools map[string]uint8 `json:"tools" binding:"required"`

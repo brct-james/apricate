@@ -9,6 +9,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - - - Don't forget to save the token from the response to your claim request. You must use this as a bearer token in the auth header for secure `/my/` routes
 - - - Usernames must include only letters, numbers, `-`, and `_`. There are some reserved sequences for game-specific prefixes. A slur filter exists, I hope never to need it.
 - - Get public user info at `/api/users/{username}` and get private user info including token at `/api/my/account`
+- Monitor list of assistants or specific assistant with `/api/my/assistants` and `/api/my/assistants/{uuid}`
 
 ---
 
@@ -20,6 +21,8 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/users/{username}` returns the public user data
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
 - `GET: /api/my/account` returns the private user data (includes token)
+- `GET: /api/my/assistants` returns a list of the player's assistants
+- `GET: /api/my/assistants/{uuid}` returns the assistant specified by `uuid`
 
 ---
 
@@ -111,6 +114,11 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 - Add schemas for most currently planned datasets
 - Add username slur filter and reserved keyword filter
 - Add custom string representation of schema enums
+- Add uuid helper
+- Add assistant creation
+- Add assistants endpoints
+- Add yaml dictating world layout
+- Add jsonmget to rdb
 
 ## Reference
 

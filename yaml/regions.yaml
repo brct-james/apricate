@@ -1,0 +1,45 @@
+---
+regions:
+  - Pria:
+      Name: Pria
+      Description: The starting region, a rural and under-developed area that largely escaped the ravages of war by being too small to notice.
+      PortConnections:
+        - Veldis
+  - Veldis:
+      Name: Veldis
+      Description: Veldis used to be a relatively rural minor region, but after The Fracturing it became the primary supplier of food to Tyldia. The Merchant Syndicate purchased every plot of land on Veldis and hired mages to flatten hills, dig irrigation, and enchant the soil to ensure enough capacity to feed the city.
+      PortConnections:
+        - Pria
+        - Skellig
+        - Tritum
+  - Skellig:
+      Name: Skellig
+      Description: Though relatively large, Skellig is 90% marshy wetland thanks to a large freshwater spring and is nearly always overcast or rainy. Residents build structures on stilts and largely subsist by filling enchanted barrels of water for sale to drier islands.
+      PortConnections:
+        - Veldis
+        - Boldor
+  - Tritum:
+      Name: Tritum
+      Description: Known before The Fracturing as The Bastion of the West, Tritum's population is divided into warrior and peasant castes. Peasants largely practice subsistence hunting and gathering in Tritum's vast forests, while the warrior caste is contracted by the Merchant Syndicate of Tyldia to guard the traderoute from Veldis.
+      PortConnections:
+        - Veldis
+        - Yoggoth
+  - Boldor:
+      Name: Boldor
+      Description: A bustling region that attracts wealth as the gateway to the metropolis of Tyldia on the main trade route taken by the rural craftspeople of smaller regions.
+      PortConnections:
+        - Skellig
+        - Tyldia
+  - Yoggoth:
+      Name: Yoggoth
+      Description: An oft overlooked region due to the large distance between port connections compared to Boldor. The leadership dictates a compulsory state religion following The Church of Ghel-Nytherog and won't welcome new settlers of other faiths.
+      PortConnections:
+        - Tritum
+        - Tyldia
+  - Tyldia:
+      Name: Tyldia
+      Description: Tyldia is rather unique, as its land mass is entirely developed, forcing construction to grow vertically. Rather than individual settlements, the region is broken up into several Administrative Districts.
+      PortConnections:
+        - Boldor
+        - Yoggoth
+
