@@ -1,30 +1,29 @@
 ---
-regions:
-  - Homestead:
-      Name: Homestead
-      Description: The small country farm you retired to after the war."
-      RegionName: Pria
-      X: 60
-      Y: 30
-      NPCs: []
-  - Yudoa:
-      Name: Yudoa
-      Description: A small village 
-      RegionName: Pria
-      X: 82
-      Y: 64
-      NPCs: [Sylvia, Pixis, Boro]
-  - Balgora:
-      Name: Balgora
-      Description: A small village
-      RegionName: Pria
-      X: 76
-      Y: 100
-      NPCs: [Bilgrith, Tara]
-  - Port Fulgrath:
-      Name: Port Fulgrath
-      Description: A port-side fishing vilage
-      RegionName: Pria
-      X: 126
-      Y: 94
-      NPCs: [Umilio, Timaris]
+Homestead:
+  Name: Homestead
+  Description: The small country farm you retired to after the war.
+  RegionName: Pria
+  X: 60
+  Y: 30
+  NPCs: []
+Yudoa:
+  Name: Yudoa
+  Description: A small village 
+  RegionName: Pria
+  X: 82
+  Y: 64
+  NPCs: [Sylvia, Pixis, Boro]
+Balgora:
+  Name: Balgora
+  Description: A small village
+  RegionName: Pria
+  X: 76
+  Y: 100
+  NPCs: [Bilgrith, Tara]
+Port Fulgrath:
+  Name: Port Fulgrath
+  Description: A port-side fishing vilage
+  RegionName: Pria
+  X: 126
+  Y: 94
+  NPCs: [Umilio, Timaris]

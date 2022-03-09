@@ -24,6 +24,7 @@ var (
 	apiVersion = "0.1.0"
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
+	world schema.World
 	flush_DBs = true
 	regenerate_auth_secret = false
 )
@@ -137,6 +138,11 @@ func main() {
 		slur_filter[i] = strings.ToUpper(word)
 	}
 	log.Info.Printf("Created/Loaded Username Slur Filter")
+
+	// Load World from YAML
+	world = schema.World_load("./yaml/regions.yaml", "./yaml/locations")
+	log.Debug.Println(world)
+	log.Info.Printf("Loaded world")
 
 	// Begin Serving
 	handle_requests(slur_filter)

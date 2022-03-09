@@ -116,7 +116,7 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 - Add custom string representation of schema enums
 - Add uuid helper
 - Add assistant creation
-- Add assistants endpoints
+- Add assistants GET endpoints
 - Add yaml dictating world layout
 - Add jsonmget to rdb
 

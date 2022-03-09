@@ -52,15 +52,34 @@ func WriteLinesToFile(filePath string, lines []string) error {
 	return nil
 }
 
-// Reads JSON from specified file, returns bytevalue
-func ReadJSON(path string) []byte {
-	jsonFile, err := os.Open(path)
+// Converts os.File to bytes slice
+func ConvertFileToBytes(file *os.File) []byte {
+	log.Debug.Println("Reading from file")
+	byteValue, _ := ioutil.ReadAll(file)
+	return byteValue
+}
+
+// Reads specified file, returns byte slice
+func ReadFileToBytes(path string) []byte {
+	readFile, err := os.Open(path)
 	if err != nil {
 		log.Error.Fatalln(err)
 	}
-	log.Debug.Println("Successfully opened " + path)
-	defer jsonFile.Close()
-	log.Debug.Println("Reading from file")
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-	return byteValue
+	log.Debug.Println("Successfully opened file for reading to bytes at: " + path)
+	defer readFile.Close()
+	return ConvertFileToBytes(readFile)
+}
+
+// Reads every file in directory, returning slice of bytevalues
+func ReadFilesToBytes(path_to_directory string) [][]byte {
+	files, err := ioutil.ReadDir(path_to_directory)
+	if err != nil {
+		log.Error.Fatalln(err)
+	}
+	bytes := make([][]byte, len(files))
+	for i, file := range files {
+		filename := file.Name()
+		bytes[i] = ReadFileToBytes(path_to_directory + "/" + filename)
+	}
+	return bytes
 }
