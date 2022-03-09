@@ -12,7 +12,7 @@ import (
 type Region struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
-	PortConnections []string `yaml:"PortConnections" json:"port_connections" binding:"required"`
+	Ports map[string]Port `yaml:"Ports" json:"ports" binding:"required"`
 }
 
 // Load region struct by unmarhsalling given yaml file
