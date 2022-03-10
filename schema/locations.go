@@ -12,18 +12,18 @@ import (
 type Location struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	RegionName string `yaml:"RegionName" json:"region_name" binding:"required"`
-	X uint8 `yaml:"X" json:"x" binding:"required"`
-	Y uint8 `yaml:"Y" json:"y" binding:"required"`
+	X int8 `yaml:"X" json:"x" binding:"required"`
+	Y int8 `yaml:"Y" json:"y" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	NPCs []string `yaml:"NPCs" json:"npcs" binding:"required"`
 }
 
 // Load location struct by unmarhsalling given yaml file
-func Locations_load(path_to_locations_yaml string) map[string]Location {
+func Locations_load(path_to_locations_yaml string) map[string]map[string]Location {
 	locationsBytes := filemngr.ReadFilesToBytes(path_to_locations_yaml)
-	locations := make(map[string]Location)
+	locations := make(map[string]map[string]Location)
 	for _, byte := range locationsBytes {
-		var location map[string]Location
+		var location map[string]map[string]Location
 		err := yaml.Unmarshal(byte, &location)
 		if err != nil {
 			log.Error.Fatalln(err)

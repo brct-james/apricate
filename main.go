@@ -161,7 +161,7 @@ func handle_requests(slur_filter []string) {
 	mxr.HandleFunc("/api/users", handlers.UsersSummary).Methods("GET")
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
-	// mxr.HandleFunc("/api/v0/locations", handlers.LocationsOverview).Methods("GET")
+	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
 
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()
@@ -169,6 +169,9 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/account", &handlers.AccountInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/assistants", &handlers.AssistantsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/assistants/{uuid}", &handlers.AssistantInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/locations", &handlers.LocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
+	secure.Handle("/nearby-locations", &handlers.NearbyLocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
+	secure.Handle("/locations/{name}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	// secure.HandleFunc("/inventories", handlers.InventoryInfo).Methods("GET")
 	// secure.HandleFunc("/itineraries", handlers.ItineraryInfo).Methods("GET")
 	// secure.HandleFunc("/markets", handlers.MarketInfo).Methods("GET")

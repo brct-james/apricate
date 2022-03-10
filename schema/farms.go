@@ -17,11 +17,11 @@ const (
 // Defines a farm
 type Farm struct {
 	UUID string `json:"uuid" binding:"required"`
-	Location *Location `json:"location" binding:"required"`
+	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
 	Bonuses []FarmBonuses `json:"bonuses" binding:"required"`
 	Tools map[string]uint8 `json:"tools" binding:"required"`
 	Buildings map[string]uint8 `json:"buildings" binding:"required"`
-	Plots []uint64 `json:"plots" binding:"required"`
+	Plots []string `json:"plots" binding:"required"`
 }
 
 func (s FarmBonuses) String() string {

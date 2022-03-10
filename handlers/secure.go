@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -159,4 +160,174 @@ func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Printf("Sending response for AssistantInfo:\n%v", getAssistantJsonString)
 	responses.SendRes(w, responses.Generic_Success, assistant, "")
 	log.Debug.Println(log.Cyan("-- End AssistantInfo --"))
+}
+
+// Handler function for the secure route: /api/my/locations
+// Returns a list of locations 
+type LocationsInfo struct {
+	Dbs *map[string]rdb.Database
+	World *schema.World
+}
+func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- LocationsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get assistant locations to determine fog of war
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in LocationsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	// Get owned farm locations cause these always have vision
+	// TODO: IMPLEMENT FARMS, for now only worry about starting farm
+	farms := []schema.Farm{{
+		UUID: "",
+		RegionLocation: "Pria|Homestead Farm",
+		Bonuses: []schema.FarmBonuses{},
+		Tools: make(map[string]uint8),
+		Buildings: make(map[string]uint8),
+		Plots: []string{""},
+	}}
+	// use myRLs as a set to get all unique locations visible in fow
+	myRLs := make(map[string]bool)
+	for _, assistant := range assistants {
+		myRLs[assistant.RegionLocation] = true
+	}
+	for _, farm := range farms {
+		myRLs[farm.RegionLocation] = true
+	}
+	// finally get all locations in each region
+	resLocations := make([]schema.Location, 0)
+	for rl := range myRLs {
+		split := strings.Split(rl, "|")
+		region, location := split[0], split[1]
+		resLocations = append(resLocations, h.World.Locations[region][location])
+	}
+	responses.SendRes(w, responses.Generic_Success, resLocations, "")
+	log.Debug.Println(log.Cyan("-- End LocationsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/nearby-locations
+// Returns a list of locations 
+type NearbyLocationsInfo struct {
+	Dbs *map[string]rdb.Database
+	World *schema.World
+}
+func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- NearbyLocationsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get assistant locations to determine fog of war
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in NearbyLocationsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	// Get owned farm locations cause these always have vision
+	// TODO: IMPLEMENT FARMS, for now only worry about starting farm
+	farms := []schema.Farm{{
+		UUID: "",
+		RegionLocation: "Homestead Farm",
+		Bonuses: []schema.FarmBonuses{},
+		Tools: make(map[string]uint8),
+		Buildings: make(map[string]uint8),
+		Plots: []string{""},
+	}}
+	// use myRLs as a set
+	myRLs := make(map[string]bool)
+	for _, assistant := range assistants {
+		myRLs[assistant.RegionLocation] = true
+	}
+	for _, farm := range farms {
+		myRLs[farm.RegionLocation] = true
+	}
+	// get every region revealed based on location using myRegions as a set
+	myRegions := make(map[string]bool)
+	for regionloc := range myRLs {
+		split := strings.Split(regionloc, "|")
+		region := split[0]
+		myRegions[region] = true
+	}
+	// finally get all locations in each region
+	resLocations := make(map[string][]string, 0)
+	i := 0
+	for regionName := range myRegions {
+		for _, loc := range h.World.Locations[regionName] {
+			resLocations[regionName] = append(resLocations[regionName], loc.Name)
+		}
+		i++
+	}
+	responses.SendRes(w, responses.Generic_Success, resLocations, "")
+	log.Debug.Println(log.Cyan("-- End NearbyLocationsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/locations
+// Returns a list of locations 
+type LocationInfo struct {
+	Dbs *map[string]rdb.Database
+	World *schema.World
+}
+func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- LocationInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get assistant locations to determine fog of war
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in LocationInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	// Get owned farm locations cause these always have vision
+	// TODO: IMPLEMENT FARMS, for now only worry about starting farm
+	farms := []schema.Farm{{
+		UUID: "",
+		RegionLocation: "Pria|Homestead Farm",
+		Bonuses: []schema.FarmBonuses{},
+		Tools: make(map[string]uint8),
+		Buildings: make(map[string]uint8),
+		Plots: []string{""},
+	}}
+	// use myRLs as a set to get all unique locations visible in fow
+	myRLs := make(map[string]bool)
+	for _, assistant := range assistants {
+		myRLs[assistant.RegionLocation] = true
+	}
+	for _, farm := range farms {
+		myRLs[farm.RegionLocation] = true
+	}
+	// Get name from route
+	route_vars := mux.Vars(r)
+	name := strings.ToUpper(strings.ReplaceAll(route_vars["name"], "_", " "))
+	// finally get specified location if available
+	var resLocation schema.Location
+	found := false
+	for rl := range myRLs {
+		split := strings.Split(rl, "|")
+		region, location := split[0], split[1]
+		if strings.ToUpper(location) == name {
+			resLocation = h.World.Locations[region][location]
+			found = true
+		}
+	}
+	if !found {
+		responses.SendRes(w, responses.No_Assitant_At_Location, nil, "")
+		return
+	}
+	responses.SendRes(w, responses.Generic_Success, resLocation, "")
+	log.Debug.Println(log.Cyan("-- End LocationInfo --"))
 }

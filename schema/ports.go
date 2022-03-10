@@ -4,6 +4,7 @@ package schema
 // Defines a port
 type Port struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
+	Connection string `yaml:"Connection" json:"connection" binding:"required"`
 	Fare uint64 `yaml:"Fare" json:"fare" binding:"required"`
 	Duration uint16 `yaml:"Duration" json:"duration" binding:"required"`
 }

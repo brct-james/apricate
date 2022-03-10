@@ -33,8 +33,8 @@ const (
 	DB_Get_Failure ResponseCode = 6
 	UDB_Get_Failure ResponseCode = 7
 	// JSON_Unmarshal_Error ResponseCode = 8
-	// No_WDB_Context ResponseCode = 9
-	// No_UDB_Context ResponseCode = 10
+	No_Assitant_At_Location ResponseCode = 9
+	//  ResponseCode = 10
 	No_AuthPair_Context ResponseCode = 11
 	User_Not_Found ResponseCode = 12
 	// Not_Enough_Mana ResponseCode = 13
@@ -125,10 +125,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	// 	Message: "[JSON_Unmarshal_Error] Error while attempting to unmarshal JSON from DB",
 	// 	HttpResponse: http.StatusInternalServerError,
 	// },
-	// No_WDB_Context: {
-	// 	Message: "[No_WDB_Context] Could not get WDB context from middleware",
-	// 	HttpResponse: http.StatusInternalServerError,
-	// },
+	No_Assitant_At_Location: {
+		Message: "[No_Assitant_At_Location] Cannot see or interact with location without an assistant there. Verify that location exists, that name is spelled correctly (spaces may be replaced with underscores), and that an assistant is at the location specified",
+		HttpResponse: http.StatusForbidden,
+	},
 	// No_UDB_Context: {
 	// 	Message: "[No_UDB_Context] Could not get UDB context from middleware",
 	// 	HttpResponse: http.StatusInternalServerError,

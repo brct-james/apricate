@@ -23,17 +23,17 @@ type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
-	Location string `json:"location" binding:"required"`
+	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
 	Route string `json:"route" binding:"required"`
 }
 
-func NewAssistant(archetype AssistantTypes, location string) *Assistant {
+func NewAssistant(archetype AssistantTypes, regionLocation string) *Assistant {
 	uuid := uuid.NewUUID()
 	return &Assistant{
 		UUID: uuid,
 		Archetype: archetype,
 		Improvements: make(map[string]uint8),
-		Location: location,
+		RegionLocation: regionLocation,
 		Route: "",
 	}
 }

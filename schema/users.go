@@ -32,7 +32,7 @@ type PublicInfo struct {
 
 func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	// generate starting assistant
-	assistant := NewAssistant(Hireling, "Homestead")
+	assistant := NewAssistant(Hireling, "Pria|Homestead Farm")
 	SaveAssistantToDB(dbs["assistants"], assistant)
 	//TODO: generate each of these
 	var starting_farm_id string = ""

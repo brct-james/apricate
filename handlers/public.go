@@ -35,6 +35,17 @@ func UsersSummary(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End usersSummary --"))
 }
 
+// Handler function for the route: /api/regions
+type RegionsOverview struct {
+	World *schema.World
+}
+func (h *RegionsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RegionsOverview --"))
+	res := h.World.Regions
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End RegionsOverview --"))
+}
+
 // Handler function for the route: /api/users/{username}
 type UsernameInfo struct {
 	Dbs *map[string]rdb.Database
