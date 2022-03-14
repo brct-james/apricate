@@ -22,7 +22,6 @@ paths:
         required: true
         description: Id of an existing user.
     get:
-      summary: Get User Info by User ID
       responses:
         '200':
           description: User Found
@@ -145,7 +144,6 @@ paths:
         in: path
         required: true
     post:
-      summary: ''
       operationId: post-users-userId-claim
       responses:
         '200':
@@ -215,7 +213,6 @@ paths:
         - Users
   /regions:
     get:
-      summary: Your GET endpoint
       tags:
         - World
       responses:
