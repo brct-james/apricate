@@ -15,6 +15,10 @@ import (
 type User struct {
 	Token string `json:"token" binding:"required"`
 	PublicInfo
+	Contracts []string `json:"contracts" binding:"required"`
+	Assistants []string `json:"assistants" binding:"required"`
+	Farms []string `json:"farms" binding:"required"`
+	Inventories []string `json:"inventories" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -24,10 +28,6 @@ type PublicInfo struct {
 	Ledger Ledger `json:"ledger" binding:"required"`
 	UserSince int64 `json:"user-since" binding:"required"`
 	Achievements []Achievement `json:"achievements" binding:"required"`
-	Contracts []string `json:"contracts" binding:"required"`
-	Assistants []string `json:"assistants" binding:"required"`
-	Farms []string `json:"farms" binding:"required"`
-	Inventories []string `json:"inventories" binding:"required"`
 }
 
 func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
@@ -50,13 +50,13 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 				Favor: make(map[string]int8),
 				Escrow: make(map[string]uint64),
 			},
-			Contracts: []string{starting_contract_id},
-			Farms: []string{starting_farm_id},
-			Inventories: []string{starting_farm_inventory_id},
-			Assistants: []string{starting_assistant_id},
 			Achievements: []Achievement{Achievement_Noob},
 			UserSince: time.Now().Unix(),
 		},
+		Contracts: []string{starting_contract_id},
+		Farms: []string{starting_farm_id},
+		Inventories: []string{starting_farm_inventory_id},
+		Assistants: []string{starting_assistant_id},
 	}
 }
 
@@ -81,7 +81,7 @@ func GetUserFromDB (token string, tdb rdb.Database) (User, bool, error) {
 	// Get user json
 	someJson, getError := tdb.GetJsonData(token, ".")
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// user not found
 			return User{}, false, nil
 		}
@@ -103,7 +103,7 @@ func GetUserDataAtPathFromDB (token string, path string, tdb rdb.Database) (inte
 	// Get user json
 	someJson, getError := tdb.GetJsonData(token, path)
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// user not found
 			return nil, false, nil
 		}
