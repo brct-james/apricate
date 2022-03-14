@@ -1,0 +1,547 @@
+openapi: 3.1.0
+info:
+  title: Apricate API
+  version: '0.1'
+  summary: Apricate is a multiplayer game built on a free web API.
+  contact:
+    name: James Clague
+    email: james@apricate.io
+  license:
+    identifier: GPL-3.0-only
+    name: GPL-3
+  description: 'Apricate is a multiplayer game built on a free web API. You control a magic farm and several assistants who help sell your plants in town. Corner the market on onions or spend your days breeding the perfect hybrid, or find your own way in the world.'
+servers:
+  - url: 'https://apricate.io/api'
+paths:
+  '/users/{userId}':
+    parameters:
+      - schema:
+          type: integer
+        name: userId
+        in: path
+        required: true
+        description: Id of an existing user.
+    get:
+      summary: Get User Info by User ID
+      responses:
+        '200':
+          description: User Found
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    code: 1
+                    message: '[Generic_Success] Request Successful'
+                    data:
+                      username: Greenitthe
+                      title: Owner
+                      ledger:
+                        currencies: {}
+                        favor: {}
+                        escrow: {}
+                      user-since: 1647276788
+                      achievements:
+                        - Owner
+                        - Contributor
+                        - Noob
+                      contracts: null
+                      assistants: null
+                      farms: null
+                      inventories: null
+                properties:
+                  code:
+                    type: number
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Public-User-Info'
+                required:
+                  - code
+                  - message
+                  - data
+              examples: {}
+        '404':
+          description: User Not Found
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    code: 12
+                    message: '[User_Not_Found] User not found! | in publicGetUser, no user found in DB with username: tes'
+                    data: null
+                properties:
+                  code:
+                    type: number
+                  message:
+                    type: string
+                  data: {}
+                required:
+                  - code
+                  - message
+      operationId: get-users-userId
+      description: Retrieve the public information of the user with the matching user ID.
+      tags:
+        - Users
+  /users:
+    parameters: []
+    get:
+      summary: ''
+      operationId: get-users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    code: 1
+                    message: '[Generic_Success] Request Successful'
+                    data:
+                      unique_users:
+                        - Greenitthe
+                      active_users:
+                        - Greenitthe
+                properties:
+                  code:
+                    type: number
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    required:
+                      - unique_users
+                      - active_users
+                    properties:
+                      unique_users:
+                        type: array
+                        items:
+                          type: string
+                      active_users:
+                        type: array
+                        items:
+                          type: string
+                required:
+                  - code
+                  - message
+                  - data
+      description: 'Get list of registered usernames with various filters: unique, active, etc.'
+      parameters: []
+      tags:
+        - Users
+  '/users/{userId}/claim':
+    parameters:
+      - schema:
+          type: string
+        name: userId
+        in: path
+        required: true
+    post:
+      summary: ''
+      operationId: post-users-userId-claim
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    code: 1
+                    message: '[Generic_Success] Request Successful'
+                    data:
+                      token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRlc3QifQ.F9VZKQZbaI102TFGy3SKVaMhe6ZDCJUwTvfA1rVootg
+                      username: Test
+                      title: Noob
+                      ledger:
+                        currencies: {}
+                        favor: {}
+                        escrow: {}
+                      user-since: 1647277495
+                      achievements:
+                        - Noob
+                      contracts:
+                        - ''
+                      assistants:
+                        - 8ea40ddf-eb02-4db6-80aa-debb3885e6d3
+                      farms:
+                        - ''
+                      inventories:
+                        - ''
+                properties:
+                  code:
+                    type: number
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+                required:
+                  - code
+                  - message
+                  - data
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    code: 3
+                    message: '[Username_Validation_Failure] Please ensure username conforms to requirements and account does not already exist! | in UsernameClaim | Username: Test | Reason: USER_ALREADY_EXISTS'
+                    data: null
+                properties:
+                  code:
+                    type: number
+                  message:
+                    type: string
+                  data: {}
+                required:
+                  - code
+                  - message
+      description: 'Attempt to claim the specified username, returns the user data after creation, including token which users must save to access private routes'
+      tags:
+        - Users
+  /regions:
+    get:
+      summary: Your GET endpoint
+      tags:
+        - World
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    code: 1
+                    message: '[Generic_Success] Request Successful'
+                    data:
+                      Boldor:
+                        name: Boldor
+                        description: A bustling region that attracts wealth as the gateway to the metropolis of Tyldia on the main trade route taken by the rural craftspeople of smaller regions.
+                        ports:
+                          Skellig:
+                            name: Port Geld
+                            connection: Boldor to Skellig
+                            fare: 100
+                            duration: 15
+                          Tyldia:
+                            name: Port Falandra
+                            connection: Boldor to Tyldia
+                            fare: 150
+                            duration: 90
+                      Pria:
+                        name: Pria
+                        description: 'The starting region, a rural and under-developed area that largely escaped the ravages of war by being too small to notice.'
+                        ports:
+                          Veldis:
+                            name: Port Fulgrath
+                            connection: Pria to Veldis
+                            fare: 500
+                            duration: 30
+                      Skellig:
+                        name: Skellig
+                        description: 'Though relatively large, Skellig is 90% marshy wetland thanks to a large freshwater spring and is nearly always overcast or rainy. Residents build structures on stilts and largely subsist by filling enchanted barrels of water for sale to drier islands.'
+                        ports:
+                          Boldor:
+                            name: Port Ysili
+                            connection: Skellig to Boldor
+                            fare: 100
+                            duration: 15
+                          Veldis:
+                            name: Port Gumpti
+                            connection: Skellig to Veldis
+                            fare: 100
+                            duration: 60
+                      Tritum:
+                        name: Tritum
+                        description: 'Known before The Fracturing as The Bastion of the West, Tritum''s population is divided into warrior and peasant castes. Peasants largely practice subsistence hunting and gathering in Tritum''s vast forests, while the warrior caste is contracted by the Merchant Syndicate of Tyldia to guard the traderoute from Veldis.'
+                        ports:
+                          Veldis:
+                            name: Port Hamstrid
+                            connection: Tritum to Veldis
+                            fare: 250
+                            duration: 90
+                          Yoggoth:
+                            name: Port Teleborgo
+                            connection: Tritum to Yoggoth
+                            fare: 350
+                            duration: 120
+                      Tyldia:
+                        name: Tyldia
+                        description: 'Tyldia is rather unique, as its land mass is entirely developed, forcing construction to grow vertically. Rather than individual settlements, the region is broken up into several Administrative Districts.'
+                        ports:
+                          Boldor:
+                            name: Port Tuolorme
+                            connection: Tyldia to Boldor
+                            fare: 150
+                            duration: 90
+                          Yoggoth:
+                            name: Port Denver
+                            connection: Tyldia to Yoggoth
+                            fare: 250
+                            duration: 150
+                      Veldis:
+                        name: Veldis
+                        description: 'Veldis used to be a relatively rural minor region, but after The Fracturing it became the primary supplier of food to Tyldia. The Merchant Syndicate purchased every plot of land on Veldis and hired mages to flatten hills, dig irrigation, and enchant the soil to ensure enough capacity to feed the city.'
+                        ports:
+                          Pria:
+                            name: Port Nayanahd
+                            connection: Veldis to Pria
+                            fare: 500
+                            duration: 30
+                          Skellig:
+                            name: Port Olisar
+                            connection: Veldis to Skellig
+                            fare: 100
+                            duration: 60
+                          Tritum:
+                            name: Port Helvin
+                            connection: Veldis to Tritum
+                            fare: 250
+                            duration: 90
+                      Yoggoth:
+                        name: Yoggoth
+                        description: An oft overlooked region due to the long travel times and desert biome as well as the large land-based distance between ports compared to Boldor. The leadership dictates a compulsory state religion following The Church of Ghel-Nytherog and won't welcome new settlers of other faiths.
+                        ports:
+                          Tritum:
+                            name: Port Hellsbrooke
+                            connection: Yoggoth to Tritum
+                            fare: 350
+                            duration: 120
+                          Tyldia:
+                            name: Port Waterdry
+                            connection: Yoggoth to Tyldia
+                            fare: 250
+                            duration: 150
+                properties:
+                  code:
+                    type: number
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Region'
+                required:
+                  - code
+                  - message
+                  - data
+              examples: {}
+      operationId: get-regions
+      description: 'Get details on every Region in the game, including port connections, for navigational purposes'
+components:
+  schemas:
+    User:
+      description: ''
+      type: object
+      x-examples:
+        example-1:
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRyaWFuIn0.KvgNKsC8YXAsMTox6mX5T1UJXuHQNx9LQ574v-c6zKo
+          username: trian
+          title: Noob
+          ledger:
+            currencies: {}
+            favor: {}
+            escrow: {}
+          user-since: 1647277975
+          achievements:
+            - Noob
+          contracts:
+            - ''
+          assistants:
+            - cee2957c-03ca-404c-8892-2df979923069
+          farms:
+            - ''
+          inventories:
+            - ''
+      properties:
+        token:
+          type: string
+        username:
+          type: string
+        title:
+          type: string
+        ledger:
+          type: object
+          required:
+            - currencies
+            - favor
+            - escrow
+          properties:
+            currencies:
+              type: object
+              description: 'map[string]number'
+            favor:
+              type: object
+              description: 'map[string]number'
+            escrow:
+              type: object
+              description: 'map[string]number'
+        user-since:
+          type: number
+        achievements:
+          type: array
+          items:
+            type: string
+        contracts:
+          type: array
+          items:
+            type: string
+        assistants:
+          type: array
+          items:
+            type: string
+        farms:
+          type: array
+          items:
+            type: string
+        inventories:
+          type: array
+          items:
+            type: string
+      required:
+        - token
+        - username
+        - title
+        - ledger
+        - user-since
+        - achievements
+        - contracts
+        - assistants
+        - farms
+        - inventories
+    Public-User-Info:
+      description: ''
+      type: object
+      x-examples:
+        example-1:
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRyaWFuIn0.KvgNKsC8YXAsMTox6mX5T1UJXuHQNx9LQ574v-c6zKo
+          username: trian
+          title: Noob
+          ledger:
+            currencies: {}
+            favor: {}
+            escrow: {}
+          user-since: 1647277975
+          achievements:
+            - Noob
+          contracts:
+            - ''
+          assistants:
+            - cee2957c-03ca-404c-8892-2df979923069
+          farms:
+            - ''
+          inventories:
+            - ''
+      properties:
+        token:
+          type: string
+        username:
+          type: string
+        title:
+          type: string
+        ledger:
+          type: object
+          required:
+            - currencies
+            - favor
+            - escrow
+          properties:
+            currencies:
+              type: object
+              description: 'map[string]number'
+            favor:
+              type: object
+              description: 'map[string]number'
+            escrow:
+              type: object
+              description: 'map[string]number'
+        user-since:
+          type: number
+        achievements:
+          type: array
+          items:
+            type: string
+      required:
+        - token
+        - username
+        - title
+        - ledger
+        - user-since
+        - achievements
+    Region:
+      description: ''
+      type: object
+      x-examples:
+        example-1:
+          name: Boldor
+          description: A bustling region that attracts wealth as the gateway to the metropolis of Tyldia on the main trade route taken by the rural craftspeople of smaller regions.
+          ports:
+            Skellig:
+              name: Port Geld
+              connection: Boldor to Skellig
+              fare: 100
+              duration: 15
+            Tyldia:
+              name: Port Falandra
+              connection: Boldor to Tyldia
+              fare: 150
+              duration: 90
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        ports:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Port'
+      required:
+        - name
+        - description
+      examples: []
+    Port:
+      description: ''
+      type: object
+      x-examples:
+        example-1:
+          name: Port Falandra
+          connection: Boldor to Tyldia
+          fare: 150
+          duration: 90
+      properties:
+        name:
+          type: string
+        connection:
+          type: string
+        fare:
+          type: number
+        duration:
+          type: number
+      required:
+        - name
+        - connection
+        - fare
+        - duration
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: When you register a new user you will be granted a private bearer token which grants authorization to use the API.
+tags:
+  - name: Users
+  - name: World
