@@ -75,7 +75,23 @@ Versioning Convention: `major.minor.hotfix`
 
 ### In-Progress: **[v0.3]**
 
-- Plots work and can grow plants (atleast three types) with multi-stage actions, harvesting adds plants to warehouses
+- ~~Plant YAML defined for at least 3 types of plants excluding Wild Seeds~~
+- Plant information public GET endpoints
+- Plot helper functions and initialize on create
+- Plot GET endpoints
+- Plot interactive endpoints (growth actions)
+- - GA_Wait
+- - GA_Clear
+- - GA_Trim
+- - GA_Dig
+- - GA_Weed
+- - GA_Fertilize
+- - GA_Water
+- - GA_Hill
+- - GA_Sprout
+- Plants grow when planted on plots
+- Goods are deposited to warehouse when plants harvested
+- Tested at least 3 types of plants excluding Wild Seeds
 - ~~Skelling and Tritum YAML defined~~
 
 ---
@@ -102,14 +118,15 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Planned: **[v0.7]**
 
-- At least 10 different plants, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
+- At least 10 different plants excluding Wild Seeds, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
 - Tyldia YAML defined
+- Wild Seeds implemented
 
 ---
 
 ### Planned: **[v0.8]**
 
-- At least 20 plants, add at least 2 additional tools for growing some of the new plants, add randomized contracts, consider adding additional markets, all NPCs on starting map have quests
+- At least 20 plants excluding Wild Seeds, add at least 2 additional tools for growing some of the new plants, add randomized contracts, consider adding additional markets, all NPCs on starting map have quests
 
 ---
 

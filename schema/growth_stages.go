@@ -10,7 +10,7 @@ import (
 type GrowthStage struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
-	Action GrowthAction `yaml:"Action" json:"action,omitempty"`
+	Action GrowthAction `yaml:"Action" json:"action" binding:"required"`
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	Optional bool `yaml:"Optional" json:"optional,omitempty"` // May send Wait action to skip optional steps (growth time of optional steps is skipped as well). 
 	AddedYield float32 `yaml:"AddedYield" json:"added_yield,omitempty"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
@@ -25,18 +25,16 @@ type GrowthConsumable struct {
 }
 
 // Defines a growth harvest
-type GrowthHarvest struct {
+type GrowthHarvest struct { // If there's room in warehouse, harvest sets Harvested to true and adds harvest to warehouse. If not final, next action may be sent instantly - no growth time
 	Good GoodType `yaml:"Good" json:"good" binding:"required"`
 	Seeds GoodType `yaml:"Seeds" json:"seeds,omitempty"`
-	HarvestAction GrowthAction `yaml:"HarvestAction" json:"harvest_action" binding:"required"` // If room in warehouse, Sets Harvested to true and adds harvest to warehouse. If not final, next action may be sent instantly - no growth time
 	FinalHarvest bool `yaml:"FinalHarvest" json:"final_harvest,omitempty"` // If true, when harvested, clears the plot after
-	Harvested bool `yaml:"Harvested" json:"harvested,omitempty"`
 }
 
 // enum for growthaction types
 type GrowthAction uint8
 const (
-	GA_Wait GrowthAction = 0 // Special: Skips optional actions.  Also sent when 
+	GA_Wait GrowthAction = 0 // Special: Skips optional actions
 	GA_Clear GrowthAction = 1 // Special: Clears plot, destroying plants in-progress
 	GA_Water GrowthAction = 2 // Water Wand
 	GA_Trim GrowthAction = 3 // Shears

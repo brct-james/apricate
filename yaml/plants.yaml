@@ -62,10 +62,10 @@ Cabbage:
     -
       Name: Adult Plant
       Description: Cabbage must be harvested
+      Action: Trim
       Harvestable:
         Good: Cabbage
         Seeds: Cabbage Seeds
-        HarvestAction: Trim
         FinalHarvest: true
 Shelvis Fig:
   Name: Shelvis Fig
@@ -164,7 +164,14 @@ Shelvis Fig:
       GrowthTime: 240
     -
       Name: Adult Plant - 1st Harvest
-      Description: Shelvis Figs can be harvested as adults, but don't give seeds yet, and require additional water to provide fruit another time
+      Description: Shelvis Figs must be harvested as adults, but don't give seeds yet, and will require additional water to provide fruit another time
+      Action: Trim
+      GrowthTime: 15
+      Harvestable:
+        Good: Shelvis Fig
+    -
+      Name: Adult Plant - Water
+      Description: Shelvis Figs require additional water to provide fruit another time
       Action: Water
       Consumables:
         -
@@ -178,16 +185,13 @@ Shelvis Fig:
           Enchantment: Imbued
           AddedYield: 0.1
       GrowthTime: 360
-      Harvestable:
-        Good: Shelvis Fig
-        HarvestAction: Trim
     -
       Name: Adult Plant - 2nd Harvest
-      Description: Shelvis Figs can be harvested a 2nd time, including gathering seeds
+      Description: Shelvis Figs must be harvested a 2nd time, including gathering seeds
+      Action: Trim
       Harvestable:
         Good: Shelvis Fig
         Seeds: Shelvis Fig Seeds
-        HarvestAction: Trim
         FinalHarvest: True
 Potato:
   Name: Potato
@@ -319,25 +323,23 @@ Potato:
     -
       Name: Adult Plant - 1st Harvest
       Description: Potatoes must be harvested, and may be harvested again after a while
-      Action: Wait
+      Action: Dig
       GrowthTime: 120
       Harvestable: 
         Good: Potato
-        HarvestAction: Dig
     - 
       Name: Adult Plant - 2nd Harvest
       Description: Potatoes must be harvested, and may be harvested one final time after a while
-      Action: Wait
+      Action: Dig
       GrowthTime: 120
       Harvestable: 
         Good: Potato
-        HarvestAction: Dig
     - 
       Name: Adult Plant - 3rd Harvest
       Description: Potatoes must be harvested, and may be harvested one final time after a while
+      Action: Dig
       Harvestable: 
         Good: Potato
-        HarvestAction: Dig
         FinalHarvest: true
       
 Wild Flora:
@@ -410,8 +412,16 @@ Wild Flora:
       Action: Weed
       GrowthTime: 300
     -
-      Name: Adult Plant
+      Name: Adult Plant - Harvest
       Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
+      Action: Dig
+      Optional: True
+      Harvestable:
+        Good: Wild Plant
+        FinalHarvest: true
+    -
+      Name: Adult Plant - Fertilize
+      Description: Wild Flora plants must be fertilized again for additional yield
       Action: Fertilize
       Consumables:
         - 
@@ -435,20 +445,20 @@ Wild Flora:
           AddedYield: 1.0
       AddedYield: 0.5
       GrowthTime: 60
+    -
+      Name: Mature Plant - Harvest
+      Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
+      Action: Dig
+      Optional: True
       Harvestable:
         Good: Wild Plant
-        HarvestAction: Dig
         FinalHarvest: true
     -
-      Name: Mature Plant
-      Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
+      Name: Mature Plant - Trim
+      Description: Mature Wild Flora plants must be trimmed for additional yield
       Action: Trim
       AddedYield: 1.5
       GrowthTime: 3600
-      Harvestable:
-        Good: Wild Plant
-        HarvestAction: Dig
-        FinalHarvest: true
     -
       Name: Ancient Plant
       Description: Ancient Wild Flora plants must be harvested
