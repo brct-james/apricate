@@ -73,7 +73,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Planned: **[v0.3]**
+### In-Progress: **[v0.3]**
 
 - Plots work and can grow plants (atleast three types) with multi-stage actions, harvesting adds plants to warehouses
 - ~~Skelling and Tritum YAML defined~~
