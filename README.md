@@ -83,7 +83,7 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: **[v0.4]**
 
 - Assistants can transfer things between warehouses
-- Boldor, Yoggoth, Tyldia YAML defined
+- Boldor, Yoggoth YAML defined
 
 ---
 
@@ -103,6 +103,7 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: **[v0.7]**
 
 - At least 10 different plants, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
+- Tyldia YAML defined
 
 ---
 
@@ -186,6 +187,10 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 - Add farms GET
 - Add warehouses GET
 - Add contracts GET
+
+### v0.3
+
+- Add skellig and tritum YAML
 
 ## Reference
 
