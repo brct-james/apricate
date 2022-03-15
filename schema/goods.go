@@ -12,17 +12,19 @@ const (
 	Good_Water Goods = 0
 	Good_Cabbage Goods = 1
 	Good_CabbageSeeds Goods = 2
-	Good_Shelvis Goods = 3
-	Good_ShelvisSeeds Goods = 4
-	Good_Potato Goods = 5
+	Good_ShelvisFig Goods = 3
+	Good_ShelvisFigSeeds Goods = 4
+	Good_ShelvisFigAle Goods = 5
+	Good_Potato Goods = 6
 )
 
 var goodsToString = map[Goods]string {
 	Good_Water: "Water",
 	Good_Cabbage: "Cabbage",
 	Good_CabbageSeeds: "Cabbage Seeds",
-	Good_Shelvis: "Shelvis",
-	Good_ShelvisSeeds: "Shelvis Seeds",
+	Good_ShelvisFig: "Shelvis Fig",
+	Good_ShelvisFigSeeds: "Shelvis Fig Seeds",
+	Good_ShelvisFigAle: "Shelvis Fig Ale",
 	Good_Potato: "Potato",
 }
 
@@ -30,8 +32,9 @@ var goodsToID = map[string]Goods {
 	"Water": Good_Water,
 	"Cabbage": Good_Cabbage,
 	"Cabbage Seeds": Good_CabbageSeeds,
-	"Shelvis": Good_Shelvis,
-	"Shelvis Seeds": Good_ShelvisSeeds,
+	"Shelvis Fig": Good_ShelvisFig,
+	"Shelvis Fig Seeds": Good_ShelvisFigSeeds,
+	"Shelvis Fig Ale": Good_ShelvisFigAle,
 	"Potato": Good_Potato,
 }
 
