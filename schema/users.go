@@ -37,10 +37,13 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	// generate starting farm
 	farm := NewFarm("Pria|Homestead Farm")
 	SaveFarmToDB(dbs["farms"], farm)
+	// generate starting contract
+	contract := NewContract("Pria|Homestead Farm", ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
+	SaveContractToDB(dbs["contracts"], contract)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID
 	var starting_farm_inventory_id string = ""
-	var starting_contract_id string = ""
+	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
 
 	return &User{

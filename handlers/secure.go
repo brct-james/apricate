@@ -382,3 +382,60 @@ func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responses.SendRes(w, responses.Generic_Success, farm, "")
 	log.Debug.Println(log.Cyan("-- End FarmInfo --"))
 }
+
+// Handler function for the secure route: /api/my/contracts
+type ContractsInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *ContractsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- ContractsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	adb := (*h.Dbs)["contracts"]
+	contracts, foundContracts, contractsErr := schema.GetContractsFromDB(userData.Contracts, adb)
+	if contractsErr != nil || !foundContracts {
+		log.Error.Printf("Error in ContractsInfo, could not get contracts from DB. foundContracts: %v, error: %v", foundContracts, contractsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, contracts, contractsErr.Error())
+		return
+	}
+	getContractJsonString, getContractJsonStringErr := responses.JSON(contracts)
+	if getContractJsonStringErr != nil {
+		log.Error.Printf("Error in ContractsInfo, could not format contracts as JSON. contracts: %v, error: %v", contracts, getContractJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, contracts, getContractJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for ContractsInfo:\n%v", getContractJsonString)
+	responses.SendRes(w, responses.Generic_Success, contracts, "")
+	log.Debug.Println(log.Cyan("-- End ContractsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/contracts/{uuid}
+type ContractInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- ContractInfo --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	log.Debug.Printf("ContractInfo Requested for: %s", uuid)
+	adb := (*h.Dbs)["contracts"]
+	contract, foundContract, contractsErr := schema.GetContractFromDB(uuid, adb)
+	if contractsErr != nil || !foundContract {
+		log.Error.Printf("Error in ContractInfo, could not get contract from DB. foundContract: %v, error: %v", foundContract, contractsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, contract, contractsErr.Error())
+		return
+	}
+	getContractJsonString, getContractJsonStringErr := responses.JSON(contract)
+	if getContractJsonStringErr != nil {
+		log.Error.Printf("Error in ContractInfo, could not format contracts as JSON. contracts: %v, error: %v", contract, getContractJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, contract, getContractJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for ContractInfo:\n%v", getContractJsonString)
+	responses.SendRes(w, responses.Generic_Success, contract, "")
+	log.Debug.Println(log.Cyan("-- End ContractInfo --"))
+}

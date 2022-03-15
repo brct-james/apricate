@@ -28,6 +28,10 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/account` returns the private user data (includes token)
 - `GET: /api/my/assistants` returns a list of the player's assistants
 - `GET: /api/my/assistants/{uuid}` returns the assistant specified by `uuid`
+- `GET: /api/my/farms` returns a list of the player's farms
+- `GET: /api/my/farms/{uuid}` returns the farm specified by `uuid`
+- `GET: /api/my/contracts` returns a list of the player's contracts
+- `GET: /api/my/contracts/{uuid}` returns the contract specified by `uuid`
 - `GET: /api/my/locations` returns the details for any location with an assistant as well as any owned farms
 - `GET: /api/my/locations/{name}` returns the details of the location specified by `name` IF the location is an owned farm or holds an assistant
 - `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every region with atleast one assistant), for navigational purposes
@@ -70,7 +74,7 @@ Versioning Convention: `major.minor.hotfix`
 
 - ~~Assistants have helper functions and initialize on create, have GET endpoints~~
 - ~~Farms have helper functions and initialize on create, have GET endpoints~~
-- Contracts have helper functions and initialize on create, have GET endpoints
+- ~~Contracts have helper functions and initialize on create, have GET endpoints~~
 - Inventories have helper functions and initialize on create, have GET endpoints
 - ~~Pria and Veldis YAML defined~~
 
