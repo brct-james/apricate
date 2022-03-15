@@ -496,3 +496,61 @@ func (h *WarehouseInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responses.SendRes(w, responses.Generic_Success, warehouse, "")
 	log.Debug.Println(log.Cyan("-- End WarehouseInfo --"))
 }
+
+// Handler function for the secure route: /api/my/plots
+type PlotsInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *PlotsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- PlotsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get plots from db
+	adb := (*h.Dbs)["plots"]
+	plots, foundPlots, plotsErr := schema.GetPlotsFromDB(userData.Plots, adb)
+	if plotsErr != nil || !foundPlots {
+		log.Error.Printf("Error in PlotsInfo, could not get plots from DB. foundPlots: %v, error: %v", foundPlots, plotsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, plots, plotsErr.Error())
+		return
+	}
+	getPlotsJsonString, getPlotsJsonStringErr := responses.JSON(plots)
+	if getPlotsJsonStringErr != nil {
+		log.Error.Printf("Error in PlotsInfo, could not format plots as JSON. plots: %v, error: %v", plots, getPlotsJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, plots, getPlotsJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for PlotsInfo:\n%v", getPlotsJsonString)
+	responses.SendRes(w, responses.Generic_Success, plots, "")
+	log.Debug.Println(log.Cyan("-- End PlotsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/plots/{uuid}
+type PlotInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- PlotInfo --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	log.Debug.Printf("PlotInfo Requested for: %s", uuid)
+	adb := (*h.Dbs)["plots"]
+	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
+	if plotsErr != nil || !foundPlot {
+		log.Error.Printf("Error in PlotInfo, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
+		return
+	}
+	getPlotJsonString, getPlotJsonStringErr := responses.JSON(plot)
+	if getPlotJsonStringErr != nil {
+		log.Error.Printf("Error in PlotInfo, could not format plots as JSON. plots: %v, error: %v", plot, getPlotJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, plot, getPlotJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for PlotInfo:\n%v", getPlotJsonString)
+	responses.SendRes(w, responses.Generic_Success, plot, "")
+	log.Debug.Println(log.Cyan("-- End PlotInfo --"))
+}

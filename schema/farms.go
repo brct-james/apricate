@@ -30,7 +30,7 @@ type Farm struct {
 	Plots []string `json:"plots" binding:"required"`
 }
 
-func NewFarm(regionLocation string) *Farm {
+func NewFarm(pdb rdb.Database, regionLocation string) *Farm {
 	uuid := uuid.NewUUID()
 	var bonuses []FarmBonuses
 	var tools map[ToolTypes]uint8
@@ -41,7 +41,7 @@ func NewFarm(regionLocation string) *Farm {
 		bonuses = make([]FarmBonuses, 0)
 		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Hoe: 1}
 		buildings = map[BuildingTypes]uint8{Building_Home: 1, Building_Field: 1}
-		plots = make([]string, 0) //TODO: generate plots and give uuids here
+		plots = NewPlots(pdb, "Pria|Homesteam Farm", []Size{Average, Average, Modest, Modest})
 	default:
 		bonuses = make([]FarmBonuses, 0)
 		tools = make(map[ToolTypes]uint8)

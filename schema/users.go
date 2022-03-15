@@ -18,6 +18,7 @@ type User struct {
 	Contracts []string `json:"contracts" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
 	Farms []string `json:"farms" binding:"required"`
+	Plots []string `json:"plots" binding:"required"`
 	Warehouses []string `json:"warehouses" binding:"required"`
 }
 
@@ -35,7 +36,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	assistant := NewAssistant(Hireling, "Pria|Homestead Farm")
 	SaveAssistantToDB(dbs["assistants"], assistant)
 	// generate starting farm
-	farm := NewFarm("Pria|Homestead Farm")
+	farm := NewFarm(dbs["plots"], "Pria|Homestead Farm")
 	SaveFarmToDB(dbs["farms"], farm)
 	// generate starting contract
 	contract := NewContract("Pria|Homestead Farm", ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
@@ -64,6 +65,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 		},
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
+		Plots: farm.Plots,
 		Warehouses: []string{starting_farm_warehouse_id},
 		Assistants: []string{starting_assistant_id},
 	}

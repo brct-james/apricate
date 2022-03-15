@@ -160,7 +160,7 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Handler function for the route: /api/plants
 type PlantsOverview struct {
-	Plants *map[string]schema.Plant
+	Plants *map[string]schema.PlantDefinition
 }
 func (h *PlantsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantsOverview --"))
@@ -171,7 +171,7 @@ func (h *PlantsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Handler function for the route: /api/plants
 type PlantOverview struct {
-	Plants *map[string]schema.Plant
+	Plants *map[string]schema.PlantDefinition
 }
 func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantOverview --"))

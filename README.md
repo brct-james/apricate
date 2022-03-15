@@ -32,6 +32,8 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/assistants/{uuid}` returns the assistant specified by `uuid`
 - `GET: /api/my/farms` returns a list of the player's farms
 - `GET: /api/my/farms/{uuid}` returns the farm specified by `uuid`
+- `GET: /api/my/plots` returns a list of the player's plots
+- `GET: /api/my/plots/{uuid}` returns the plot specified by `uuid`
 - `GET: /api/my/contracts` returns a list of the player's contracts
 - `GET: /api/my/contracts/{uuid}` returns the contract specified by `uuid`
 - `GET: /api/my/warehouses` returns a list of the player's warehouses
@@ -77,10 +79,11 @@ Versioning Convention: `major.minor.hotfix`
 
 ### In-Progress: **[v0.3]**
 
-- ~~Plant YAML defined for at least 3 types of plants excluding Wild Seeds~~
-- ~~Plant information public GET endpoints~~
-- Plot helper functions and initialize on create
-- Plot GET endpoints
+- ~~PlantDefinition YAML defined for at least 3 types of plants excluding Wild Seeds~~
+- ~~PlantDefinition information public GET endpoints~~
+- ~~Plot helper functions and initialize on create~~
+- ~~Plot GET endpoints~~
+- ~~Plant struct for plots defined~~
 - Plot interactive endpoints (growth actions)
 - - GA_Wait
 - - GA_Clear
@@ -102,12 +105,14 @@ Versioning Convention: `major.minor.hotfix`
 
 - Assistants can transfer things between warehouses
 - Boldor, Yoggoth YAML defined
+- Decide whether to use UUID for most lookups or a composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1
 
 ---
 
 ### Planned: **[v0.5]**
 
 - One functional market, Local orders (non-player orders to provide baseline supply/demand)
+- Ratelimiting
 
 ---
 
@@ -184,24 +189,6 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 
 ## Changelog
 
-### v0.1
-
-- Basic setup
-- Add user claiming endpoint
-- Add user info endpoint
-- Add secure account info endpoint
-- Add active users tracking
-- Add schemas for most currently planned datasets
-- Add username slur filter and reserved keyword filter
-- Add custom string representation of schema enums
-- Add uuid helper
-- Add assistant creation
-- Add assistants GET endpoints
-- Add yaml dictating world layout
-- Add jsonmget to rdb
-- Add locations endpoints for getting nearby, as well as those revealed in FOW
-- Add regions endpoint
-
 ### v0.2
 
 - Add assitants GET
@@ -212,6 +199,8 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 ### v0.3
 
 - Add skellig and tritum YAML
+- Add plants YAMl
+- Add/modify schemas to support plots/plants
 
 ## Reference
 

@@ -10,29 +10,34 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Defines a plant
+// Defines a plant object to be stored on plots
 type Plant struct {
-	Name PlantType `yaml:"Name" json:"name" binding:"required"`
-	Description string `yaml:"Description" json:"description" binding:"required"`
-	Yield float32 `yaml:"Yield" json:"yield" binding:"required"`
-	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
-	CurrentStage int16 `yaml:"CurrentStage" json:"current_stage" binding:"required"`
+	PlantType PlantType `json:"type" binding:"required"`
+	CurrentStage int16 `json:"current_stage" binding:"required"`
+	Yield float32 `json:"yield" binding:"required"`
+	NextStageTimestamp uint64 `json:"next_stage_timestamp" binding:"required"`
 }
 
-func NewPlant(name PlantType, description string, growthStages []GrowthStage) *Plant {
+func NewPlant(ptype PlantType) *Plant {
 	return &Plant{
-		Name: name,
-		Description: description,
-		Yield: 0.0,
-		GrowthStages: growthStages,
+		PlantType: ptype,
 		CurrentStage: 0,
+		Yield: 1.0,
+		NextStageTimestamp: 0,
 	}
 }
 
+// Defines a plant definition for the plant dictionary
+type PlantDefinition struct {
+	Name PlantType `yaml:"Name" json:"name" binding:"required"`
+	Description string `yaml:"Description" json:"description" binding:"required"`
+	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
+}
+
 // Load plant struct by unmarhsalling given yaml file
-func Plants_load(path_to_plants_yaml string) map[string]Plant {
+func Plants_load(path_to_plants_yaml string) map[string]PlantDefinition {
 	plantsBytes := filemngr.ReadFileToBytes(path_to_plants_yaml)
-	var plants map[string]Plant
+	var plants map[string]PlantDefinition
 	err := yaml.Unmarshal(plantsBytes, &plants)
 	if err != nil {
 		log.Error.Fatalf("%v", err.(*json.SyntaxError))

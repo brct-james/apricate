@@ -12,17 +12,29 @@ import (
 // Defines a plot
 type Plot struct {
 	UUID string `json:"uuid" binding:"required"`
+	RegionLocation string `json:"region_location" binding:"required"`
 	Capacity Size `json:"capacity" binding:"required"`
 	Plants []Plant `json:"plants" binding:"required"`
 }
 
-func NewPlot(capacity Size) *Plot {
+func NewPlot(regionLocation string, capacity Size) *Plot {
 	uuid := uuid.NewUUID()
 	return &Plot{
 		UUID: uuid,
+		RegionLocation: regionLocation,
 		Capacity: capacity,
 		Plants: make([]Plant, 0),
 	}
+}
+
+func NewPlots(pdb rdb.Database, regionLocation string, capacities []Size) []string {
+	res := make([]string, len(capacities))
+	for i, size := range capacities {
+		plot := NewPlot(regionLocation, size)
+		SavePlotToDB(pdb, plot)
+		res[i] = plot.UUID
+	}
+	return res
 }
 
 // Check DB for existing plot with given uuid and return bool for if exists, and error if error encountered
