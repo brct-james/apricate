@@ -11,11 +11,12 @@ type BuildingTypes uint8
 const (
 	Building_Home BuildingTypes = 0
 	Building_Field BuildingTypes = 1
-	Building_Pasture BuildingTypes = 2
-	Building_Barn BuildingTypes = 3
-	Building_Kitchen BuildingTypes = 4
-	Building_Silo BuildingTypes = 5
-	Building_Altar BuildingTypes = 6
+	Building_Altar BuildingTypes = 2
+	Building_SurveyOffice BuildingTypes = 3
+	Building_Pasture BuildingTypes = 4
+	Building_Barn BuildingTypes = 5
+	Building_Kitchen BuildingTypes = 6
+	Building_Silo BuildingTypes = 7
 )
 
 func (s BuildingTypes) String() string {
@@ -25,21 +26,23 @@ func (s BuildingTypes) String() string {
 var buildingsToString = map[BuildingTypes]string {
 	Building_Home: "Home",
 	Building_Field: "Field",
+	Building_Altar: "Altar",
+	Building_SurveyOffice: "Survey Office",
 	Building_Pasture: "Pasture",
 	Building_Barn: "Barn",
 	Building_Kitchen: "Kitchen",
 	Building_Silo: "Silo",
-	Building_Altar: "Altar",
 }
 
 var buildingsToID = map[string]BuildingTypes {
 	"Home": Building_Home,
 	"Field": Building_Field,
+	"Altar": Building_Altar,
+	"Survey Office": Building_SurveyOffice,
 	"Pasture": Building_Pasture,
 	"Barn": Building_Barn,
 	"Kitchen": Building_Kitchen,
 	"Silo": Building_Silo,
-	"Altar": Building_Altar,
 }
 
 // MarshalJSON marshals the enum as a text string

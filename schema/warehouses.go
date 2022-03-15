@@ -13,14 +13,14 @@ import (
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
 	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
-	Goods map[Goods]uint64 `json:"goods" binding:"required"`
+	Goods map[GoodType]Good `json:"goods" binding:"required"`
 }
 
 func NewEmptyWarehouse(regionLocation string) *Warehouse {
-	return NewWarehouse(regionLocation, make(map[Goods]uint64))
+	return NewWarehouse(regionLocation, make(map[GoodType]Good))
 }
 
-func NewWarehouse(regionLocation string, starting_goods map[Goods]uint64) *Warehouse {
+func NewWarehouse(regionLocation string, starting_goods map[GoodType]Good) *Warehouse {
 	uuid := uuid.NewUUID()
 	return &Warehouse{
 		UUID: uuid,

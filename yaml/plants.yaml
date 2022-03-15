@@ -1,0 +1,81 @@
+---
+Wild Flora:
+  Name: Wild Flora
+  Description: The Wild Flora plant is a magical plant that grows under ground. Once fully mature, it can be dug up to find a random plant. Its seeds naturally fill the available land, so one seed can naturally grow a Titanic plant, if you have the ability to support such a plant
+  Yield: 1.0
+  GrowthStages:
+    - 
+      Name: Seed
+      Description: Wild Flora require enchanted water to sprout
+      Action: Water
+      Consumables: 
+      - 
+        Name: Enchanted Water
+        Quantity: 1
+      GrowthTime: 60
+    -
+      Name: Seedling
+      Description: Wild Flora seedlings must be fertilized to continue growing
+      Action: Fertilize
+      Consumables:
+      - 
+        Name: Fertilizer
+        Quantity: 2
+      -
+        Name: Quality Fertilizer
+        Quantity: 1
+      -
+        Name: Enchanted Fertilizer
+        Quantity: 1
+      GrowthTime: 60
+    - 
+      Name: Young Plant
+      Description: Wild Flora plants may be hilled for additional yield
+      Action: Hill
+      Optional: True
+      AddedYield: 1.0
+      GrowthTime: 1800
+    -
+      Name: Adolescent Plant
+      Description: Wild Flora plants must be weeded before harvest
+      Action: Weed
+      GrowthTime: 300
+    -
+      Name: Adult Plant
+      Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
+      Action: Fertilize
+      Consumables:
+      -
+        Name: Fertilizer
+        Quantity: 4
+      -
+        Name: Quality Fertilizer
+        Quantity: 2
+      -
+        Name: Enchanted Fertilizer
+        Quantity: 1
+      Optional: True
+      AddedYield: 0.5
+      GrowthTime: 60
+      Harvestable:
+        Good: Wild Plant
+        BaseYield: 1.0
+        HarvestAction: Dig
+    -
+      Name: Mature Plant
+      Description: Mature Wild Flora plants may be harvested or trimmed for additional yield
+      Action: Trim
+      Optional: True
+      AddedYield: 1.5
+      GrowthTime: 3600
+      Harvestable:
+        Good: Wild Plant
+        BaseYield: 1.0
+        HarvestAction: Dig
+    -
+      Name: Ancient Plant
+      Description: Ancient Wild Flora plants must be harvested
+      Harvestable:
+        Good: Wild Plant
+        BaseYield: 1.0
+        HarvestAction: Dig

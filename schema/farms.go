@@ -165,7 +165,7 @@ func (s FarmBonuses) String() string {
 }
 
 var farmBonusesToString = map[FarmBonuses]string {
-	FarmBonus_PristineSoil: "Pristine Soil | Doubles yields for plants of Average size and below. Plants Large and above grow 1.5x as fast.",
+	FarmBonus_PristineSoil: "Pristine Soil | Doubles base yield of plants.",
 	FarmBonus_Portals: "Portals | Halve the travel time for any Assistant travelling to OR from the farm.",
 	FarmBonus_Forested: "Forested | Two unique Buildings, the Logging Camp and Lumber Mill, are available for construction. Also comes with a free Axe tool, allowing the on-site harvest and processing of logs, lumber, and planks.",
 	FarmBonus_NaturalFertilizer: "Natural Fertilizer | Thanks to the unique geography of the location, plants can naturally grow to Gigantic size",
@@ -173,7 +173,7 @@ var farmBonusesToString = map[FarmBonuses]string {
 }
 
 var farmBonusesToID = map[string]FarmBonuses {
-	"Pristine Soil | Doubles yields for plants of Average size and below. Plants Large and above grow 1.5x as fast.": FarmBonus_PristineSoil,
+	"Pristine Soil | Doubles base yield of plants.": FarmBonus_PristineSoil,
 	"Portals | Halve the travel time for any Assistant travelling to OR from the farm.": FarmBonus_Portals,
 	"Forested | Two unique Buildings, the Logging Camp and Lumber Mill, are available for construction. Also comes with a free Axe tool, allowing the on-site harvest and processing of logs, lumber, and planks.": FarmBonus_Forested,
 	"Natural Fertilizer | Thanks to the unique geography of the location, plants can naturally grow to Gigantic size": FarmBonus_NaturalFertilizer,

@@ -6,20 +6,27 @@ import (
 	"encoding/json"
 )
 
+// Define a good
+type Good struct {
+	Name GoodType `json:"good_name" binding:"required"`
+	Quality Quality `json:"quality" binding:"required"`
+	Quantity uint64 `json:"quantity" binding:"required"`
+}
+
 // enum for good types
-type Goods uint8
+type GoodType uint8
 const (
-	Good_Water Goods = 0
-	Good_WildSeeds Goods = 1
-	Good_Cabbage Goods = 2
-	Good_CabbageSeeds Goods = 3
-	Good_ShelvisFig Goods = 4
-	Good_ShelvisFigSeeds Goods = 5
-	Good_ShelvisFigAle Goods = 6
-	Good_Potato Goods = 7
+	Good_Water GoodType = 0
+	Good_WildSeeds GoodType = 1
+	Good_Cabbage GoodType = 2
+	Good_CabbageSeeds GoodType = 3
+	Good_ShelvisFig GoodType = 4
+	Good_ShelvisFigSeeds GoodType = 5
+	Good_ShelvisFigAle GoodType = 6
+	Good_Potato GoodType = 7
 )
 
-var goodsToString = map[Goods]string {
+var goodsToString = map[GoodType]string {
 	Good_Water: "Water",
 	Good_WildSeeds: "Wild Seeds",
 	Good_Cabbage: "Cabbage",
@@ -30,7 +37,7 @@ var goodsToString = map[Goods]string {
 	Good_Potato: "Potato",
 }
 
-var goodsToID = map[string]Goods {
+var goodsToID = map[string]GoodType {
 	"Water": Good_Water,
 	"Wild Seeds": Good_WildSeeds,
 	"Cabbage": Good_Cabbage,
@@ -41,18 +48,18 @@ var goodsToID = map[string]Goods {
 	"Potato": Good_Potato,
 }
 
-func (s Goods) String() string {
+func (s GoodType) String() string {
 	return goodsToString[s]
 }
 
 // MarshalJSON marshals the enum as a text string
-func (s Goods) MarshalText() ([]byte, error) {
+func (s GoodType) MarshalText() ([]byte, error) {
 	buffer := bytes.NewBufferString(goodsToString[s])
 	return buffer.Bytes(), nil
 }
 
 // UnmarshalJSON unmashals a text string to the enum value
-func (s *Goods) UnmarshalText(b []byte) error {
+func (s *GoodType) UnmarshalText(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
 	if err != nil {
@@ -64,7 +71,7 @@ func (s *Goods) UnmarshalText(b []byte) error {
 }
 
 // MarshalJSON marshals the enum as a quoted json string
-func (s Goods) MarshalJSON() ([]byte, error) {
+func (s GoodType) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
 	buffer.WriteString(goodsToString[s])
 	buffer.WriteString(`"`)
@@ -72,7 +79,7 @@ func (s Goods) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmashals a quoted json string to the enum value
-func (s *Goods) UnmarshalJSON(b []byte) error {
+func (s *GoodType) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
 	if err != nil {

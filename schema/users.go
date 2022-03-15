@@ -41,7 +41,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	contract := NewContract("Pria|Homestead Farm", ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
 	SaveContractToDB(dbs["contracts"], contract)
 	// generate starting warehouse
-	warehouse := NewWarehouse("Pria|Homestead Farm", map[Goods]uint64{Good_CabbageSeeds:10})
+	warehouse := NewWarehouse("Pria|Homestead Farm", map[GoodType]Good{Good_CabbageSeeds:{Name: Good_CabbageSeeds, Quality: Quality_None, Quantity: 10}})
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID

@@ -121,7 +121,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Planned: **[v1.0]**
 
-- Meta account and progression, leaderboards, full documentation
+- Meta account and progression, leaderboards, full documentation, separate dev partition that won't affect live
 
 ---
 
