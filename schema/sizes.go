@@ -9,15 +9,16 @@ import (
 // enum for assistant types
 type Size uint16
 const (
-	Miniscule Size = 1
+	Miniature Size = 1
 	Tiny Size = 2
 	Small Size = 4
-	Average Size = 8
-	Large Size = 16
-	Huge Size = 32
-	Gigantic Size = 64
-	Colossal Size = 128
-	Titanic Size = 256
+	Modest Size = 8
+	Average Size = 16
+	Large Size = 32
+	Huge Size = 64
+	Gigantic Size = 256
+	Colossal Size = 1024
+	Titanic Size = 4096
 )
 
 func (s Size) String() string {
@@ -25,27 +26,29 @@ func (s Size) String() string {
 }
 
 var sizeToString = map[Size]string {
-	Miniscule: "Miniscule (1)",
+	Miniature: "Miniature (1)",
 	Tiny: "Tiny (2)",
 	Small: "Small (4)",
-	Average: "Average (8)",
-	Large: "Large (16)",
-	Huge: "Huge (32)",
-	Gigantic: "Gigantic (64)",
-	Colossal: "Colossal (128)",
-	Titanic: "Titanic (256)",
+	Modest: "Modest (8)",
+	Average: "Average (16)",
+	Large: "Large (32)",
+	Huge: "Huge (64)",
+	Gigantic: "Gigantic (256)",
+	Colossal: "Colossal (1024)",
+	Titanic: "Titanic (4096)",
 }
 
 var sizeToID = map[string]Size {
-	"Miniscule (1)": Miniscule,
+	"Miniature (1)": Miniature,
 	"Tiny (2)": Tiny,
 	"Small (4)": Small,
-	"Average (8)": Average,
-	"Large (16)": Large,
-	"Huge (32)": Huge,
-	"Gigantic (64)": Gigantic,
-	"Colossal (128)": Colossal,
-	"Titanic (256)": Titanic,
+	"Modest (8)": Modest,
+	"Average (16)": Average,
+	"Large (32)": Large,
+	"Huge (64)": Huge,
+	"Gigantic (256)": Gigantic,
+	"Colossal (1024)": Colossal,
+	"Titanic (4096)": Titanic,
 }
 
 // MarshalJSON marshals the enum as a quoted json string

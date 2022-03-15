@@ -10,16 +10,18 @@ import (
 type Goods uint8
 const (
 	Good_Water Goods = 0
-	Good_Cabbage Goods = 1
-	Good_CabbageSeeds Goods = 2
-	Good_ShelvisFig Goods = 3
-	Good_ShelvisFigSeeds Goods = 4
-	Good_ShelvisFigAle Goods = 5
-	Good_Potato Goods = 6
+	Good_WildSeeds Goods = 1
+	Good_Cabbage Goods = 2
+	Good_CabbageSeeds Goods = 3
+	Good_ShelvisFig Goods = 4
+	Good_ShelvisFigSeeds Goods = 5
+	Good_ShelvisFigAle Goods = 6
+	Good_Potato Goods = 7
 )
 
 var goodsToString = map[Goods]string {
 	Good_Water: "Water",
+	Good_WildSeeds: "Wild Seeds",
 	Good_Cabbage: "Cabbage",
 	Good_CabbageSeeds: "Cabbage Seeds",
 	Good_ShelvisFig: "Shelvis Fig",
@@ -30,6 +32,7 @@ var goodsToString = map[Goods]string {
 
 var goodsToID = map[string]Goods {
 	"Water": Good_Water,
+	"Wild Seeds": Good_WildSeeds,
 	"Cabbage": Good_Cabbage,
 	"Cabbage Seeds": Good_CabbageSeeds,
 	"Shelvis Fig": Good_ShelvisFig,

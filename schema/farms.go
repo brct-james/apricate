@@ -13,9 +13,11 @@ import (
 // enum for farm bonuses
 type FarmBonuses uint8
 const (
-	FarmBonus_GoodSoil FarmBonuses = 0
+	FarmBonus_PristineSoil FarmBonuses = 0
 	FarmBonus_Portals FarmBonuses = 1
 	FarmBonus_Forested FarmBonuses = 2
+	FarmBonus_NaturalFertilizer FarmBonuses = 3
+	FarmBonus_ChronomicField FarmBonuses = 4
 )
 
 // Defines a farm
@@ -163,15 +165,19 @@ func (s FarmBonuses) String() string {
 }
 
 var farmBonusesToString = map[FarmBonuses]string {
-	FarmBonus_GoodSoil: "Good Soil | Doubles yields for plants of Average size and below. Plants Large and above grow 1.5x as fast.",
+	FarmBonus_PristineSoil: "Pristine Soil | Doubles yields for plants of Average size and below. Plants Large and above grow 1.5x as fast.",
 	FarmBonus_Portals: "Portals | Halve the travel time for any Assistant travelling to OR from the farm.",
 	FarmBonus_Forested: "Forested | Two unique Buildings, the Logging Camp and Lumber Mill, are available for construction. Also comes with a free Axe tool, allowing the on-site harvest and processing of logs, lumber, and planks.",
+	FarmBonus_NaturalFertilizer: "Natural Fertilizer | Thanks to the unique geography of the location, plants can naturally grow to Gigantic size",
+	FarmBonus_ChronomicField: "Chronomic Field | A perpetual Chronomic Field covers the fields, allowing the accelerated growth of trees. Grow an orchard in your own lifetime!",
 }
 
 var farmBonusesToID = map[string]FarmBonuses {
-	"Good Soil | Doubles yields for plants of Average size and below. Plants Large and above grow 1.5x as fast.": FarmBonus_GoodSoil,
+	"Pristine Soil | Doubles yields for plants of Average size and below. Plants Large and above grow 1.5x as fast.": FarmBonus_PristineSoil,
 	"Portals | Halve the travel time for any Assistant travelling to OR from the farm.": FarmBonus_Portals,
 	"Forested | Two unique Buildings, the Logging Camp and Lumber Mill, are available for construction. Also comes with a free Axe tool, allowing the on-site harvest and processing of logs, lumber, and planks.": FarmBonus_Forested,
+	"Natural Fertilizer | Thanks to the unique geography of the location, plants can naturally grow to Gigantic size": FarmBonus_NaturalFertilizer,
+	"Chronomic Field | An ancient Fae cast a perpetual Chronomic Field over the farm, allowing the accelerated growth of trees. Grow an orchard or lumberyard in days, not years!": FarmBonus_ChronomicField,
 }
 
 // MarshalJSON marshals the enum as a quoted json string
