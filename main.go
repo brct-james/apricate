@@ -25,6 +25,7 @@ var (
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
+	plants map[string]schema.Plant
 	flush_DBs = true
 	regenerate_auth_secret = false
 )
@@ -140,9 +141,14 @@ func main() {
 	log.Info.Printf("Created/Loaded Username Slur Filter")
 
 	// Load World from YAML
-	world = schema.World_load("./yaml/regions.yaml", "./yaml/locations")
+	world = schema.World_load("./yaml/world/regions.yaml", "./yaml/world/locations")
 	log.Debug.Println(world)
 	log.Info.Printf("Loaded world")
+
+	// Load Plants from YAML
+	plants = schema.Plants_load("./yaml/plants.yaml")
+	log.Debug.Println(plants)
+	log.Info.Printf("Loaded plants")
 
 	// Begin Serving
 	handle_requests(slur_filter)
@@ -155,13 +161,14 @@ func handle_requests(slur_filter []string) {
 	// mxr.Use(handlers.GenerateHandlerMiddlewareFunc(userDatabase,worldDatabase))
 	mxr.HandleFunc("/", handlers.Homepage).Methods("GET")
 	// mxr.HandleFunc("/api", handlers.ApiSelection).Methods("GET")
-	// mxr.HandleFunc("/api/v0", handlers.V0Status).Methods("GET")
-	// mxr.HandleFunc("/api/v0/leaderboards", handlers.LeaderboardDescriptions).Methods("GET")
-	// mxr.HandleFunc("/api/v0/leaderboards/{board}", handlers.GetLeaderboards).Methods("GET")
+	// mxr.HandleFunc("/api/leaderboards", handlers.LeaderboardDescriptions).Methods("GET")
+	// mxr.HandleFunc("/api/leaderboards/{board}", handlers.GetLeaderboards).Methods("GET")
 	mxr.HandleFunc("/api/users", handlers.UsersSummary).Methods("GET")
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
 	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/plants", &handlers.PlantsOverview{Plants: &plants}).Methods("GET")
+	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{Plants: &plants}).Methods("GET")
 
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()
@@ -178,21 +185,6 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/nearby-locations", &handlers.NearbyLocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations", &handlers.LocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations/{name}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
-	// secure.HandleFunc("/inventories", handlers.InventoryInfo).Methods("GET")
-	// secure.HandleFunc("/itineraries", handlers.ItineraryInfo).Methods("GET")
-	// secure.HandleFunc("/markets", handlers.MarketInfo).Methods("GET")
-	// secure.HandleFunc("/orders", handlers.OrderInfo).Methods("GET")
-	// secure.HandleFunc("/orders/{status}", handlers.GetOrdersByStatus).Methods("GET")
-	// secure.HandleFunc("/golems", handlers.GetGolems).Methods("GET")
-	// secure.HandleFunc("/golems/{archetype}", handlers.GetGolemsByArchetype).Methods("GET")
-	// secure.HandleFunc("/golem/{symbol}", handlers.GolemInfo).Methods("GET")
-	// secure.HandleFunc("/golem/{symbol}", handlers.ChangeGolemTask).Methods("PUT")
-	// secure.HandleFunc("/rituals", handlers.ListRituals).Methods("GET")
-	// secure.HandleFunc("/rituals/{ritual}", handlers.GetRitualInfo).Methods("GET")
-	// secure.HandleFunc("/rituals/summon-invoker", handlers.NewInvoker).Methods("POST")
-	// secure.HandleFunc("/rituals/summon-harvester", handlers.NewHarvester).Methods("POST")
-	// secure.HandleFunc("/rituals/summon-courier", handlers.NewCourier).Methods("POST")
-	// secure.HandleFunc("/rituals/summon-merchant", handlers.NewMerchant).Methods("POST")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)

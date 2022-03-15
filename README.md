@@ -23,6 +23,8 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/users` returns lists of registered usernames with various filters: unique, active, etc.
 - `GET: /api/users/{username}` returns the public user data
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
+- `GET: /api/plants` returns the data on every plant in the game
+- `GET: /api/plants/{plantName}` returns the data on the specified plant
 
 **Secure Routes**
 - `GET: /api/my/account` returns the private user data (includes token)
@@ -76,7 +78,7 @@ Versioning Convention: `major.minor.hotfix`
 ### In-Progress: **[v0.3]**
 
 - ~~Plant YAML defined for at least 3 types of plants excluding Wild Seeds~~
-- Plant information public GET endpoints
+- ~~Plant information public GET endpoints~~
 - Plot helper functions and initialize on create
 - Plot GET endpoints
 - Plot interactive endpoints (growth actions)
@@ -133,6 +135,8 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: **[v0.9]**
 
 - Add refining/crafting with at least 8 recipes, add at least 4 new tools to support crafting, add at least 2 new buildings to support crafting
+- Add researching plants (with associated building) to reveal full information
+- Fog of War and hide unresearched plant information
 
 ---
 

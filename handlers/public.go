@@ -4,6 +4,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"apricate/auth"
 	"apricate/log"
@@ -155,4 +156,35 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Printf("Generated token %s and claimed username %s", token, username)
 	responses.SendRes(w, responses.Generic_Success, newUser, "")
 	log.Debug.Println(log.Cyan("-- End usernameClaim --"))
+}
+
+// Handler function for the route: /api/plants
+type PlantsOverview struct {
+	Plants *map[string]schema.Plant
+}
+func (h *PlantsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- PlantsOverview --"))
+	res := h.Plants
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End PlantsOverview --"))
+}
+
+// Handler function for the route: /api/plants
+type PlantOverview struct {
+	Plants *map[string]schema.Plant
+}
+func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- PlantOverview --"))
+	// Get username from route
+	route_vars := mux.Vars(r)
+	plant_name := strings.Title(strings.Replace(route_vars["plantName"], "_", " ", -1))
+	log.Debug.Printf("PlantOverview Requested for: %s", plant_name)
+	// Get plant
+	if plant, ok := (*h.Plants)[plant_name]; ok {
+		res := plant
+		responses.SendRes(w, responses.Generic_Success, res, "")
+	} else {
+		responses.SendRes(w, responses.Specified_Plant_Not_Found, nil, "")
+	}
+	log.Debug.Println(log.Cyan("-- End PlantOverview --"))
 }

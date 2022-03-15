@@ -34,7 +34,7 @@ const (
 	UDB_Get_Failure ResponseCode = 7
 	// JSON_Unmarshal_Error ResponseCode = 8
 	No_Assitant_At_Location ResponseCode = 9
-	//  ResponseCode = 10
+	Specified_Plant_Not_Found ResponseCode = 10
 	No_AuthPair_Context ResponseCode = 11
 	User_Not_Found ResponseCode = 12
 	// Not_Enough_Mana ResponseCode = 13
@@ -129,10 +129,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 		Message: "[No_Assitant_At_Location] Cannot see or interact with location without an assistant there. Verify that location exists, that name is spelled correctly (spaces may be replaced with underscores), and that an assistant is at the location specified",
 		HttpResponse: http.StatusForbidden,
 	},
-	// No_UDB_Context: {
-	// 	Message: "[No_UDB_Context] Could not get UDB context from middleware",
-	// 	HttpResponse: http.StatusInternalServerError,
-	// },
+	Specified_Plant_Not_Found: {
+		Message: "[Specified_Plant_Not_Found] Could not get specified plant from dictionary",
+		HttpResponse: http.StatusNotFound,
+	},
 	No_AuthPair_Context: {
 		Message: "[No_AuthPair_Context] Failed to get AuthPair context from middleware",
 		HttpResponse: http.StatusInternalServerError,

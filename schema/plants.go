@@ -2,8 +2,12 @@
 package schema
 
 import (
+	"apricate/filemngr"
+	"apricate/log"
 	"bytes"
 	"encoding/json"
+
+	"gopkg.in/yaml.v3"
 )
 
 // Defines a plant
@@ -23,6 +27,18 @@ func NewPlant(name PlantType, description string, growthStages []GrowthStage) *P
 		GrowthStages: growthStages,
 		CurrentStage: 0,
 	}
+}
+
+// Load plant struct by unmarhsalling given yaml file
+func Plants_load(path_to_plants_yaml string) map[string]Plant {
+	plantsBytes := filemngr.ReadFileToBytes(path_to_plants_yaml)
+	var plants map[string]Plant
+	err := yaml.Unmarshal(plantsBytes, &plants)
+	if err != nil {
+		log.Error.Fatalf("%v", err.(*json.SyntaxError))
+		// log.Error.Fatalf("%v", err.(*yaml.TypeError))
+	}
+	return plants
 }
 
 // enum for plant types
@@ -82,6 +98,24 @@ func (s *PlantType) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
+	*s = plantsToID[j]
+	return nil
+}
+
+// MarshalYAML marshals the enum as a quoted yaml string
+func (s PlantType) MarshalYAML() (interface{}, error) {
+	buffer := bytes.NewBufferString(plantsToString[s])
+	return buffer.Bytes(), nil
+}
+
+// UnmarshalYAML unmashals a quoted yaml string to the enum value
+func (s *PlantType) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var j string
+	if err := unmarshal(&j); err != nil {
+		return err
+	}
+
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
 	*s = plantsToID[j]
 	return nil

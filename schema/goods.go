@@ -90,3 +90,21 @@ func (s *GoodType) UnmarshalJSON(b []byte) error {
 	*s = goodsToID[j]
 	return nil
 }
+
+// MarshalYAML marshals the enum as a quoted yaml string
+func (s GoodType) MarshalYAML() (interface{}, error) {
+	buffer := bytes.NewBufferString(goodsToString[s])
+	return buffer.Bytes(), nil
+}
+
+// UnmarshalYAML unmashals a quoted yaml string to the enum value
+func (s *GoodType) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var j string
+	if err := unmarshal(&j); err != nil {
+		return err
+	}
+
+	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
+	*s = goodsToID[j]
+	return nil
+}
