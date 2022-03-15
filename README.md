@@ -32,6 +32,8 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/farms/{uuid}` returns the farm specified by `uuid`
 - `GET: /api/my/contracts` returns a list of the player's contracts
 - `GET: /api/my/contracts/{uuid}` returns the contract specified by `uuid`
+- `GET: /api/my/warehouses` returns a list of the player's warehouses
+- `GET: /api/my/warehouses/{uuid}` returns the warehouse specified by `uuid`
 - `GET: /api/my/locations` returns the details for any location with an assistant as well as any owned farms
 - `GET: /api/my/locations/{name}` returns the details of the location specified by `name` IF the location is an owned farm or holds an assistant
 - `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every region with atleast one assistant), for navigational purposes
@@ -61,35 +63,26 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Complete: **[v0.1]**
-
-- ~~Basic routes function ("/" for project overview, "/api" for game stuff, "/docs" for auto generated documentation)~~
-- ~~Can register an account, which is stored in DB~~
-- ~~Auth middleware works~~
-- ~~Can GET user info, public and private versions~~
-
----
-
-### In-Progress: **[v0.2]**
+### Complete: **[v0.2]**
 
 - ~~Assistants have helper functions and initialize on create, have GET endpoints~~
 - ~~Farms have helper functions and initialize on create, have GET endpoints~~
 - ~~Contracts have helper functions and initialize on create, have GET endpoints~~
-- Inventories have helper functions and initialize on create, have GET endpoints
+- ~~Warehouses have helper functions and initialize on create, have GET endpoints~~
 - ~~Pria and Veldis YAML defined~~
 
 ---
 
 ### Planned: **[v0.3]**
 
-- Plots work and can grow plants (atleast one type) with multi-stage actions, harvesting adds plants to inventory
+- Plots work and can grow plants (atleast one type) with multi-stage actions, harvesting adds plants to warehouses
 - Skelling and Tritum YAML defined
 
 ---
 
 ### Planned: **[v0.4]**
 
-- Assistants can transfer things between inventories
+- Assistants can transfer things between warehouses
 - Boldor, Yoggoth, Tyldia YAML defined
 
 ---
@@ -133,7 +126,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Planned: Post-1.0
 
-- TODO: This
+- Simplified routing (pass a full route, even over oceans, and server will calculate total fare and travel time, rather than requiring manual travel between each intermediate location) - meta progression unlock?
 
 ---
 
@@ -186,6 +179,13 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 - Add jsonmget to rdb
 - Add locations endpoints for getting nearby, as well as those revealed in FOW
 - Add regions endpoint
+
+### v0.2
+
+- Add assitants GET
+- Add farms GET
+- Add warehouses GET
+- Add contracts GET
 
 ## Reference
 

@@ -18,7 +18,7 @@ type User struct {
 	Contracts []string `json:"contracts" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
 	Farms []string `json:"farms" binding:"required"`
-	Inventories []string `json:"inventories" binding:"required"`
+	Warehouses []string `json:"warehouses" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -40,9 +40,12 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	// generate starting contract
 	contract := NewContract("Pria|Homestead Farm", ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
 	SaveContractToDB(dbs["contracts"], contract)
+	// generate starting warehouse
+	warehouse := NewWarehouse("Pria|Homestead Farm", map[Goods]uint64{Good_CabbageSeeds:10})
+	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID
-	var starting_farm_inventory_id string = ""
+	var starting_farm_warehouse_id string = warehouse.UUID
 	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
 
@@ -61,7 +64,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 		},
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
-		Inventories: []string{starting_farm_inventory_id},
+		Warehouses: []string{starting_farm_warehouse_id},
 		Assistants: []string{starting_assistant_id},
 	}
 }

@@ -439,3 +439,60 @@ func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responses.SendRes(w, responses.Generic_Success, contract, "")
 	log.Debug.Println(log.Cyan("-- End ContractInfo --"))
 }
+
+// Handler function for the secure route: /api/my/warehouses
+type WarehousesInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *WarehousesInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- WarehousesInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	adb := (*h.Dbs)["warehouses"]
+	warehouses, foundWarehouses, warehousesErr := schema.GetWarehousesFromDB(userData.Warehouses, adb)
+	if warehousesErr != nil || !foundWarehouses {
+		log.Error.Printf("Error in WarehousesInfo, could not get warehouses from DB. foundWarehouses: %v, error: %v", foundWarehouses, warehousesErr)
+		responses.SendRes(w, responses.DB_Get_Failure, warehouses, warehousesErr.Error())
+		return
+	}
+	getWarehousesJsonString, getWarehousesJsonStringErr := responses.JSON(warehouses)
+	if getWarehousesJsonStringErr != nil {
+		log.Error.Printf("Error in WarehousesInfo, could not format warehouses as JSON. warehouses: %v, error: %v", warehouses, getWarehousesJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, warehouses, getWarehousesJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for WarehousesInfo:\n%v", getWarehousesJsonString)
+	responses.SendRes(w, responses.Generic_Success, warehouses, "")
+	log.Debug.Println(log.Cyan("-- End WarehousesInfo --"))
+}
+
+// Handler function for the secure route: /api/my/warehouses/{uuid}
+type WarehouseInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *WarehouseInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- WarehouseInfo --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	log.Debug.Printf("WarehouseInfo Requested for: %s", uuid)
+	adb := (*h.Dbs)["warehouses"]
+	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(uuid, adb)
+	if warehousesErr != nil || !foundWarehouse {
+		log.Error.Printf("Error in WarehouseInfo, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+		return
+	}
+	getWarehouseJsonString, getWarehouseJsonStringErr := responses.JSON(warehouse)
+	if getWarehouseJsonStringErr != nil {
+		log.Error.Printf("Error in WarehouseInfo, could not format warehouses as JSON. warehouses: %v, error: %v", warehouse, getWarehouseJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, warehouse, getWarehouseJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for WarehouseInfo:\n%v", getWarehouseJsonString)
+	responses.SendRes(w, responses.Generic_Success, warehouse, "")
+	log.Debug.Println(log.Cyan("-- End WarehouseInfo --"))
+}

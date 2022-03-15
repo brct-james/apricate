@@ -21,7 +21,7 @@ import (
 var (
 	ListenPort = ":50250"
 	RedisAddr = "localhost:6382"
-	apiVersion = "0.1.0"
+	apiVersion = "0.2.0"
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
@@ -34,7 +34,7 @@ func initialize_dbs() {
 	dbs["assistants"] = rdb.NewDatabase(RedisAddr, 1)
 	dbs["farms"] = rdb.NewDatabase(RedisAddr, 2)
 	dbs["contracts"] = rdb.NewDatabase(RedisAddr, 3)
-	dbs["inventories"] = rdb.NewDatabase(RedisAddr, 4)
+	dbs["warehouses"] = rdb.NewDatabase(RedisAddr, 4)
 	dbs["clearinghouse"] = rdb.NewDatabase(RedisAddr, 5)
 	dbs["plots"] = rdb.NewDatabase(RedisAddr, 6)
 
@@ -173,6 +173,8 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/farms/{uuid}", &handlers.FarmInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/contracts", &handlers.ContractsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/contracts/{uuid}", &handlers.ContractsInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/warehouses", &handlers.WarehousesInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/warehouses/{uuid}", &handlers.WarehouseInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/nearby-locations", &handlers.NearbyLocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations", &handlers.LocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations/{name}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
