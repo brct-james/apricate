@@ -184,15 +184,13 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get owned farm locations cause these always have vision
-	// TODO: IMPLEMENT FARMS, for now only worry about starting farm
-	farms := []schema.Farm{{
-		UUID: "",
-		RegionLocation: "Pria|Homestead Farm",
-		Bonuses: []schema.FarmBonuses{},
-		Tools: make(map[string]uint8),
-		Buildings: make(map[string]uint8),
-		Plots: []string{""},
-	}}
+	fdb := (*h.Dbs)["farms"]
+	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
+	if farmsErr != nil || !foundFarms {
+		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		return
+	}
 	// use myRLs as a set to get all unique locations visible in fow
 	myRLs := make(map[string]bool)
 	for _, assistant := range assistants {
@@ -234,15 +232,13 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	// Get owned farm locations cause these always have vision
-	// TODO: IMPLEMENT FARMS, for now only worry about starting farm
-	farms := []schema.Farm{{
-		UUID: "",
-		RegionLocation: "Homestead Farm",
-		Bonuses: []schema.FarmBonuses{},
-		Tools: make(map[string]uint8),
-		Buildings: make(map[string]uint8),
-		Plots: []string{""},
-	}}
+	fdb := (*h.Dbs)["farms"]
+	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
+	if farmsErr != nil || !foundFarms {
+		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		return
+	}
 	// use myRLs as a set
 	myRLs := make(map[string]bool)
 	for _, assistant := range assistants {
@@ -293,15 +289,13 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Get owned farm locations cause these always have vision
-	// TODO: IMPLEMENT FARMS, for now only worry about starting farm
-	farms := []schema.Farm{{
-		UUID: "",
-		RegionLocation: "Pria|Homestead Farm",
-		Bonuses: []schema.FarmBonuses{},
-		Tools: make(map[string]uint8),
-		Buildings: make(map[string]uint8),
-		Plots: []string{""},
-	}}
+	fdb := (*h.Dbs)["farms"]
+	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
+	if farmsErr != nil || !foundFarms {
+		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		return
+	}
 	// use myRLs as a set to get all unique locations visible in fow
 	myRLs := make(map[string]bool)
 	for _, assistant := range assistants {
@@ -330,4 +324,61 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	responses.SendRes(w, responses.Generic_Success, resLocation, "")
 	log.Debug.Println(log.Cyan("-- End LocationInfo --"))
+}
+
+// Handler function for the secure route: /api/my/farms
+type FarmsInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *FarmsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- FarmsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	adb := (*h.Dbs)["farms"]
+	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, adb)
+	if farmsErr != nil || !foundFarms {
+		log.Error.Printf("Error in FarmsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		return
+	}
+	getFarmJsonString, getFarmJsonStringErr := responses.JSON(farms)
+	if getFarmJsonStringErr != nil {
+		log.Error.Printf("Error in FarmsInfo, could not format farms as JSON. farms: %v, error: %v", farms, getFarmJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, farms, getFarmJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for FarmsInfo:\n%v", getFarmJsonString)
+	responses.SendRes(w, responses.Generic_Success, farms, "")
+	log.Debug.Println(log.Cyan("-- End FarmsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/farms/{uuid}
+type FarmInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- FarmInfo --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	log.Debug.Printf("FarmInfo Requested for: %s", uuid)
+	adb := (*h.Dbs)["farms"]
+	farm, foundFarm, farmsErr := schema.GetFarmFromDB(uuid, adb)
+	if farmsErr != nil || !foundFarm {
+		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		return
+	}
+	getFarmJsonString, getFarmJsonStringErr := responses.JSON(farm)
+	if getFarmJsonStringErr != nil {
+		log.Error.Printf("Error in FarmInfo, could not format farms as JSON. farms: %v, error: %v", farm, getFarmJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, farm, getFarmJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for FarmInfo:\n%v", getFarmJsonString)
+	responses.SendRes(w, responses.Generic_Success, farm, "")
+	log.Debug.Println(log.Cyan("-- End FarmInfo --"))
 }

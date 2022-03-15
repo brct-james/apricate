@@ -34,8 +34,11 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	// generate starting assistant
 	assistant := NewAssistant(Hireling, "Pria|Homestead Farm")
 	SaveAssistantToDB(dbs["assistants"], assistant)
+	// generate starting farm
+	farm := NewFarm("Pria|Homestead Farm")
+	SaveFarmToDB(dbs["farms"], farm)
 	//TODO: generate each of these
-	var starting_farm_id string = ""
+	var starting_farm_id string = farm.UUID
 	var starting_farm_inventory_id string = ""
 	var starting_contract_id string = ""
 	var starting_assistant_id string = assistant.UUID

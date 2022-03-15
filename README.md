@@ -59,31 +59,34 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Complete: **[v0.1]**
 
-- Basic routes function ("/" for project overview, "/api" for game stuff, "/docs" for auto generated documentation)
-- Can register an account, which is stored in DB
-- Auth middleware works
-- Can GET user info, public and private versions
+- ~~Basic routes function ("/" for project overview, "/api" for game stuff, "/docs" for auto generated documentation)~~
+- ~~Can register an account, which is stored in DB~~
+- ~~Auth middleware works~~
+- ~~Can GET user info, public and private versions~~
 
 ---
 
 ### In-Progress: **[v0.2]**
 
-- Assistants have helper functions and initialize on create
-- Farms have helper functions and initialize on create
-- Contracts have helper functions and initialize on create
-- Inventories have helper functions and initialize on create
+- ~~Assistants have helper functions and initialize on create, have GET endpoints~~
+- ~~Farms have helper functions and initialize on create, have GET endpoints~~
+- Contracts have helper functions and initialize on create, have GET endpoints
+- Inventories have helper functions and initialize on create, have GET endpoints
+- ~~Pria and Veldis YAML defined~~
 
 ---
 
 ### Planned: **[v0.3]**
 
 - Plots work and can grow plants (atleast one type) with multi-stage actions, harvesting adds plants to inventory
+- Skelling and Tritum YAML defined
 
 ---
 
 ### Planned: **[v0.4]**
 
 - Assistants can transfer things between inventories
+- Boldor, Yoggoth, Tyldia YAML defined
 
 ---
 
@@ -96,6 +99,7 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: **[v0.6]**
 
 - Add YAML-defined contract/quest paths from NPCs
+- NPCs defined in YAML
 
 ---
 

@@ -2,8 +2,12 @@
 package schema
 
 import (
+	"apricate/log"
+	"apricate/rdb"
+	"apricate/uuid"
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 // enum for farm bonuses
@@ -19,9 +23,139 @@ type Farm struct {
 	UUID string `json:"uuid" binding:"required"`
 	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
 	Bonuses []FarmBonuses `json:"bonuses" binding:"required"`
-	Tools map[string]uint8 `json:"tools" binding:"required"`
-	Buildings map[string]uint8 `json:"buildings" binding:"required"`
+	Tools map[ToolTypes]uint8 `json:"tools" binding:"required"`
+	Buildings map[BuildingTypes]uint8 `json:"buildings" binding:"required"`
 	Plots []string `json:"plots" binding:"required"`
+}
+
+func NewFarm(regionLocation string) *Farm {
+	uuid := uuid.NewUUID()
+	var bonuses []FarmBonuses
+	var tools map[ToolTypes]uint8
+	var buildings map[BuildingTypes]uint8
+	var plots []string
+	switch regionLocation {
+	case "Pria|Homestead Farm":
+		bonuses = make([]FarmBonuses, 0)
+		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1}
+		buildings = map[BuildingTypes]uint8{Building_Home: 1, Building_Field: 1}
+		plots = make([]string, 0) //TODO: generate plots and give uuids here
+	default:
+		bonuses = make([]FarmBonuses, 0)
+		tools = make(map[ToolTypes]uint8)
+		buildings = make(map[BuildingTypes]uint8)
+		plots = make([]string, 0)
+	}
+	return &Farm{
+		UUID: uuid,
+		RegionLocation: regionLocation,
+		Bonuses: bonuses,
+		Tools: tools,
+		Buildings: buildings,
+		Plots: plots,
+	}
+}
+
+// Check DB for existing farm with given uuid and return bool for if exists, and error if error encountered
+func CheckForExistingFarm (uuid string, tdb rdb.Database) (bool, error) {
+	// Get farm
+	_, getError := tdb.GetJsonData(uuid, ".")
+	if getError != nil {
+		if fmt.Sprint(getError) != "redis: nil" {
+			// error
+			return false, getError
+		}
+		// farm not found
+		return false, nil
+	}
+	// Got successfully
+	return true, nil
+}
+
+// Get farm from DB, bool is farm found
+func GetFarmFromDB (uuid string, tdb rdb.Database) (Farm, bool, error) {
+	// Get farm json
+	someJson, getError := tdb.GetJsonData(uuid, ".")
+	if getError != nil {
+		if fmt.Sprint(getError) != "redis: nil" {
+			// farm not found
+			return Farm{}, false, nil
+		}
+		// error
+		return Farm{}, false, getError
+	}
+	// Got successfully, unmarshal
+	someData := Farm{}
+	unmarshalErr := json.Unmarshal(someJson, &someData)
+	if unmarshalErr != nil {
+		log.Error.Fatalf("Could not unmarshal farm json from DB: %v", unmarshalErr)
+		return Farm{}, false, unmarshalErr
+	}
+	return someData, true, nil
+}
+
+// Get farm from DB, bool is farm found
+func GetFarmsFromDB (uuids []string, tdb rdb.Database) ([]Farm, bool, error) {
+	// Get farm json
+	someJson, getError := tdb.MGetJsonData(".", uuids)
+	if getError != nil {
+		if fmt.Sprint(getError) != "redis: nil" {
+			// farm not found
+			return []Farm{}, false, nil
+		}
+		// error
+		return []Farm{}, false, getError
+	}
+	// Got successfully, unmarshal
+	someData := make([]Farm, len(someJson))
+	for i, tempjson := range someJson {
+		data := Farm{}
+		unmarshalErr := json.Unmarshal(tempjson, &data)
+		if unmarshalErr != nil {
+			log.Error.Fatalf("Could not unmarshal farm json from DB: %v", unmarshalErr)
+			return []Farm{}, false, unmarshalErr
+		}
+		someData[i] = data
+	}
+	
+	return someData, true, nil
+}
+
+// Get farmdata at path from DB, bool is farm found
+func GetFarmDataAtPathFromDB (uuid string, path string, tdb rdb.Database) (interface{}, bool, error) {
+	// Get farm json
+	someJson, getError := tdb.GetJsonData(uuid, path)
+	if getError != nil {
+		if fmt.Sprint(getError) != "redis: nil" {
+			// farm not found
+			return nil, false, nil
+		}
+		// error
+		return nil, false, getError
+	}
+	// Got successfully, unmarshal
+	var someData interface{}
+	unmarshalErr := json.Unmarshal(someJson, &someData)
+	if unmarshalErr != nil {
+		log.Error.Fatalf("Could not unmarshal farm json from DB: %v", unmarshalErr)
+		return nil, false, unmarshalErr
+	}
+	return someData, true, nil
+}
+
+// Attempt to save farm, returns error or nil if successful
+func SaveFarmToDB(tdb rdb.Database, farmData *Farm) error {
+	log.Debug.Printf("Saving farm %s to DB", farmData.UUID)
+	err := tdb.SetJsonData(farmData.UUID, ".", farmData)
+	// creationSuccess := rdb.CreateFarm(tdb, farmname, uuid, 0)
+	return err
+}
+
+// Attempt to save farm data at path, returns error or nil if successful
+func SaveFarmDataAtPathToDB(tdb rdb.Database, uuid string, path string, newValue interface{}) error {
+	log.Debug.Printf("Saving farm data at path %s to DB for uuid %s", path, uuid)
+	err := tdb.SetJsonData(uuid, path, newValue)
+	return err
 }
 
 func (s FarmBonuses) String() string {
