@@ -8,9 +8,10 @@ import (
 
 // Define a good
 type Good struct {
-	Name GoodType `json:"good_name" binding:"required"`
-	Quality Quality `json:"quality" binding:"required"`
-	Quantity uint64 `json:"quantity" binding:"required"`
+	Name GoodType `yaml:"Name" json:"good_name" binding:"required"`
+	Quality Quality `yaml:"Quality" json:"quality" binding:"required"`
+	Quantity uint64 `yaml:"Quantity" json:"quantity" binding:"required"`
+	Enchantment Enchantment `yaml:"Enchantment" json:"enchantment,omitempty"`
 }
 
 // enum for good types

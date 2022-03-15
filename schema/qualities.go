@@ -9,7 +9,7 @@ import (
 // enum for qualities
 type Quality uint8
 const (
-	Quality_None Quality = 0 // 60% of items in the world
+	Quality_Unremarkable Quality = 0 // 60% of items in the world
 	Quality_Fine Quality = 1 // 25% of items in the world
 	Quality_Exquisite Quality = 2 // 10% of items in the world
 	Quality_Supreme Quality = 3 // 4% of items in the world
@@ -17,7 +17,7 @@ const (
 )
 
 var qualitysToString = map[Quality]string {
-	Quality_None: "",
+	Quality_Unremarkable: "Unremarkable",
 	Quality_Fine: "Fine",
 	Quality_Exquisite: "Exquisite",
 	Quality_Supreme: "Supreme",
@@ -25,7 +25,7 @@ var qualitysToString = map[Quality]string {
 }
 
 var qualitysToID = map[string]Quality {
-	"": Quality_None,
+	"Unremarkable": Quality_Unremarkable,
 	"Fine": Quality_Fine,
 	"Exquisite": Quality_Exquisite,
 	"Supreme": Quality_Supreme,

@@ -10,16 +10,18 @@ import (
 type Plant struct {
 	Name PlantType `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
-	BonusYield float32 `yaml:"BonusYield" json:"bonus_yield" binding:"required"`
+	Yield float32 `yaml:"Yield" json:"yield" binding:"required"`
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
+	CurrentStage int16 `yaml:"CurrentStage" json:"current_stage" binding:"required"`
 }
 
 func NewPlant(name PlantType, description string, growthStages []GrowthStage) *Plant {
 	return &Plant{
 		Name: name,
 		Description: description,
-		BonusYield: 0.0,
+		Yield: 0.0,
 		GrowthStages: growthStages,
+		CurrentStage: 0,
 	}
 }
 

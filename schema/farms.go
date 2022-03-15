@@ -39,7 +39,7 @@ func NewFarm(regionLocation string) *Farm {
 	switch regionLocation {
 	case "Pria|Homestead Farm":
 		bonuses = make([]FarmBonuses, 0)
-		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1}
+		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Hoe: 1}
 		buildings = map[BuildingTypes]uint8{Building_Home: 1, Building_Field: 1}
 		plots = make([]string, 0) //TODO: generate plots and give uuids here
 	default:
