@@ -57,9 +57,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### In-Progress
-
-**[v0.1]** MVP
+### Complete: **[v0.1]**
 
 - Basic routes function ("/" for project overview, "/api" for game stuff, "/docs" for auto generated documentation)
 - Can register an account, which is stored in DB
@@ -68,9 +66,60 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Planned: v1 MVP
+### In-Progress: **[v0.2]**
 
-- TODO: This
+- Assistants have helper functions and initialize on create
+- Farms have helper functions and initialize on create
+- Contracts have helper functions and initialize on create
+- Inventories have helper functions and initialize on create
+
+---
+
+### Planned: **[v0.3]**
+
+- Plots work and can grow plants (atleast one type) with multi-stage actions, harvesting adds plants to inventory
+
+---
+
+### Planned: **[v0.4]**
+
+- Assistants can transfer things between inventories
+
+---
+
+### Planned: **[v0.5]**
+
+- One functional market, Local orders (non-player orders to provide baseline supply/demand)
+
+---
+
+### Planned: **[v0.6]**
+
+- Add YAML-defined contract/quest paths from NPCs
+
+---
+
+### Planned: **[v0.7]**
+
+- At least 10 different plants, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
+
+---
+
+### Planned: **[v0.8]**
+
+- At least 20 plants, add at least 2 additional tools for growing some of the new plants, add randomized contracts, consider adding additional markets, all NPCs on starting map have quests
+
+---
+
+### Planned: **[v0.9]**
+
+- Add refining/crafting with at least 8 recipes, add at least 4 new tools to support crafting, add at least 2 new buildings to support crafting
+
+---
+
+### Planned: **[v1.0]**
+
+- Meta account and progression, leaderboards, full documentation
 
 ---
 
