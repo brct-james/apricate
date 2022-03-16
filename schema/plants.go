@@ -42,7 +42,8 @@ func Plants_load(path_to_plants_yaml string) map[string]PlantDefinition {
 	var plants map[string]PlantDefinition
 	err := yaml.Unmarshal(plantsBytes, &plants)
 	if err != nil {
-		log.Error.Fatalf("%v", err.(*json.SyntaxError))
+		log.Error.Fatalf("%v", err)
+		// log.Error.Fatalf("%v", err.(*json.SyntaxError))
 		// log.Error.Fatalf("%v", err.(*yaml.TypeError))
 	}
 	return plants

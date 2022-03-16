@@ -8,23 +8,25 @@ import (
 
 // Define a good
 type Good struct {
-	Name GoodType `yaml:"Name" json:"good_name" binding:"required"`
+	Name GoodType `yaml:"Name" json:"name" binding:"required"`
 	Quality Quality `yaml:"Quality" json:"quality" binding:"required"`
 	Quantity uint64 `yaml:"Quantity" json:"quantity" binding:"required"`
-	Enchantment Enchantment `yaml:"Enchantment" json:"enchantment,omitempty"`
+	Enchantment *Enchantment `yaml:"Enchantment" json:"enchantment,omitempty"`
 }
 
 // enum for good types
 type GoodType uint8
 const (
-	Good_Water GoodType = 0
-	Good_WildSeeds GoodType = 1
-	Good_Cabbage GoodType = 2
-	Good_CabbageSeeds GoodType = 3
-	Good_ShelvisFig GoodType = 4
-	Good_ShelvisFigSeeds GoodType = 5
-	Good_ShelvisFigAle GoodType = 6
-	Good_Potato GoodType = 7
+	Good_None GoodType = 0 // Default value ""
+	Good_Water GoodType = 1
+	Good_WildSeeds GoodType = 2
+	Good_Cabbage GoodType = 3
+	Good_CabbageSeeds GoodType = 4
+	Good_ShelvisFig GoodType = 5
+	Good_ShelvisFigSeeds GoodType = 6
+	Good_ShelvisFigAle GoodType = 7
+	Good_Potato GoodType = 8
+	Good_Fertilizer GoodType = 9
 )
 
 var goodsToString = map[GoodType]string {
@@ -36,6 +38,7 @@ var goodsToString = map[GoodType]string {
 	Good_ShelvisFigSeeds: "Shelvis Fig Seeds",
 	Good_ShelvisFigAle: "Shelvis Fig Ale",
 	Good_Potato: "Potato",
+	Good_Fertilizer: "Fertilizer",
 }
 
 var goodsToID = map[string]GoodType {
@@ -47,6 +50,7 @@ var goodsToID = map[string]GoodType {
 	"Shelvis Fig Seeds": Good_ShelvisFigSeeds,
 	"Shelvis Fig Ale": Good_ShelvisFigAle,
 	"Potato": Good_Potato,
+	"Fertilizer": Good_Fertilizer,
 }
 
 func (s GoodType) String() string {
@@ -103,7 +107,6 @@ func (s *GoodType) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&j); err != nil {
 		return err
 	}
-
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
 	*s = goodsToID[j]
 	return nil

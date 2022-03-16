@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // Defines a plot
@@ -45,19 +46,25 @@ type PlotActionBody struct {
 }
 
 // Handles planting a plant in the plot
-func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, newPlant PlantType, quantity uint16) Plot {
+func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, consumables Good) Plot {
 	if p.PlantedPlant != nil {
 		// fail case, already planted, clear first
+		log.Error.Println("already planted, clear first")
 		return Plot{}
 	}
-	if quantity > uint16(p.PlotSize) {
+	if consumables.Quantity > uint64(p.PlotSize) {
 		// fail case, not large enough for specified quantity
 		log.Error.Println("Plot not large enough for specified quantity")
 		return Plot{}
 	}
-	plantDefinition := plantDictionary[newPlant.String()]
+	plantDefinition, ok := plantDictionary[strings.Split(consumables.Name.String(), " Seeds")[0]]
+	if !ok {
+		// fail case, consumables.Name not in plantDictionary
+		log.Error.Printf("consumables.Name %s not in plantDictionary", consumables.Name)
+		return Plot{}
+	}
 	plantingGrowthStage := plantDefinition.GrowthStages[0]
-	seedQuantityNeeded := quantity * uint16(plantingGrowthStage.ConsumableOptions[0].Quantity)
+	seedQuantityNeeded := consumables.Quantity * plantingGrowthStage.ConsumableOptions[0].Quantity
 	seedQuantityOwned := farmWarehouse.Goods[plantDefinition.SeedName].Quantity
 	if seedQuantityOwned < uint64(seedQuantityNeeded) {
 		// fail case, not enough seeds in local warehouse
@@ -73,8 +80,8 @@ func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary ma
 	}
 
 	// Plant Plant
-	p.PlantedPlant = NewPlant(newPlant)
-	p.Quantity = quantity
+	p.PlantedPlant = NewPlant(plantDefinition.Name)
+	p.Quantity = uint16(consumables.Quantity)
 	//Save to DB
 	SavePlotToDB(pdb, p)
 	return *p

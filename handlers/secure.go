@@ -577,7 +577,7 @@ func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if decodeErr := decoder.Decode(&body); decodeErr != nil {
 		// Fail case, could not decode
 		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
-		log.Debug.Printf("Error in Interact: %v", decodeErr)
+		log.Debug.Printf("Decode Error in Interact: %v", decodeErr)
 		return
 	}
 	// get user
@@ -596,21 +596,30 @@ func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// Get warehouses
 	wdb := (*h.Dbs)["warehouses"]
-	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "|" + uuid, wdb)
+	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "|" + plot.LocationSymbol, wdb)
 	if warehousesErr != nil || !foundWarehouse {
 		log.Error.Printf("Error in Interact, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
 		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
 		return
 	}
+	// Get farms
+	fdb := (*h.Dbs)["farms"]
+	farm, foundFarm, farmsErr := schema.GetFarmFromDB(userData.Username + "|" + plot.LocationSymbol, fdb)
+	if farmsErr != nil || !foundFarm {
+		log.Error.Printf("Error in Interact, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		return
+	}
 	// catch Clear action, initial Plant action, else send to Progress handler
+	plantDict := (*h.PlantDict)
 	var res schema.Plot
 	if strings.Title(body.Action.String()) == "Clear" {
 		// This is a clear step, reset plot
 		// plot.Clear()
 		return
-	} else if plot.PlantedPlant.CurrentStage == 0 {
+	} else if plot.PlantedPlant == nil {
 		// This is the plant step, call Plant
-		res = plot.Plant(w, (*h.Dbs)["plots"], (*h.PlantDict), schema.Warehouse{}, map[schema.ToolTypes]uint8{}, schema.Plant_Cabbage, 1)
+		res = plot.Plant(w, (*h.Dbs)["plots"], plantDict, warehouse, farm.Tools, body.Consumables)
 		// Errors handled by Plant
 	} else {
 		// Send to progress handler for harvest or progresssion
@@ -618,13 +627,13 @@ func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	getPlotJsonString, getPlotJsonStringErr := responses.JSON(res)
-	if getPlotJsonStringErr != nil {
-		log.Error.Printf("Error in Interact, could not format plots as JSON. plots: %v, error: %v", plot, getPlotJsonStringErr)
-		responses.SendRes(w, responses.JSON_Marshal_Error, plot, getPlotJsonStringErr.Error())
+	getNextGrowthActionJsonString, getNextGrowthActionJsonStringErr := responses.JSON(res)
+	if getNextGrowthActionJsonStringErr != nil {
+		log.Error.Printf("Error in Interact, could not format next growth action as JSON. plots: %v, error: %v", plantDict[body.Consumables.Name.String()], getNextGrowthActionJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, plot, getNextGrowthActionJsonStringErr.Error())
 		return
 	}
-	log.Debug.Printf("Sending response for Interact:\n%v", getPlotJsonString)
+	log.Debug.Printf("Sending response for Interact:\n%v", getNextGrowthActionJsonString)
 	responses.SendRes(w, responses.Generic_Success, plot, "")
 	log.Debug.Println(log.Cyan("-- End Interact --"))
 }

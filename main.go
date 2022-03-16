@@ -146,8 +146,12 @@ func main() {
 	log.Info.Printf("Loaded world")
 
 	// Load Plants from YAML
+	log.Debug.Println("Loading plant dictionary")
 	plant_dictionary = schema.Plants_load("./yaml/plants.yaml")
-	log.Debug.Println(plant_dictionary)
+	for k := range plant_dictionary {
+		log.Debug.Println(k)
+	}
+	// log.Debug.Println(responses.JSON(plant_dictionary))
 	log.Info.Printf("Loaded plant dictionary")
 
 	// Begin Serving
@@ -187,7 +191,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/plots/{uuid}/plant", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary}).Methods("POST")
+	secure.Handle("/plots/{uuid}/interact", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary}).Methods("POST")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)
