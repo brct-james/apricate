@@ -7,7 +7,7 @@ type World struct {
 	Description string `json:"description" binding:"required"`
 	Sectors map[string]Sector `json:"sectors" binding:"required"`
 	Islands map[string]Island `json:"islands" binding:"required"`
-	Locations map[string]map[string]Location `json:"locations" binding:"required"`
+	Locations map[string]Location `json:"locations" binding:"required"`
 }
 
 // Load world struct by unmarhsalling given yaml file

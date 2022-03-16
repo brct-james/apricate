@@ -4,7 +4,6 @@ package schema
 import (
 	"apricate/log"
 	"apricate/rdb"
-	"apricate/uuid"
 	"encoding/json"
 	"fmt"
 )
@@ -12,27 +11,26 @@ import (
 // Defines a plot
 type Plot struct {
 	UUID string `json:"uuid" binding:"required"`
-	RegionLocation string `json:"region_location" binding:"required"`
+	LocationSymbol string `json:"location_symbol" binding:"required"`
 	PlotSize Size `json:"size" binding:"required"`
 	PlantedPlant *Plant `json:"plant" binding:"required"`
 	Quantity uint16 `json:"plant_quantity" binding:"required"`
 }
 
-func NewPlot(regionLocation string, capacity Size) *Plot {
-	uuid := uuid.NewUUID()
+func NewPlot(username string, countOfPlots int16, locationSymbol string, capacity Size) *Plot {
 	return &Plot{
-		UUID: uuid,
-		RegionLocation: regionLocation,
+		UUID: username + "|" + locationSymbol + "|" + fmt.Sprintf("%d", countOfPlots),
+		LocationSymbol: locationSymbol,
 		PlotSize: capacity,
 		PlantedPlant: nil,
 		Quantity: 0,
 	}
 }
 
-func NewPlots(pdb rdb.Database, regionLocation string, capacities []Size) []string {
+func NewPlots(pdb rdb.Database, username string, countOfPlots int16, locationSymbol string, capacities []Size) []string {
 	res := make([]string, len(capacities))
 	for i, size := range capacities {
-		plot := NewPlot(regionLocation, size)
+		plot := NewPlot(username, countOfPlots + int16(i), locationSymbol, size)
 		SavePlotToDB(pdb, plot)
 		res[i] = plot.UUID
 	}

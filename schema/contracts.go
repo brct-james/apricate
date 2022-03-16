@@ -4,7 +4,6 @@ package schema
 import (
 	"apricate/log"
 	"apricate/rdb"
-	"apricate/uuid"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -23,7 +22,7 @@ const (
 type Contract struct {
 	UUID string `json:"uuid" binding:"required"`
 	ContractType ContractTypes `json:"type" binding:"required"`
-	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
+	LocationSymbol string `json:"location_symbol" binding:"required"`
 	NPC string `json:"NPC" binding:"required"`
 	Terms []ContractTerms `json:"terms" binding:"required"`
 	Reward []ContractReward `json:"reward" binding:"required"`
@@ -50,12 +49,11 @@ type ContractReward struct {
 	Quantity uint64 `json:"quantity" binding:"required"`
 }
 
-func NewContract(regionLocation string, contractType ContractTypes, npc string, terms []ContractTerms, reward []ContractReward) *Contract {
-	uuid := uuid.NewUUID()
+func NewContract(username string, countOfUserContracts int16, locationSymbol string, contractType ContractTypes, npc string, terms []ContractTerms, reward []ContractReward) *Contract {
 	return &Contract{
-		UUID: uuid,
+		UUID: username + "|Contract-" + fmt.Sprintf("%d", countOfUserContracts),
 		ContractType: contractType,
-		RegionLocation: regionLocation,
+		LocationSymbol: locationSymbol,
 		NPC: npc,
 		Terms: terms,
 		Reward: reward,

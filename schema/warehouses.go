@@ -11,20 +11,18 @@ import (
 // Defines a warehouse
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
-	Region string `json:"region" binding:"required"`
-	Location string `json:"location" binding:"required"`
+	LocationSymbol string `json:"location_symbol" binding:"required"`
 	Goods map[GoodType]Good `json:"goods" binding:"required"`
 }
 
-func NewEmptyWarehouse(username string, region string, location string) *Warehouse {
-	return NewWarehouse(username, region, location, make(map[GoodType]Good))
+func NewEmptyWarehouse(username string, locationSymbol string) *Warehouse {
+	return NewWarehouse(username, locationSymbol, make(map[GoodType]Good))
 }
 
-func NewWarehouse(username string, region string, location string, starting_goods map[GoodType]Good) *Warehouse {
+func NewWarehouse(username string, locationSymbol string, starting_goods map[GoodType]Good) *Warehouse {
 	return &Warehouse{
-		UUID: username + "|" + location,
-		Region: region,
-		Location: location,
+		UUID: username + "|" + locationSymbol,
+		LocationSymbol: locationSymbol,
 		Goods: starting_goods,
 	}
 }

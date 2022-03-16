@@ -4,7 +4,6 @@ package schema
 import (
 	"apricate/log"
 	"apricate/rdb"
-	"apricate/uuid"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -23,17 +22,16 @@ type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
-	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
+	LocationSymbol string `json:"location_symbol" binding:"required"`
 	Route string `json:"route" binding:"required"`
 }
 
-func NewAssistant(archetype AssistantTypes, regionLocation string) *Assistant {
-	uuid := uuid.NewUUID()
+func NewAssistant(username string, countOfUserAssistants int16, archetype AssistantTypes, locationSymbol string) *Assistant {
 	return &Assistant{
-		UUID: uuid,
+		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
 		Archetype: archetype,
 		Improvements: make(map[string]uint8),
-		RegionLocation: regionLocation,
+		LocationSymbol: locationSymbol,
 		Route: "",
 	}
 }

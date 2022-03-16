@@ -32,17 +32,19 @@ type PublicInfo struct {
 }
 
 func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
+	// starting location
+	startLocation := "TS-PR-HF"
 	// generate starting assistant
-	assistant := NewAssistant(Hireling, "Pria|Homestead Farm")
+	assistant := NewAssistant(username, 0, Hireling, startLocation)
 	SaveAssistantToDB(dbs["assistants"], assistant)
 	// generate starting farm
-	farm := NewFarm(dbs["plots"], "Pria|Homestead Farm")
+	farm := NewFarm(dbs["plots"], username, startLocation)
 	SaveFarmToDB(dbs["farms"], farm)
 	// generate starting contract
-	contract := NewContract("Pria|Homestead Farm", ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
+	contract := NewContract(username, 0, startLocation, ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
 	SaveContractToDB(dbs["contracts"], contract)
 	// generate starting warehouse
-	warehouse := NewWarehouse(username, "Pria" , "Homestead Farm", map[GoodType]Good{Good_CabbageSeeds:{Name: Good_CabbageSeeds, Quality: Quality_Unremarkable, Quantity: 10}})
+	warehouse := NewWarehouse(username, startLocation, map[GoodType]Good{Good_CabbageSeeds:{Name: Good_CabbageSeeds, Quality: Quality_Unremarkable, Quantity: 10}})
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID

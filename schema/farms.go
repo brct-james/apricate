@@ -4,7 +4,6 @@ package schema
 import (
 	"apricate/log"
 	"apricate/rdb"
-	"apricate/uuid"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -23,25 +22,24 @@ const (
 // Defines a farm
 type Farm struct {
 	UUID string `json:"uuid" binding:"required"`
-	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
+	LocationSymbol string `json:"location_symbol" binding:"required"`
 	Bonuses []FarmBonuses `json:"bonuses" binding:"required"`
 	Tools map[ToolTypes]uint8 `json:"tools" binding:"required"`
 	Buildings map[BuildingTypes]uint8 `json:"buildings" binding:"required"`
 	Plots []string `json:"plots" binding:"required"`
 }
 
-func NewFarm(pdb rdb.Database, regionLocation string) *Farm {
-	uuid := uuid.NewUUID()
+func NewFarm(pdb rdb.Database, username string, locationSymbol string) *Farm {
 	var bonuses []FarmBonuses
 	var tools map[ToolTypes]uint8
 	var buildings map[BuildingTypes]uint8
 	var plots []string
-	switch regionLocation {
-	case "Pria|Homestead Farm":
+	switch locationSymbol {
+	case "TS-PR-HF":
 		bonuses = make([]FarmBonuses, 0)
 		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Hoe: 1}
 		buildings = map[BuildingTypes]uint8{Building_Home: 1, Building_Field: 1}
-		plots = NewPlots(pdb, "Pria|Homesteam Farm", []Size{Average, Average, Modest, Modest})
+		plots = NewPlots(pdb, username, 0, "TS-PR-HF", []Size{Average, Average, Modest, Modest})
 	default:
 		bonuses = make([]FarmBonuses, 0)
 		tools = make(map[ToolTypes]uint8)
@@ -49,8 +47,8 @@ func NewFarm(pdb rdb.Database, regionLocation string) *Farm {
 		plots = make([]string, 0)
 	}
 	return &Farm{
-		UUID: uuid,
-		RegionLocation: regionLocation,
+		UUID: username + "|" + locationSymbol,
+		LocationSymbol: locationSymbol,
 		Bonuses: bonuses,
 		Tools: tools,
 		Buildings: buildings,

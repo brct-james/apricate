@@ -117,6 +117,7 @@ Versioning Convention: `major.minor.hotfix`
 
 - One functional market, Local orders (non-player orders to provide baseline supply/demand)
 - Ratelimiting
+- Add `GET` endpoints for sectors, `GET` select island endpoint
 
 ---
 

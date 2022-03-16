@@ -195,7 +195,7 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myRLs as a set to get all unique locations visible in fow
 	myRLs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myRLs[assistant.RegionLocation] = true
+		myRLs[assistant.LocationSymbol] = true
 	}
 	for _, farm := range farms {
 		myRLs[farm.RegionLocation] = true
@@ -243,7 +243,7 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// use myRLs as a set
 	myRLs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myRLs[assistant.RegionLocation] = true
+		myRLs[assistant.LocationSymbol] = true
 	}
 	for _, farm := range farms {
 		myRLs[farm.RegionLocation] = true
@@ -300,7 +300,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myRLs as a set to get all unique locations visible in fow
 	myRLs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myRLs[assistant.RegionLocation] = true
+		myRLs[assistant.LocationSymbol] = true
 	}
 	for _, farm := range farms {
 		myRLs[farm.RegionLocation] = true
@@ -578,12 +578,26 @@ func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Debug.Printf("Error in Interact: %v", decodeErr)
 		return
 	}
+	// get user
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
 	// Get plots
 	adb := (*h.Dbs)["plots"]
 	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
 	if plotsErr != nil || !foundPlot {
 		log.Error.Printf("Error in Interact, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
 		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
+		return
+	}
+	// Get warehouses
+	wdb := (*h.Dbs)["warehouses"]
+	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "|" + uuid, wdb)
+	if warehousesErr != nil || !foundWarehouse {
+		log.Error.Printf("Error in Interact, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
 		return
 	}
 	// catch Clear action, initial Plant action, else send to Progress handler

@@ -6,7 +6,9 @@ TS-PR:
   Ports:
     Veldis:
       Name: Port Fulgrath
+      Symbol: TS-PR-PFG
       Connection: Pria to Veldis
+      ConnectedLocation: TS-VD-PNN
       Fare: 500
       Duration: 30
 TS-VD:
@@ -16,17 +18,23 @@ TS-VD:
   Ports:
     Pria:
       Name: Port Nayanahd
+      Symbol: TS-VD-PNN
       Connection: Veldis to Pria
+      ConnectedLocation: TS-PR-PFG
       Fare: 500
       Duration: 30
     Skellig:
       Name: Port Olisar
+      Symbol: TS-VD-PO
       Connection: Veldis to Skellig
+      ConnectedLocation: TS-SK-PGM
       Fare: 100
       Duration: 60
     Tritum:
-      Name: Port Helvin
+      Name: Port Fulgrath
+      Symbol: TS-VD-PFG
       Connection: Veldis to Tritum
+      ConnectedLocation: TS-TT-PHM
       Fare: 250
       Duration: 90
 TS-SK:
@@ -36,12 +44,16 @@ TS-SK:
   Ports:
     Veldis:
       Name: Port Gumpti
+      Symbol: TS-SK-PGM
       Connection: Skellig to Veldis
+      ConnectedLocation: TS-VD-PO
       Fare: 100
       Duration: 60
     Boldor:
       Name: Port Ysili
+      Symbol: TS-SK-PYS
       Connection: Skellig to Boldor
+      ConnectedLocation: TS-BD-PGD
       Fare: 100
       Duration: 15
 TS-TT:
@@ -51,12 +63,16 @@ TS-TT:
   Ports:
     Veldis:
       Name: Port Hamstrid
+      Symbol: TS-TT-PHM
       Connection: Tritum to Veldis
+      ConnectedLocation: TS-VD-PFG
       Fare: 250
       Duration: 90
     Yoggoth:
       Name: Port Teleborgo
+      Symbol: TS-TT-PTB
       Connection: Tritum to Yoggoth
+      ConnectedLocation: TS-YG-PHB
       Fare: 350
       Duration: 120
 TS-BD:
@@ -66,12 +82,16 @@ TS-BD:
   Ports:
     Skellig:
       Name: Port Geld
+      Symbol: TS-BD-PGD
       Connection: Boldor to Skellig
+      ConnectedLocation: TS-SK-PYS
       Fare: 100
       Duration: 15
     Tyldia:
       Name: Port Falandra
+      Symbol: TS-BD-PFD
       Connection: Boldor to Tyldia
+      ConnectedLocation: TS-TD-PTL
       Fare: 150
       Duration: 90
 TS-YG:
@@ -81,12 +101,16 @@ TS-YG:
   Ports:
     Tritum:
       Name: Port Hellsbrooke
+      Symbol: TS-YG-PHB
       Connection: Yoggoth to Tritum
+      ConnectedLocation: TS-TT-PTB
       Fare: 350
       Duration: 120
     Tyldia:
       Name: Port Waterdry
+      Symbol: TS-YG-PWD
       Connection: Yoggoth to Tyldia
+      ConnectedLocation: TS-TD-PDV
       Fare: 250
       Duration: 150
 TS-TD:
@@ -96,12 +120,16 @@ TS-TD:
   Ports:
     Boldor:
       Name: Port Tuolorme
+      Symbol: TS-TD-PTL
       Connection: Tyldia to Boldor
+      ConnectedLocation: TS-BD-PFD
       Fare: 150
       Duration: 90
     Yoggoth:
       Name: Port Denver
+      Symbol: TS-TD-PDV
       Connection: Tyldia to Yoggoth
+      ConnectedLocation: TS-YG-PWD
       Fare: 250
       Duration: 150
 

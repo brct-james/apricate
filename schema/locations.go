@@ -19,11 +19,11 @@ type Location struct {
 }
 
 // Load location struct by unmarhsalling given yaml file
-func Locations_load(path_to_locations_yaml string) map[string]map[string]Location {
+func Locations_load(path_to_locations_yaml string) map[string]Location {
 	locationsBytes := filemngr.ReadFilesToBytes(path_to_locations_yaml)
-	locations := make(map[string]map[string]Location)
+	locations := make(map[string]Location)
 	for _, byte := range locationsBytes {
-		var location map[string]map[string]Location
+		var location map[string]Location
 		err := yaml.Unmarshal(byte, &location)
 		if err != nil {
 			log.Error.Fatalln(err)

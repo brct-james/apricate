@@ -36,15 +36,15 @@ func UsersSummary(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End usersSummary --"))
 }
 
-// Handler function for the route: /api/regions
-type RegionsOverview struct {
+// Handler function for the route: /api/islands
+type IslandsOverview struct {
 	World *schema.World
 }
-func (h *RegionsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Debug.Println(log.Yellow("-- RegionsOverview --"))
-	res := h.World.Regions
+func (h *IslandsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- IslandsOverview --"))
+	res := h.World.Islands
 	responses.SendRes(w, responses.Generic_Success, res, "")
-	log.Debug.Println(log.Cyan("-- End RegionsOverview --"))
+	log.Debug.Println(log.Cyan("-- End IslandsOverview --"))
 }
 
 // Handler function for the route: /api/users/{username}
