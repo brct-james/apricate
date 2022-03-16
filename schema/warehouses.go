@@ -4,7 +4,6 @@ package schema
 import (
 	"apricate/log"
 	"apricate/rdb"
-	"apricate/uuid"
 	"encoding/json"
 	"fmt"
 )
@@ -12,19 +11,20 @@ import (
 // Defines a warehouse
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
-	RegionLocation string `json:"region_location" binding:"required"` // Location format: Region|Location
+	Region string `json:"region" binding:"required"`
+	Location string `json:"location" binding:"required"`
 	Goods map[GoodType]Good `json:"goods" binding:"required"`
 }
 
-func NewEmptyWarehouse(regionLocation string) *Warehouse {
-	return NewWarehouse(regionLocation, make(map[GoodType]Good))
+func NewEmptyWarehouse(username string, region string, location string) *Warehouse {
+	return NewWarehouse(username, region, location, make(map[GoodType]Good))
 }
 
-func NewWarehouse(regionLocation string, starting_goods map[GoodType]Good) *Warehouse {
-	uuid := uuid.NewUUID()
+func NewWarehouse(username string, region string, location string, starting_goods map[GoodType]Good) *Warehouse {
 	return &Warehouse{
-		UUID: uuid,
-		RegionLocation: regionLocation,
+		UUID: username + "|" + location,
+		Region: region,
+		Location: location,
 		Goods: starting_goods,
 	}
 }

@@ -11,6 +11,7 @@ type GrowthStage struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	Action GrowthAction `yaml:"Action" json:"action" binding:"required"`
+	ActionToSkip GrowthAction `yaml:"ActionToSkip" json:"action_to_skip,omitempty"`
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	Optional bool `yaml:"Optional" json:"optional,omitempty"` // May send Wait action to skip optional steps (growth time of optional steps is skipped as well). 
 	AddedYield float32 `yaml:"AddedYield" json:"added_yield,omitempty"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
@@ -45,6 +46,26 @@ const (
 	GA_Sprout GrowthAction = 8 // Pot
 )
 
+var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
+	GA_Water: Tool_WaterWand,
+	GA_Trim: Tool_Shears,
+	GA_Dig: Tool_Spade,
+	GA_Weed: Tool_Hoe,
+	GA_Fertilize: Tool_Pitchfork,
+	GA_Hill: Tool_Rake,
+	GA_Sprout: Tool_SproutingPot,
+}
+
+// var toolTypesToGrowthActions = map[ToolTypes]GrowthAction {
+// 	Tool_WaterWand: GA_Water,
+// 	Tool_Shears: GA_Trim,
+// 	Tool_Spade: GA_Dig,
+// 	Tool_Hoe: GA_Weed,
+// 	Tool_Pitchfork: GA_Fertilize,
+// 	Tool_Rake: GA_Hill,
+// 	Tool_SproutingPot: GA_Sprout,
+// }
+
 var growthActionsToString = map[GrowthAction]string {
 	GA_Wait: "Wait",
 	GA_Clear: "Clear",
@@ -71,6 +92,10 @@ var growthActionsToID = map[string]GrowthAction {
 
 func (s GrowthAction) String() string {
 	return growthActionsToString[s]
+}
+
+func (s GrowthAction) ToolType() ToolTypes {
+	return growthActionsToToolTypes[s]
 }
 
 // MarshalJSON marshals the enum as a text string

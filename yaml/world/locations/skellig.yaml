@@ -1,58 +1,65 @@
 ---
-Skellig:
-  Port Gumpti:
-    Name: Port Gumpti
-    Description: The calmer sibling to Port Ysili, Port Gumpti is still quite busy during normal working hours, as it is the vital primary artery to Veldis' vast food stocks
-    RegionName: Skellig
-    X: 61
-    Y: 17
-    NPCs: [Vecty Filavana, Remmy]
-  Port Ysili:
-    Name: Port Ysili
-    Connection: Heavily trafficked by both the Merchant Guild's copious independent traders and the Simeralian Banking Clan's treasure fleet, this port is active around the clock
-    RegionName: Skellig
-    X: 55
-    Y: -17
-    NPCs: [Prescient Yoseph Tommaker, Brosecka Relevia Mongera, Tia Rossi]
-  Fes Lama:
-    Name: Fes Lama
-    Description: The primary rest stop for travelers passing through Skellig, and the largest town on the island, you will find great deals on food and goods from all islands along the Veldis-Tyldia corridor as merchants travel either direction
-    RegionName: Skellig
-    X: 27
-    Y: 0
-    NPCs: [Vobert Constabulis, Joberin Ulashenko]
-  Rak Tyula:
-    Name: Rak Tyula
-    Description: Built on the north eastern side of Skellig, Rak Tyula is the only settlement on the 10% of the island with a desert biome. Built originally to mine gold from the nearby cliffs, the old tunnels now serve as prime real estate for taverns and homes alike. While the tunnels provide cool shelter, crime is the way of life in Rak Tyula, so watch your back -- and your coin purse
-    RegionName: Skellig
-    X: -67
-    Y: -7
-    NPCs: [Zib Qala, John Smith, Roland Drumpf]
-  Simeralis:
-    Name: Simeralis
-    Description: The home of the Simeralian Banking Clan, this out-of-the-way town remains relevant largely due to their presence and continued investment in maintaining the waterlogged roads that the Mongera use to travel to and from the Simeralian vaults
-    RegionName: Skellig
-    X: -30
-    Y: 45
-    NPCs: [Tyranid Simeralia, Welliq Simeralia, Frederik Bolsa Mongera, Xivi Qala Mongera]
-  Tamalia:
-    Name: Tamalia
-    Description: The largest Siphon Town on Skellig, Tamalia is responsible for providing 70% of all exported water
-    RegionName: Skellig
-    X: 11
-    Y: 23
-    NPCs: [Raegon Tyris, Joka Mohamad, Prescient Brobh Fola]
-  Verdika Simplon:
-    Name: Verdika Simplon
-    Description: Settled by it's namesake, the great explorer Verdika Simplon who originally mapped the land that now makes up Skellig over 1000 years before The Fracturing, now it subsists as a small Siphon Town
-    RegionName: Skellig
-    X: -15
-    Y: 10
-    NPCs: [Ghofala Simplon, Felina Simplon, Hondrak]
-  Hjadrina:
-    Name: Hjadrina
-    Description: The only agricultural town on Skellig, Hjadrina produces enough of it's specialty Shelvis Figs to export the surrounding islands via the Merchant Guild, and is famous as far away as Inakimo Prime for its Shelvis Fig Ale
-    RegionName: Skellig
-    X: -17
-    Y: -25
-    NPCs: [Prescient Valreah Beemert, Ghibli Trinu Mongera, Vokalaq Simplon]
+TS-SK-PGM:
+  Name: Port Gumpti
+  Symbol: TS-SK-PGM
+  Description: The calmer sibling to Port Ysili, Port Gumpti is still quite busy during normal working hours, as it is the vital primary artery to Veldis' vast food stocks
+  RegionName: Skellig
+  X: 61
+  Y: 17
+  NPCs: [Vecty Filavana, Remmy]
+TS-SK-PYS:
+  Name: Port Ysili
+  Symbol: TS-SK-PYS
+  Connection: Heavily trafficked by both the Merchant Guild's copious independent traders and the Simeralian Banking Clan's treasure fleet, this port is active around the clock
+  RegionName: Skellig
+  X: 55
+  Y: -17
+  NPCs: [Prescient Yoseph Tommaker, Brosecka Relevia Mongera, Tia Rossi]
+TS-SK-FL:
+  Name: Fes Lama
+  Symbol: TS-SK-FL
+  Description: The primary rest stop for travelers passing through Skellig, and the largest town on the island, you will find great deals on food and goods from all islands along the Veldis-Tyldia corridor as merchants travel either direction
+  RegionName: Skellig
+  X: 27
+  Y: 0
+  NPCs: [Vobert Constabulis, Joberin Ulashenko]
+TS-SK-RT:
+  Name: Rak Tyula
+  Symbol: TS-SK-RT
+  Description: Built on the north eastern side of Skellig, Rak Tyula is the only settlement on the 10% of the island with a desert biome. Built originally to mine gold from the nearby cliffs, the old tunnels now serve as prime real estate for taverns and homes alike. While the tunnels provide cool shelter, crime is the way of life in Rak Tyula, so watch your back -- and your coin purse
+  RegionName: Skellig
+  X: -67
+  Y: -7
+  NPCs: [Zib Qala, John Smith, Roland Drumpf]
+TS-SK-SM:
+  Name: Simeralis
+  Symbol: TS-SK-SM
+  Description: The home of the Simeralian Banking Clan, this out-of-the-way town remains relevant largely due to their presence and continued investment in maintaining the waterlogged roads that the Mongera use to travel to and from the Simeralian vaults
+  RegionName: Skellig
+  X: -30
+  Y: 45
+  NPCs: [Tyranid Simeralia, Welliq Simeralia, Frederik Bolsa Mongera, Xivi Qala Mongera]
+TS-SK-TM:
+  Name: Tamalia
+  Symbol: TS-SK-TM
+  Description: The largest Siphon Town on Skellig, Tamalia is responsible for providing 70% of all exported water
+  RegionName: Skellig
+  X: 11
+  Y: 23
+  NPCs: [Raegon Tyris, Joka Mohamad, Prescient Brobh Fola]
+TS-SK-VS:
+  Name: Verdika Simplon
+  Symbol: TS-SK-VS
+  Description: Settled by it's namesake, the great explorer Verdika Simplon who originally mapped the land that now makes up Skellig over 1000 years before The Fracturing, now it subsists as a small Siphon Town
+  RegionName: Skellig
+  X: -15
+  Y: 10
+  NPCs: [Ghofala Simplon, Felina Simplon, Hondrak]
+TS-SK-HD:
+  Name: Hjadrina
+  Symbol: TS-SK-HD
+  Description: The only agricultural town on Skellig, Hjadrina produces enough of it's specialty Shelvis Figs to export the surrounding islands via the Merchant Guild, and is famous as far away as Inakimo Prime for its Shelvis Fig Ale
+  RegionName: Skellig
+  X: -17
+  Y: -25
+  NPCs: [Prescient Valreah Beemert, Ghibli Trinu Mongera, Vokalaq Simplon]

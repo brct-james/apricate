@@ -13,8 +13,9 @@ import (
 type Plot struct {
 	UUID string `json:"uuid" binding:"required"`
 	RegionLocation string `json:"region_location" binding:"required"`
-	Capacity Size `json:"capacity" binding:"required"`
-	Plants []Plant `json:"plants" binding:"required"`
+	PlotSize Size `json:"size" binding:"required"`
+	PlantedPlant *Plant `json:"plant" binding:"required"`
+	Quantity uint16 `json:"plant_quantity" binding:"required"`
 }
 
 func NewPlot(regionLocation string, capacity Size) *Plot {
@@ -22,8 +23,9 @@ func NewPlot(regionLocation string, capacity Size) *Plot {
 	return &Plot{
 		UUID: uuid,
 		RegionLocation: regionLocation,
-		Capacity: capacity,
-		Plants: make([]Plant, 0),
+		PlotSize: capacity,
+		PlantedPlant: nil,
+		Quantity: 0,
 	}
 }
 
@@ -35,6 +37,48 @@ func NewPlots(pdb rdb.Database, regionLocation string, capacities []Size) []stri
 		res[i] = plot.UUID
 	}
 	return res
+}
+
+// Defines a plot action request body
+type PlotActionBody struct {
+	Action GrowthAction `json:"action" binding:"required"`
+	Consumables Good `json:"consumables,omitempty"`
+}
+
+// Handles planting a plant in the plot
+func (p *Plot) Plant(pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, newPlant PlantType, quantity uint16) (Plot, bool) {
+	if p.PlantedPlant != nil {
+		// fail case, already planted, clear first
+		return Plot{}, false
+	}
+	if quantity > uint16(p.PlotSize) {
+		// fail case, not large enough for specified quantity
+		log.Error.Println("Plot not large enough for specified quantity")
+		return Plot{}, false
+	}
+	plantDefinition := plantDictionary[newPlant.String()]
+	plantingGrowthStage := plantDefinition.GrowthStages[0]
+	seedQuantityNeeded := quantity * uint16(plantingGrowthStage.ConsumableOptions[0].Quantity)
+	seedQuantityOwned := farmWarehouse.Goods[plantDefinition.SeedName].Quantity
+	if seedQuantityOwned < uint64(seedQuantityNeeded) {
+		// fail case, not enough seeds in local warehouse
+		log.Error.Println("Not enough of specified seeds in local warehouse")
+		return Plot{}, false
+	}
+	// Action should never be tool-less (never /wait or /clear)
+	toolTypeNeeded := plantingGrowthStage.Action.ToolType()
+	if _, ok := farmTools[toolTypeNeeded]; !ok {
+		// fail case, don't have necessary tool
+		log.Error.Println("Dont have necessary tool")
+		return Plot{}, false
+	}
+
+	// Plant Plant
+	p.PlantedPlant = NewPlant(newPlant)
+	p.Quantity = quantity
+	//Save to DB
+	SavePlotToDB(pdb, p)
+	return *p, true
 }
 
 // Check DB for existing plot with given uuid and return bool for if exists, and error if error encountered

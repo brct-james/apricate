@@ -25,7 +25,7 @@ var (
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
-	plant_definitions map[string]schema.PlantDefinition
+	plant_dictionary map[string]schema.PlantDefinition
 	flush_DBs = true
 	regenerate_auth_secret = false
 )
@@ -141,13 +141,13 @@ func main() {
 	log.Info.Printf("Created/Loaded Username Slur Filter")
 
 	// Load World from YAML
-	world = schema.World_load("./yaml/world/regions.yaml", "./yaml/world/locations")
+	world = schema.World_load("./yaml/world/sectors.yaml", "./yaml/world/islands", "./yaml/world/locations")
 	log.Debug.Println(world)
 	log.Info.Printf("Loaded world")
 
 	// Load Plants from YAML
-	plant_definitions = schema.Plants_load("./yaml/plants.yaml")
-	log.Debug.Println(plant_definitions)
+	plant_dictionary = schema.Plants_load("./yaml/plants.yaml")
+	log.Debug.Println(plant_dictionary)
 	log.Info.Printf("Loaded plant dictionary")
 
 	// Begin Serving
@@ -167,8 +167,8 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
 	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
-	mxr.Handle("/api/plants", &handlers.PlantsOverview{Plants: &plant_definitions}).Methods("GET")
-	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{Plants: &plant_definitions}).Methods("GET")
+	mxr.Handle("/api/plants", &handlers.PlantsOverview{Plants: &plant_dictionary}).Methods("GET")
+	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{Plants: &plant_dictionary}).Methods("GET")
 
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()
@@ -187,6 +187,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/locations/{name}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/plots/{uuid}/plant", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary}).Methods("POST")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)

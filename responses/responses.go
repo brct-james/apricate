@@ -44,7 +44,7 @@ const (
 	// No_Such_Status ResponseCode = 17
 	// Golem_In_Blocking_Status ResponseCode = 18
 	// New_Status_Not_Allowed ResponseCode = 19
-	// Bad_Request ResponseCode = 20
+	Bad_Request ResponseCode = 20
 	// No_Available_Routes ResponseCode = 21
 	// Target_Route_Unavailable ResponseCode = 22
 	// UDB_Update_Failed ResponseCode = 23
@@ -169,10 +169,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	// 	Message: "[New_Status_Not_Allowed] Specified status is not valid for the specified golem's archetype",
 	// 	HttpResponse: http.StatusNotAcceptable,
 	// },
-	// Bad_Request: {
-	// 	Message: "[Bad_Request] Invalid request payload, please validate the request body conforms to expectations",
-	// 	HttpResponse: http.StatusBadRequest,
-	// },
+	Bad_Request: {
+		Message: "[Bad_Request] Invalid request payload, please validate the request body conforms to expectations",
+		HttpResponse: http.StatusBadRequest,
+	},
 	// No_Available_Routes: {
 	// 	Message: "[No_Available_Routes] No routes available for the specified golem, contact developer",
 	// 	HttpResponse: http.StatusInternalServerError,

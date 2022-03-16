@@ -84,7 +84,8 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Plot helper functions and initialize on create~~
 - ~~Plot GET endpoints~~
 - ~~Plant struct for plots defined~~
-- Plot interactive endpoints (growth actions)
+- Plot helper functions for Growth Actions (plant plot, clear plot, progress plot, harvest plot)
+- Plot interact endpoint with switch on body.action (growth actions)
 - - GA_Wait
 - - GA_Clear
 - - GA_Trim
@@ -98,6 +99,10 @@ Versioning Convention: `major.minor.hotfix`
 - Goods are deposited to warehouse when plants harvested
 - Tested at least 3 types of plants excluding Wild Seeds
 - ~~Skelling and Tritum YAML defined~~
+- Convert from UUID to composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1" for warehouses, farms, plots, assistants, contracts. UUID wont be used
+- Convert to symbol based sector/region/location
+- Convert regions to islands
+- Add sectors
 
 ---
 
@@ -105,7 +110,6 @@ Versioning Convention: `major.minor.hotfix`
 
 - Assistants can transfer things between warehouses
 - Boldor, Yoggoth YAML defined
-- Decide whether to use UUID for most lookups or a composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1
 
 ---
 
@@ -201,6 +205,7 @@ Recommend running with screen `screen -S apricate`. If get detached, can forcibl
 - Add skellig and tritum YAML
 - Add plants YAMl
 - Add/modify schemas to support plots/plants
+- Add ActionToSkip field to Optional GrowthStages for better UX
 
 ## Reference
 

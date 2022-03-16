@@ -1,6 +1,8 @@
 ---
 Cabbage:
   Name: Cabbage
+  ProduceName: Cabbage
+  SeedName: Cabbage Seeds
   Description: The Cabbage is a mundane plant that grows above ground. It is relatively fast growing and easy to care for, not requiring any additional watering in most climates
   GrowthStages:
     - 
@@ -23,6 +25,7 @@ Cabbage:
       Name: Seed
       Description: You may fertilize cabbage as a seed to increase yields, though fertilizer quality doesn't matter
       Action: Fertilize
+      ActionToSkip: Wait
       Consumables:
         - 
           Name: Fertilizer
@@ -69,6 +72,8 @@ Cabbage:
         FinalHarvest: true
 Shelvis Fig:
   Name: Shelvis Fig
+  ProduceName: Shelvis Fig
+  SeedName: Shelvis Fig Seeds
   Description: The Shelvis Fig is a mundane plant with fruit that grows on a shrub above ground. It requires a lot of water to grow, grow with moderate speed, may be harvested twice, and as a specialty of Skellig, its seeds are not available for public sale
   GrowthStages:
     - 
@@ -159,6 +164,7 @@ Shelvis Fig:
       Name: Adolescent Plant
       Description: Shelvis Figs may be trimmed before harvest to increase yield
       Action: Trim
+      ActionToSkip: Wait
       Optional: True
       AddedYield: 0.6
       GrowthTime: 240
@@ -195,6 +201,8 @@ Shelvis Fig:
         FinalHarvest: True
 Potato:
   Name: Potato
+  ProduceName: Potato
+  SeedName: Potato
   Description: The hardy Potato plant is a mundane plant that grows underground. It is an extremely common staple food that grows quickly and can be harvested multiple times. Rather than using seeds is planted as the Potatoes themselves
   GrowthStages:
     -
@@ -277,6 +285,7 @@ Potato:
       Name: Seedling
       Description: Potatoes may be fertilized to increase yield
       Action: Fertilize
+      ActionToSkip: Wait
       Consumables:
         - 
           Name: Fertilizer
@@ -317,6 +326,7 @@ Potato:
       Name: Young Plant
       Description: Potatoes may be hilled to increase yield
       Action: Hill
+      ActionToSkip: Wait
       Optional: True
       AddedYield: 1.0
       GrowthTime: 60
@@ -344,6 +354,8 @@ Potato:
       
 Wild Flora:
   Name: Wild Flora
+  ProduceName: Wild Flora
+  SeedName: Wild Seeds
   Description: The Wild Flora plant is a magical plant that grows underground. Once fully mature, it can be dug up to find a random plant. Its seeds naturally fill the available land, so one seed can naturally grow a Titanic plant, if you have the ability to support such a plant
   GrowthStages:
     -
@@ -403,6 +415,7 @@ Wild Flora:
       Name: Young Plant
       Description: Wild Flora plants may be hilled for additional yield
       Action: Hill
+      ActionToSkip: Wait
       Optional: True
       AddedYield: 1.0
       GrowthTime: 1800
@@ -415,6 +428,7 @@ Wild Flora:
       Name: Adult Plant - Harvest
       Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
       Action: Dig
+      ActionToSkip: Wait
       Optional: True
       Harvestable:
         Good: Wild Plant
@@ -449,6 +463,7 @@ Wild Flora:
       Name: Mature Plant - Harvest
       Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
       Action: Dig
+      ActionToSkip: Wait
       Optional: True
       Harvestable:
         Good: Wild Plant

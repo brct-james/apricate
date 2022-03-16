@@ -30,6 +30,8 @@ func NewPlant(ptype PlantType) *Plant {
 // Defines a plant definition for the plant dictionary
 type PlantDefinition struct {
 	Name PlantType `yaml:"Name" json:"name" binding:"required"`
+	ProduceName GoodType `yaml:"ProduceName" json:"produce_name" binding:"required"`
+	SeedName GoodType `yaml:"SeedName" json:"seed_name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
 }

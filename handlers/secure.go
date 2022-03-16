@@ -8,6 +8,7 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -537,6 +538,7 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	route_vars := mux.Vars(r)
 	uuid := route_vars["uuid"]
 	log.Debug.Printf("PlotInfo Requested for: %s", uuid)
+	// Get plots
 	adb := (*h.Dbs)["plots"]
 	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
 	if plotsErr != nil || !foundPlot {
@@ -553,4 +555,64 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Printf("Sending response for PlotInfo:\n%v", getPlotJsonString)
 	responses.SendRes(w, responses.Generic_Success, plot, "")
 	log.Debug.Println(log.Cyan("-- End PlotInfo --"))
+}
+
+
+// Handler function for the secure route: /api/my/plots/{uuid}/interact
+type Interact struct {
+	Dbs *map[string]rdb.Database
+	PlantDict *map[string]schema.PlantDefinition
+}
+func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- Interact --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	log.Debug.Printf("Interact Requested for: %s", uuid)
+	// unmarshall request body to get action and consumables if applicable
+	var body schema.PlotActionBody
+	decoder := json.NewDecoder(r.Body)
+	if decodeErr := decoder.Decode(&body); decodeErr != nil {
+		// Fail case, could not decode
+		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+		log.Debug.Printf("Error in Interact: %v", decodeErr)
+		return
+	}
+	// Get plots
+	adb := (*h.Dbs)["plots"]
+	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
+	if plotsErr != nil || !foundPlot {
+		log.Error.Printf("Error in Interact, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
+		return
+	}
+	// catch Clear action, initial Plant action, else send to Progress handler
+	var res schema.Plot
+	var ok bool
+	if strings.Title(body.Action.String()) == "Clear" {
+		// This is a clear step, reset plot
+		// plot.Clear()
+		return
+	} else if plot.PlantedPlant.CurrentStage == 0 {
+		// This is the plant step, call Plant
+		res, ok = plot.Plant((*h.Dbs)["plots"], (*h.PlantDict), schema.Warehouse, map[schema.ToolTypes]uint8, schema.PlantType, quantity)
+		if !ok {
+			// Err, need to handle
+		}
+		return
+	} else {
+		// Send to progress handler for harvest or progresssion
+		// plot.Progress()
+		return
+	}
+	
+	getPlotJsonString, getPlotJsonStringErr := responses.JSON(res)
+	if getPlotJsonStringErr != nil {
+		log.Error.Printf("Error in Interact, could not format plots as JSON. plots: %v, error: %v", plot, getPlotJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, plot, getPlotJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for Interact:\n%v", getPlotJsonString)
+	responses.SendRes(w, responses.Generic_Success, plot, "")
+	log.Debug.Println(log.Cyan("-- End Interact --"))
 }
