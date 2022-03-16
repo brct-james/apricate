@@ -54,7 +54,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 
 See `responses.go`
 
-## Roadmap
+## Roadmap & Changelog
 
 Versioning Convention: `major.minor.hotfix`
 
@@ -191,22 +191,6 @@ redis-cli via `redis-cli -p 6382`
 Recommend running with screen `screen -S apricate`. If get detached, can forcibly detach the old ssh session and reattach with `screen -Dr apricate`
 
 ---
-
-## Changelog
-
-### v0.2
-
-- Add assitants GET
-- Add farms GET
-- Add warehouses GET
-- Add contracts GET
-
-### v0.3
-
-- Add skellig and tritum YAML
-- Add plants YAMl
-- Add/modify schemas to support plots/plants
-- Add ActionToSkip field to Optional GrowthStages for better UX
 
 ## Reference
 
