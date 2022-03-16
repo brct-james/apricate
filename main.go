@@ -166,7 +166,7 @@ func handle_requests(slur_filter []string) {
 	mxr.HandleFunc("/api/users", handlers.UsersSummary).Methods("GET")
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
-	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/islands", &handlers.IslandsOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{Plants: &plant_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{Plants: &plant_dictionary}).Methods("GET")
 
@@ -184,7 +184,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/warehouses/{uuid}", &handlers.WarehouseInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/nearby-locations", &handlers.NearbyLocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations", &handlers.LocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
-	secure.Handle("/locations/{name}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
+	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}/plant", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary}).Methods("POST")

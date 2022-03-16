@@ -192,20 +192,18 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
 		return
 	}
-	// use myRLs as a set to get all unique locations visible in fow
-	myRLs := make(map[string]bool)
+	// use myLocs as a set to get all unique locations visible in fow
+	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myRLs[assistant.LocationSymbol] = true
+		myLocs[assistant.LocationSymbol] = true
 	}
 	for _, farm := range farms {
-		myRLs[farm.RegionLocation] = true
+		myLocs[farm.LocationSymbol] = true
 	}
 	// finally get all locations in each region
 	resLocations := make([]schema.Location, 0)
-	for rl := range myRLs {
-		split := strings.Split(rl, "|")
-		region, location := split[0], split[1]
-		resLocations = append(resLocations, h.World.Locations[region][location])
+	for location := range myLocs {
+		resLocations = append(resLocations, h.World.Locations[location])
 	}
 	responses.SendRes(w, responses.Generic_Success, resLocations, "")
 	log.Debug.Println(log.Cyan("-- End LocationsInfo --"))
@@ -240,27 +238,32 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
 		return
 	}
-	// use myRLs as a set
-	myRLs := make(map[string]bool)
+	// use myLocs as a set
+	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myRLs[assistant.LocationSymbol] = true
+		myLocs[assistant.LocationSymbol] = true
 	}
 	for _, farm := range farms {
-		myRLs[farm.RegionLocation] = true
+		myLocs[farm.LocationSymbol] = true
 	}
 	// get every region revealed based on location using myRegions as a set
 	myRegions := make(map[string]bool)
-	for regionloc := range myRLs {
-		split := strings.Split(regionloc, "|")
-		region := split[0]
-		myRegions[region] = true
+	for locSymb := range myLocs {
+		lastInd := strings.LastIndex(locSymb, "-")
+		regionSymbol := locSymb[:lastInd]
+		myRegions[regionSymbol] = true
 	}
 	// finally get all locations in each region
-	resLocations := make(map[string][]string, 0)
+	resLocations := make(map[string]map[string]string, 0)
 	i := 0
-	for regionName := range myRegions {
-		for _, loc := range h.World.Locations[regionName] {
-			resLocations[regionName] = append(resLocations[regionName], loc.Name)
+	for regionSymbol := range myRegions {
+		resLocations[regionSymbol] = make(map[string]string)
+		for _, loc := range h.World.Locations {
+			lastInd := strings.LastIndex(loc.Symbol, "-")
+			locRegionSymb := loc.Symbol[:lastInd]
+			if regionSymbol == locRegionSymb {
+				resLocations[regionSymbol][loc.Symbol] = loc.Name
+			}
 		}
 		i++
 	}
@@ -297,29 +300,28 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
 		return
 	}
-	// use myRLs as a set to get all unique locations visible in fow
-	myRLs := make(map[string]bool)
+	// use myLocs as a set to get all unique locations visible in fow
+	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myRLs[assistant.LocationSymbol] = true
+		myLocs[assistant.LocationSymbol] = true
 	}
 	for _, farm := range farms {
-		myRLs[farm.RegionLocation] = true
+		myLocs[farm.LocationSymbol] = true
 	}
-	// Get name from route
+	// Get symbol from route
 	route_vars := mux.Vars(r)
-	name := strings.ToUpper(strings.ReplaceAll(route_vars["name"], "_", " "))
+	symbol := strings.ToUpper(route_vars["symbol"])
 	// finally get specified location if available
 	var resLocation schema.Location
 	found := false
-	for rl := range myRLs {
-		split := strings.Split(rl, "|")
-		region, location := split[0], split[1]
-		if strings.ToUpper(location) == name {
-			resLocation = h.World.Locations[region][location]
+	for location := range myLocs {
+		if strings.ToUpper(location) == symbol {
+			resLocation = h.World.Locations[location]
 			found = true
 		}
 	}
 	if !found {
+		log.Debug.Printf("Not found %s in locations %v", symbol, myLocs)
 		responses.SendRes(w, responses.No_Assitant_At_Location, nil, "")
 		return
 	}
@@ -602,18 +604,14 @@ func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// catch Clear action, initial Plant action, else send to Progress handler
 	var res schema.Plot
-	var ok bool
 	if strings.Title(body.Action.String()) == "Clear" {
 		// This is a clear step, reset plot
 		// plot.Clear()
 		return
 	} else if plot.PlantedPlant.CurrentStage == 0 {
 		// This is the plant step, call Plant
-		res, ok = plot.Plant((*h.Dbs)["plots"], (*h.PlantDict), schema.Warehouse, map[schema.ToolTypes]uint8, schema.PlantType, quantity)
-		if !ok {
-			// Err, need to handle
-		}
-		return
+		res = plot.Plant(w, (*h.Dbs)["plots"], (*h.PlantDict), schema.Warehouse{}, map[schema.ToolTypes]uint8{}, schema.Plant_Cabbage, 1)
+		// Errors handled by Plant
 	} else {
 		// Send to progress handler for harvest or progresssion
 		// plot.Progress()

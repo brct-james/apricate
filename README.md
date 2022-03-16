@@ -10,7 +10,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - - - Usernames must include only letters, numbers, `-`, and `_`. There are some reserved sequences for game-specific prefixes. A slur filter exists, I hope never to need it.
 - - Get public user info at `/api/users/{username}` and get private user info including token at `/api/my/account`
 - Monitor list of assistants or specific assistant with `/api/my/assistants` and `/api/my/assistants/{uuid}`
-- Regions which contain an X-Y grid of Locations from -100 to 100, with each Region separated by sailing lanes connected to Ports in each region
+- Islands which contain an X-Y grid of Locations from -100 to 100, with each Island separated by sailing lanes connected to Ports in each island
 - Locations are farms or towns, and may hold NPCs or a market.
 ---
 
@@ -19,7 +19,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 **Public Routes**
 <!-- - `GET: /api/v0/leaderboards` list all available leaderboards and their descriptions
 - `GET: /api/v0/leaderboards/{board}` get the specified leaderboard rankings -->
-- `GET: /api/regions` returns details on every region in the game, including port connections, for navigational purposes
+- `GET: /api/islands` returns details on every island in the game, including port connections, for navigational purposes
 - `GET: /api/users` returns lists of registered usernames with various filters: unique, active, etc.
 - `GET: /api/users/{username}` returns the public user data
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
@@ -40,7 +40,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/warehouses/{uuid}` returns the warehouse specified by `uuid`
 - `GET: /api/my/locations` returns the details for any location with an assistant as well as any owned farms
 - `GET: /api/my/locations/{name}` returns the details of the location specified by `name` IF the location is an owned farm or holds an assistant
-- `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every region with atleast one assistant), for navigational purposes
+- `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every island with atleast one assistant), for navigational purposes
 
 ---
 
@@ -100,9 +100,9 @@ Versioning Convention: `major.minor.hotfix`
 - Tested at least 3 types of plants excluding Wild Seeds
 - ~~Skelling and Tritum YAML defined~~
 - Convert from UUID to composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1" for warehouses, farms, plots, assistants, contracts. UUID wont be used
-- Convert to symbol based sector/region/location
-- Convert regions to islands
-- Add sectors
+- ~~Convert to symbol based sector/island/location~~
+- ~~Convert regions to islands~~
+- ~~Add sectors~~
 
 ---
 

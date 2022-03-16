@@ -11,6 +11,7 @@ import (
 // Defines a location
 type Location struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
+	Symbol string `yaml:"Symbol" json:"symbol" binding:"required"`
 	RegionName string `yaml:"RegionName" json:"region_name" binding:"required"`
 	X int8 `yaml:"X" json:"x" binding:"required"`
 	Y int8 `yaml:"Y" json:"y" binding:"required"`

@@ -6,6 +6,7 @@ import (
 	"apricate/rdb"
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
 // Defines a plot
@@ -19,7 +20,7 @@ type Plot struct {
 
 func NewPlot(username string, countOfPlots int16, locationSymbol string, capacity Size) *Plot {
 	return &Plot{
-		UUID: username + "|" + locationSymbol + "|" + fmt.Sprintf("%d", countOfPlots),
+		UUID: username + "|" + locationSymbol + "|Plot-" + fmt.Sprintf("%d", countOfPlots),
 		LocationSymbol: locationSymbol,
 		PlotSize: capacity,
 		PlantedPlant: nil,
@@ -44,15 +45,15 @@ type PlotActionBody struct {
 }
 
 // Handles planting a plant in the plot
-func (p *Plot) Plant(pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, newPlant PlantType, quantity uint16) (Plot, bool) {
+func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, newPlant PlantType, quantity uint16) Plot {
 	if p.PlantedPlant != nil {
 		// fail case, already planted, clear first
-		return Plot{}, false
+		return Plot{}
 	}
 	if quantity > uint16(p.PlotSize) {
 		// fail case, not large enough for specified quantity
 		log.Error.Println("Plot not large enough for specified quantity")
-		return Plot{}, false
+		return Plot{}
 	}
 	plantDefinition := plantDictionary[newPlant.String()]
 	plantingGrowthStage := plantDefinition.GrowthStages[0]
@@ -61,14 +62,14 @@ func (p *Plot) Plant(pdb rdb.Database, plantDictionary map[string]PlantDefinitio
 	if seedQuantityOwned < uint64(seedQuantityNeeded) {
 		// fail case, not enough seeds in local warehouse
 		log.Error.Println("Not enough of specified seeds in local warehouse")
-		return Plot{}, false
+		return Plot{}
 	}
 	// Action should never be tool-less (never /wait or /clear)
 	toolTypeNeeded := plantingGrowthStage.Action.ToolType()
 	if _, ok := farmTools[toolTypeNeeded]; !ok {
 		// fail case, don't have necessary tool
 		log.Error.Println("Dont have necessary tool")
-		return Plot{}, false
+		return Plot{}
 	}
 
 	// Plant Plant
@@ -76,7 +77,7 @@ func (p *Plot) Plant(pdb rdb.Database, plantDictionary map[string]PlantDefinitio
 	p.Quantity = quantity
 	//Save to DB
 	SavePlotToDB(pdb, p)
-	return *p, true
+	return *p
 }
 
 // Check DB for existing plot with given uuid and return bool for if exists, and error if error encountered
