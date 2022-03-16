@@ -99,7 +99,7 @@ Versioning Convention: `major.minor.hotfix`
 - Goods are deposited to warehouse when plants harvested
 - Tested at least 3 types of plants excluding Wild Seeds
 - ~~Skelling and Tritum YAML defined~~
-- Convert from UUID to composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1" for warehouses, farms, plots, assistants, contracts. UUID wont be used
+- ~~Convert from UUID to composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1" for warehouses, farms, plots, assistants, contracts. UUID wont be used~~
 - ~~Convert to symbol based sector/island/location~~
 - ~~Convert regions to islands~~
 - ~~Add sectors~~
