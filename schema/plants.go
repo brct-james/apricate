@@ -6,6 +6,7 @@ import (
 	"apricate/log"
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"gopkg.in/yaml.v3"
 )
@@ -13,14 +14,16 @@ import (
 // Defines a plant object to be stored on plots
 type Plant struct {
 	PlantType PlantType `json:"type" binding:"required"`
+	Size Size `json:"size" binding:"required"`
 	CurrentStage int16 `json:"current_stage" binding:"required"`
 	Yield float32 `json:"yield" binding:"required"`
 	NextStageTimestamp uint64 `json:"next_stage_timestamp" binding:"required"`
 }
 
-func NewPlant(ptype PlantType) *Plant {
+func NewPlant(ptype PlantType, size Size) *Plant {
 	return &Plant{
 		PlantType: ptype,
+		Size: size,
 		CurrentStage: 0,
 		Yield: 1.0,
 		NextStageTimestamp: 0,
@@ -30,10 +33,22 @@ func NewPlant(ptype PlantType) *Plant {
 // Defines a plant definition for the plant dictionary
 type PlantDefinition struct {
 	Name PlantType `yaml:"Name" json:"name" binding:"required"`
-	ProduceName GoodType `yaml:"ProduceName" json:"produce_name" binding:"required"`
-	SeedName GoodType `yaml:"SeedName" json:"seed_name" binding:"required"`
+	ProduceName string `yaml:"ProduceName" json:"produce_name" binding:"required"`
+	SeedName string `yaml:"SeedName" json:"seed_name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
+}
+
+func (d *PlantDefinition) GetScaledGrowthStage(gsIndex int, plantQuantity uint64, plantSize Size) (*GrowthStage, error) {
+	if gsIndex >= len(d.GrowthStages) {
+		return nil, fmt.Errorf("growth stage index out of bounds: %d of %d", gsIndex, len(d.GrowthStages))
+	}
+	res := d.GrowthStages[gsIndex]
+	for index, option := range res.ConsumableOptions {
+		option.Quantity *= plantQuantity * uint64(plantSize)
+		res.ConsumableOptions[index] = option
+	}
+	return &res, nil
 }
 
 // Load plant struct by unmarhsalling given yaml file

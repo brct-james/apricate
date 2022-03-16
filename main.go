@@ -11,6 +11,7 @@ import (
 	"apricate/log"
 	"apricate/metrics"
 	"apricate/rdb"
+	"apricate/responses"
 	"apricate/schema"
 	"apricate/tokengen"
 
@@ -26,6 +27,7 @@ var (
 	dbs = make(map[string]rdb.Database)
 	world schema.World
 	plant_dictionary map[string]schema.PlantDefinition
+	goods_list []string
 	flush_DBs = true
 	regenerate_auth_secret = false
 )
@@ -153,6 +155,12 @@ func main() {
 	}
 	// log.Debug.Println(responses.JSON(plant_dictionary))
 	log.Info.Printf("Loaded plant dictionary")
+
+	// Load Goods from YAML
+	log.Debug.Println("Loading goods list")
+	goods_list = schema.GoodListGenerator("./yaml/goods.yaml")
+	log.Debug.Println(responses.JSON(goods_list))
+	log.Info.Printf("Loaded goods list")
 
 	// Begin Serving
 	handle_requests(slur_filter)

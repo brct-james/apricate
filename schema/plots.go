@@ -4,6 +4,7 @@ package schema
 import (
 	"apricate/log"
 	"apricate/rdb"
+	"apricate/responses"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -19,9 +20,9 @@ type Plot struct {
 	Quantity uint16 `json:"plant_quantity" binding:"required"`
 }
 
-func NewPlot(username string, countOfPlots int16, locationSymbol string, capacity Size) *Plot {
+func NewPlot(username string, countOfPlots uint16, locationSymbol string, capacity Size) *Plot {
 	return &Plot{
-		UUID: username + "|" + locationSymbol + "|Plot-" + fmt.Sprintf("%d", countOfPlots),
+		UUID: username + "-Plot-" + fmt.Sprintf("%d", countOfPlots),
 		LocationSymbol: locationSymbol,
 		PlotSize: capacity,
 		PlantedPlant: nil,
@@ -29,10 +30,10 @@ func NewPlot(username string, countOfPlots int16, locationSymbol string, capacit
 	}
 }
 
-func NewPlots(pdb rdb.Database, username string, countOfPlots int16, locationSymbol string, capacities []Size) []string {
+func NewPlots(pdb rdb.Database, username string, countOfPlots uint16, locationSymbol string, capacities []Size) []string {
 	res := make([]string, len(capacities))
 	for i, size := range capacities {
-		plot := NewPlot(username, countOfPlots + int16(i), locationSymbol, size)
+		plot := NewPlot(username, countOfPlots + uint16(i), locationSymbol, size)
 		SavePlotToDB(pdb, plot)
 		res[i] = plot.UUID
 	}
@@ -43,10 +44,17 @@ func NewPlots(pdb rdb.Database, username string, countOfPlots int16, locationSym
 type PlotActionBody struct {
 	Action GrowthAction `json:"action" binding:"required"`
 	Consumables Good `json:"consumables,omitempty"`
+	Size Size `json:"size,omitempty"`
+}
+
+// Defines a plot action response body
+type PlotActionResponse struct {
+	Plot *Plot `json:"plot" binding:"required"`
+	NextStage *GrowthStage `json:"next_stage" binding:"required"`
 }
 
 // Handles planting a plant in the plot
-func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, consumables Good) Plot {
+func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary map[string]PlantDefinition, farmWarehouse Warehouse, farmTools map[ToolTypes]uint8, consumables Good, size Size) Plot {
 	if p.PlantedPlant != nil {
 		// fail case, already planted, clear first
 		log.Error.Println("already planted, clear first")
@@ -57,7 +65,7 @@ func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary ma
 		log.Error.Println("Plot not large enough for specified quantity")
 		return Plot{}
 	}
-	plantDefinition, ok := plantDictionary[strings.Split(consumables.Name.String(), " Seeds")[0]]
+	plantDefinition, ok := plantDictionary[strings.Split(consumables.Name, " Seeds")[0]]
 	if !ok {
 		// fail case, consumables.Name not in plantDictionary
 		log.Error.Printf("consumables.Name %s not in plantDictionary", consumables.Name)
@@ -80,10 +88,28 @@ func (p *Plot) Plant(w http.ResponseWriter, pdb rdb.Database, plantDictionary ma
 	}
 
 	// Plant Plant
-	p.PlantedPlant = NewPlant(plantDefinition.Name)
+	p.PlantedPlant = NewPlant(plantDefinition.Name, size)
+	p.PlantedPlant.CurrentStage ++
 	p.Quantity = uint16(consumables.Quantity)
 	//Save to DB
 	SavePlotToDB(pdb, p)
+
+	// Send response
+	nextStage, nextStageErr := plantDefinition.GetScaledGrowthStage(int(p.PlantedPlant.CurrentStage), uint64(p.Quantity), p.PlantedPlant.Size)
+	if nextStageErr != nil {
+		log.Error.Printf("Error in Interact, could not get scaled growth stage.")
+		responses.SendRes(w, responses.JSON_Marshal_Error, nil, "")
+		return *p
+	}
+	res := PlotActionResponse{Plot: p, NextStage: nextStage}
+	getPlotActionResponseJsonString, getPlotActionResponseJsonStringErr := responses.JSON(res)
+	if getPlotActionResponseJsonStringErr != nil {
+		log.Error.Printf("Error in Interact, could not format plot action response as JSON. res: %v, error: %v", res, getPlotActionResponseJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, nil, getPlotActionResponseJsonStringErr.Error())
+		return *p
+	}
+	log.Debug.Printf("Sending response for Interact:\n%v", getPlotActionResponseJsonString)
+	responses.SendRes(w, responses.Generic_Success, res, "")
 	return *p
 }
 

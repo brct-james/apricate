@@ -1,0 +1,23 @@
+---
+-
+  Name: Water
+  Prefixes: [Enchanted]
+-
+  Name: Wild Seeds
+-
+  Name: Wild Flora
+-
+  Name: Cabbage
+  Seedy: true
+  Prefixes: [Pickled]
+-
+  Name: Shelvis Fig
+  Seedy: true
+  Prefixes: [Pickled]
+  Suffixes: [Ale]
+-
+  Name: Potato
+-
+  Name: Fertilizer
+  Enchantable: true
+  Prefixes: [Dragon]

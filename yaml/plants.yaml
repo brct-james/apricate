@@ -6,55 +6,24 @@ Cabbage:
   Description: The Cabbage is a mundane plant that grows above ground. It is relatively fast growing and easy to care for, not requiring any additional watering in most climates
   GrowthStages:
     - 
-      Name: Planting
-      Description: Cabbage is planted in soil
-      Action: Dig
-      Consumables:
-        - 
-          Name: Cabbage Seeds
-          Quality: Unremarkable
-          Quantity: 1
-        - 
-          Name: Cabbage Seeds
-          Quality: Unremarkable
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 0.25
-      GrowthTime: 0
-    - 
       Name: Seed
-      Description: You may fertilize cabbage as a seed to increase yields, though fertilizer quality doesn't matter
+      Description: You may fertilize cabbage as a seed to increase yields. Any fertilizer will do, cabbage doesn't respond to higher quality fertilizers
       Action: Fertilize
+      Optional: True
       ActionToSkip: Wait
       Consumables:
         - 
           Name: Fertilizer
-          Quality: Unremarkable
           Quantity: 1
         -
-          Name: Fertilizer
-          Quality: Unremarkable
+          Name: Enchanted Fertilizer
           Quantity: 1
-          Enchantment: Imbued
         - 
-          Name: Fertilizer
-          Quality: Fine
+          Name: Dragon Fertilizer
           Quantity: 1
         -
-          Name: Fertilizer
-          Quality: Fine
+          Name: Enchanted Dragon Fertilizer
           Quantity: 1
-          Enchantment: Imbued
-        -
-          Name: Fertilizer
-          Quality: Exquisite
-          Quantity: 1
-        -
-          Name: Fertilizer
-          Quality: Exquisite
-          Quantity: 1
-          Enchantment: Imbued
-      Optional: True
       AddedYield: 0.5
       GrowthTime: 30
     -
@@ -73,24 +42,9 @@ Cabbage:
 Shelvis Fig:
   Name: Shelvis Fig
   ProduceName: Shelvis Fig
-  SeedName: Shelvis Fig Seeds
+  SeedName: Shelvis Fig Seed
   Description: The Shelvis Fig is a mundane plant with fruit that grows on a shrub above ground. It requires a lot of water to grow, grow with moderate speed, may be harvested twice, and as a specialty of Skellig, its seeds are not available for public sale
   GrowthStages:
-    - 
-      Name: Planting
-      Description: Shelvis Figs are sprouted in buckets before transplating to soil
-      Action: Sprout
-      Consumables:
-        -
-          Name: Shelvis Fig Seeds
-          Quality: Fine
-          Quantity: 1
-        -
-          Name: Shelvis Fig Seeds
-          Quality: Fine
-          Enchantment: Imbued
-          Quantity: 1
-      GrowthTime: 0
     - 
       Name: Seed - 1st Watering
       Description: Shelvis Figs require copious amounts of water to sprout
@@ -98,13 +52,10 @@ Shelvis Fig:
       Consumables:
         -
           Name: Water
-          Quality: Unremarkable
           Quantity: 10
         -
-          Name: Water
-          Quality: Unremarkable
+          Name: Enchanted Water
           Quantity: 10
-          Enchantment: Imbued
           AddedYield: 0.1
       GrowthTime: 120
     - 
@@ -114,13 +65,10 @@ Shelvis Fig:
       Consumables:
         -
           Name: Water
-          Quality: Unremarkable
           Quantity: 10
         -
-          Name: Water
-          Quality: Unremarkable
+          Name: Enchanted Water
           Quantity: 10
-          Enchantment: Imbued
           AddedYield: 0.1
       GrowthTime: 120
     - 
@@ -135,13 +83,10 @@ Shelvis Fig:
       Consumables:
         -
           Name: Water
-          Quality: Unremarkable
           Quantity: 15
         -
-          Name: Water
-          Quality: Unremarkable
+          Name: Enchanted Water
           Quantity: 15
-          Enchantment: Imbued
           AddedYield: 0.1
       GrowthTime: 240
     -
@@ -151,21 +96,18 @@ Shelvis Fig:
       Consumables:
         -
           Name: Water
-          Quality: Unremarkable
           Quantity: 15
         -
-          Name: Water
-          Quality: Unremarkable
+          Name: Enchanted Water
           Quantity: 15
-          Enchantment: Imbued
           AddedYield: 0.1
       GrowthTime: 240
     -
       Name: Adolescent Plant
       Description: Shelvis Figs may be trimmed before harvest to increase yield
       Action: Trim
-      ActionToSkip: Wait
       Optional: True
+      ActionToSkip: Wait
       AddedYield: 0.6
       GrowthTime: 240
     -
@@ -182,13 +124,10 @@ Shelvis Fig:
       Consumables:
         -
           Name: Water
-          Quality: Unremarkable
           Quantity: 15
         -
-          Name: Water
-          Quality: Unremarkable
+          Name: Enchanted Water
           Quantity: 15
-          Enchantment: Imbued
           AddedYield: 0.1
       GrowthTime: 360
     -
@@ -206,128 +145,48 @@ Potato:
   Description: The hardy Potato plant is a mundane plant that grows underground. It is an extremely common staple food that grows quickly and can be harvested multiple times. Rather than using seeds is planted as the Potatoes themselves
   GrowthStages:
     -
-      Name: Seed - Planting
-      Description: Potatoes must be planted
-      Action: Dig
-      Consumables:
-        - 
-          Name: Potato
-          Quality: Unremarkable
-          Quantity: 1
-        - 
-          Name: Potato
-          Quality: Fine
-          Quantity: 1
-          AddedYield: 0.1
-        - 
-          Name: Potato
-          Quality: Exquisite
-          Quantity: 1
-          AddedYield: 0.25
-        - 
-          Name: Potato
-          Quality: Supreme
-          Quantity: 1
-          AddedYield: 0.5
-        - 
-          Name: Potato
-          Quality: Perfect
-          Quantity: 1
-          AddedYield: 1.0
-        - 
-          Name: Potato
-          Quality: Unremarkable
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 0.1
-        - 
-          Name: Potato
-          Quality: Fine
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 0.25
-        - 
-          Name: Potato
-          Quality: Exquisite
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 0.5
-        - 
-          Name: Potato
-          Quality: Supreme
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 1.0
-        - 
-          Name: Potato
-          Quality: Perfect
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 2.0
-      GrowthTime: 0
-    -
-      Name: Seed - Watering
+      Name: Seed
       Description: Potatoes require water to sprout
       Action: Water
       Consumables:
-        - 
-          Name: Water
-          Quality: Unremarkable
-          Quantity: 1
         -
           Name: Water
-          Quality: Unremarkable
           Quantity: 1
-          Enchantment: Imbued
+        -
+          Name: Enchanted Water
+          Quantity: 1
           AddedYield: 0.1
       GrowthTime: 30
     -
       Name: Seedling
       Description: Potatoes may be fertilized to increase yield
       Action: Fertilize
+      Optional: True
       ActionToSkip: Wait
       Consumables:
         - 
           Name: Fertilizer
-          Quality: Unremarkable
           Quantity: 1
           AddedYield: 0.5
         -
-          Name: Fertilizer
-          Quality: Unremarkable
+          Name: Enchanted Fertilizer
           Quantity: 1
-          Enchantment: Imbued
           AddedYield: 0.75
         - 
-          Name: Fertilizer
-          Quality: Fine
+          Name: Dragon Fertilizer
           Quantity: 1
-          AddedYield: 0.75
+          AddedYield: 1.5
         -
-          Name: Fertilizer
-          Quality: Fine
+          Name: Enchanted Dragon Fertilizer
           Quantity: 1
-          Enchantment: Imbued
-          AddedYield: 1.0
-        -
-          Name: Fertilizer
-          Quality: Exquisite
-          Quantity: 1
-          AddedYield: 1.0
-        -
-          Name: Fertilizer
-          Quality: Exquisite
-          Quantity: 1
-          Enchantment: Imbued
-          AddedYield: 2.0
-      Optional: True
+          AddedYield: 3.0
       GrowthTime: 60
     -
       Name: Young Plant
       Description: Potatoes may be hilled to increase yield
       Action: Hill
-      ActionToSkip: Wait
       Optional: True
+      ActionToSkip: Wait
       AddedYield: 1.0
       GrowthTime: 60
     -
@@ -358,22 +217,6 @@ Wild Flora:
   SeedName: Wild Seeds
   Description: The Wild Flora plant is a magical plant that grows underground. Once fully mature, it can be dug up to find a random plant. Its seeds naturally fill the available land, so one seed can naturally grow a Titanic plant, if you have the ability to support such a plant
   GrowthStages:
-    -
-      Name: Planting
-      Description: Wild Flora are planted in soil
-      Action: Dig
-      Consumables:
-        -
-          Name: Wild Seeds
-          Quality: Exquisite
-          Quantity: 1
-        -
-          Name: Wild Seeds
-          Quality: Exquisite
-          Enchantment: Imbued
-          Quantity: 1
-          AddedYield: 0.5
-      GrowthTime: 0
     - 
       Name: Seed
       Description: Wild Flora require enchanted water to sprout
@@ -381,9 +224,8 @@ Wild Flora:
       Consumables: 
         - 
           Name: Water
-          Quality: Unremarkable
           Quantity: 1
-          Enchantment: Imbued
+          Enchantment: Enchanted
       GrowthTime: 60
     -
       Name: Seedling
@@ -392,31 +234,25 @@ Wild Flora:
       Consumables:
         - 
           Name: Fertilizer
-          Quality: Fine
           Quantity: 2
         -
-          Name: Fertilizer
-          Quality: Fine
+          Name: Enchanted Fertilizer
           Quantity: 1
-          Enchantment: Imbued
-        -
-          Name: Fertilizer
-          Quality: Exquisite
+        - 
+          Name: Dragon Fertilizer
           Quantity: 1
           AddedYield: 0.25
         -
-          Name: Fertilizer
-          Quality: Exquisite
+          Name: Enchanted Dragon Fertilizer
           Quantity: 1
-          Enchantment: Imbued
-          AddedYield: 0.25
+          AddedYield: 0.5
       GrowthTime: 60
     - 
       Name: Young Plant
       Description: Wild Flora plants may be hilled for additional yield
       Action: Hill
-      ActionToSkip: Wait
       Optional: True
+      ActionToSkip: Wait
       AddedYield: 1.0
       GrowthTime: 1800
     -
@@ -428,8 +264,8 @@ Wild Flora:
       Name: Adult Plant - Harvest
       Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
       Action: Dig
-      ActionToSkip: Wait
       Optional: True
+      ActionToSkip: Wait
       Harvestable:
         Good: Wild Plant
         FinalHarvest: true
@@ -440,31 +276,25 @@ Wild Flora:
       Consumables:
         - 
           Name: Fertilizer
-          Quality: Fine
           Quantity: 4
         -
-          Name: Fertilizer
-          Quality: Fine
+          Name: Enchanted Fertilizer
           Quantity: 2
-          Enchantment: Imbued
-        -
-          Name: Fertilizer
-          Quality: Exquisite
+        - 
+          Name: Dragon Fertilizer
           Quantity: 2
         -
-          Name: Fertilizer
-          Quality: Exquisite
+          Name: Enchanted Dragon Fertilizer
           Quantity: 1
-          Enchantment: Imbued
-          AddedYield: 1.0
+          AddedYield: 0.5
       AddedYield: 0.5
       GrowthTime: 60
     -
       Name: Mature Plant - Harvest
       Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
       Action: Dig
-      ActionToSkip: Wait
       Optional: True
+      ActionToSkip: Wait
       Harvestable:
         Good: Wild Plant
         FinalHarvest: true

@@ -85,6 +85,7 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Plot GET endpoints~~
 - ~~Plant struct for plots defined~~
 - Plot helper functions for Growth Actions (plant plot, clear plot, progress plot, harvest plot)
+- - Implement failure responses for Plant helper
 - Plot interact endpoint with switch on body.action (growth actions)
 - - GA_Wait
 - - GA_Clear
@@ -103,6 +104,9 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Convert to symbol based sector/island/location~~
 - ~~Convert regions to islands~~
 - ~~Add sectors~~
+- ~~Remove Quality property from goods. Reintroduce for Trophies, use unique items instead~~
+- ~~Define goods in YAML rather than as enum?~~
+- ~~Remove enchantment property from goods. Generate unique Goods for the limited enchantable list~~
 
 ---
 
@@ -159,6 +163,8 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: Post-1.0
 
 - Simplified routing (pass a full route, even over oceans, and server will calculate total fare and travel time, rather than requiring manual travel between each intermediate location) - meta progression unlock?
+- Add Gigantic, Colossal, and Titanic planting. Harvesting these don't give Goods, but rather Trophies. Trophies are given unique IDs when harvested, yield contributes to Quality rather than Quantity, and hold Grower Username, Grown Date, Size, numeric Quality, Plant Rarity, and optionally (once sold) Sold Price. These are not taken to any old market, but are transported to special Auctioneer locations where they are auctioned for a set amount of time. Size, Quality, and Rarity are combined, +/- 10% from RNG to give a Sold Price. All trophies are stored in the DB for the season, and there are leaderboards for who can get the highest quality and highest sale price.
+- - Add a type of plant that can be indefinitely yield boosted to allow more active competing over Trophy leaderboards
 
 ---
 

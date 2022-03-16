@@ -51,7 +51,7 @@ type ContractReward struct {
 
 func NewContract(username string, countOfUserContracts int16, locationSymbol string, contractType ContractTypes, npc string, terms []ContractTerms, reward []ContractReward) *Contract {
 	return &Contract{
-		UUID: username + "|Contract-" + fmt.Sprintf("%d", countOfUserContracts),
+		UUID: username + "-Contract-" + fmt.Sprintf("%d", countOfUserContracts),
 		ContractType: contractType,
 		LocationSymbol: locationSymbol,
 		NPC: npc,
