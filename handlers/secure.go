@@ -8,7 +8,6 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -511,13 +510,20 @@ func (h *PlotsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !OK {
 		return // Failure states handled by secureGetUser, simply return
 	}
-	// Get plots from db
-	adb := (*h.Dbs)["plots"]
-	plots, foundPlots, plotsErr := schema.GetPlotsFromDB(userData.Plots, adb)
-	if plotsErr != nil || !foundPlots {
-		log.Error.Printf("Error in PlotsInfo, could not get plots from DB. foundPlots: %v, error: %v", foundPlots, plotsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, plots, plotsErr.Error())
+	// Get farms from db
+	adb := (*h.Dbs)["farms"]
+	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, adb)
+	if farmsErr != nil || !foundFarms {
+		log.Error.Printf("Error in FarmsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
 		return
+	}
+	// Get plots from farms
+	plots := make(map[string]schema.Plot, 0)
+	for _, farm := range farms {
+		for plotsymbol, plot := range farm.Plots {
+			plots[plotsymbol] = plot
+		}
 	}
 	getPlotsJsonString, getPlotsJsonStringErr := responses.JSON(plots)
 	if getPlotsJsonStringErr != nil {
@@ -540,14 +546,17 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	route_vars := mux.Vars(r)
 	uuid := route_vars["uuid"]
 	log.Debug.Printf("PlotInfo Requested for: %s", uuid)
-	// Get plots
-	adb := (*h.Dbs)["plots"]
-	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
-	if plotsErr != nil || !foundPlot {
-		log.Error.Printf("Error in PlotInfo, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
+	// Get farm
+	symbolSlice := strings.Split(uuid, "|")
+	farmSymbol := strings.Join(symbolSlice[:len(symbolSlice)-1], "|")
+	adb := (*h.Dbs)["farms"]
+	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmSymbol, adb)
+	if farmsErr != nil || !foundFarm {
+		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
 		return
 	}
+	plot := farm.Plots[uuid]
 	getPlotJsonString, getPlotJsonStringErr := responses.JSON(plot)
 	if getPlotJsonStringErr != nil {
 		log.Error.Printf("Error in PlotInfo, could not format plots as JSON. plots: %v, error: %v", plot, getPlotJsonStringErr)
@@ -559,72 +568,124 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End PlotInfo --"))
 }
 
-
-// Handler function for the secure route: /api/my/plots/{uuid}/interact
-type Interact struct {
+// Handler function for the secure route: /api/my/plots/{uuid}/plant
+type PlantPlot struct {
 	Dbs *map[string]rdb.Database
 	PlantDict *map[string]schema.PlantDefinition
+	GoodsList *[]string
 }
-func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Debug.Println(log.Yellow("-- Interact --"))
-	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
-	log.Debug.Printf("Interact Requested for: %s", uuid)
-	// unmarshall request body to get action and consumables if applicable
-	var body schema.PlotActionBody
-	decoder := json.NewDecoder(r.Body)
-	if decodeErr := decoder.Decode(&body); decodeErr != nil {
-		// Fail case, could not decode
-		log.Debug.Printf("Decode Error in Interact: %v", decodeErr)
-		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
-		return
-	}
-	// get user
-	udb := (*h.Dbs)["users"]
-	OK, userData, _ := secureGetUser(w, r, udb)
-	if !OK {
-		return // Failure states handled by secureGetUser, simply return
-	}
-	// Get plots
-	adb := (*h.Dbs)["plots"]
-	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
-	if plotsErr != nil || !foundPlot {
-		log.Error.Printf("Error in Interact, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
-		return
-	}
-	// Get warehouses
-	wdb := (*h.Dbs)["warehouses"]
-	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "-Warehouse-" + plot.LocationSymbol, wdb)
-	if warehousesErr != nil || !foundWarehouse {
-		log.Error.Printf("Error in Interact, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
-		return
-	}
-	// Get farms
-	fdb := (*h.Dbs)["farms"]
-	farm, foundFarm, farmsErr := schema.GetFarmFromDB(userData.Username + "-Farm-" + plot.LocationSymbol, fdb)
-	if farmsErr != nil || !foundFarm {
-		log.Error.Printf("Error in Interact, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
-		return
-	}
-	// catch Clear action, initial Plant action, else send to Progress handler
-	plantDict := (*h.PlantDict)
-	if strings.Title(body.Action.String()) == "Clear" {
-		// This is a clear step, reset plot
-		// plot.Clear()
-		return
-	} else if plot.PlantedPlant == nil {
-		// This is the plant step, call Plant
-		_ = plot.Plant(w, (*h.Dbs)["plots"], plantDict, warehouse, farm.Tools, body.Consumables, body.Size)
-		// Errors and response handled by Plant
-	} else {
-		// Send to progress handler for harvest or progresssion
-		// plot.Progress()
-		return
-	}
+func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- PlantPlot --"))
+	// // Get uuid from route
+	// route_vars := mux.Vars(r)
+	// uuid := route_vars["uuid"]
+	// log.Debug.Printf("PlantPlot Requested for: %s", uuid)
+	// // unmarshall request body to get action and consumables if applicable
+	// var body schema.PlotPlantBody
+	// decoder := json.NewDecoder(r.Body)
+	// if decodeErr := decoder.Decode(&body); decodeErr != nil {
+	// 	// Fail case, could not decode
+	// 	log.Debug.Printf("Decode Error in PlantPlot: %v", decodeErr)
+	// 	responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+	// 	return
+	// }
+	// // get user
+	// udb := (*h.Dbs)["users"]
+	// OK, userData, _ := secureGetUser(w, r, udb)
+	// if !OK {
+	// 	return // Failure states handled by secureGetUser, simply return
+	// }
+	// // Get warehouses
+	// wdb := (*h.Dbs)["warehouses"]
+	// warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "-Warehouse-" + plot.LocationSymbol, wdb)
+	// if warehousesErr != nil || !foundWarehouse {
+	// 	log.Error.Printf("Error in PlantPlot, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+	// 	responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+	// 	return
+	// }
+	// // Get farms
+	// fdb := (*h.Dbs)["farms"]
+	// farm, foundFarm, farmsErr := schema.GetFarmFromDB(userData.Username + "-Farm-" + plot.LocationSymbol, fdb)
+	// if farmsErr != nil || !foundFarm {
+	// 	log.Error.Printf("Error in PlantPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+	// 	responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+	// 	return
+	// }
+	// plantDict := (*h.PlantDict)
+	// // This is the plant step, call Plant
+	// _ = plot.Plant(w, h.Dbs, plantDict, goodsList, body)
+	// // Errors and response handled by Plant
 	
-	log.Debug.Println(log.Cyan("-- End Interact --"))
+	log.Debug.Println(log.Cyan("-- End PlantPlot --"))
 }
+
+
+// // Handler function for the secure route: /api/my/plots/{uuid}/interact
+// type Interact struct {
+// 	Dbs *map[string]rdb.Database
+// 	PlantDict *map[string]schema.PlantDefinition
+// 	GoodsList *[]string
+// }
+// func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// 	log.Debug.Println(log.Yellow("-- Interact --"))
+// 	// Get uuid from route
+// 	route_vars := mux.Vars(r)
+// 	uuid := route_vars["uuid"]
+// 	log.Debug.Printf("Interact Requested for: %s", uuid)
+// 	// unmarshall request body to get action and consumables if applicable
+// 	var body schema.PlotActionBody
+// 	decoder := json.NewDecoder(r.Body)
+// 	if decodeErr := decoder.Decode(&body); decodeErr != nil {
+// 		// Fail case, could not decode
+// 		log.Debug.Printf("Decode Error in Interact: %v", decodeErr)
+// 		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+// 		return
+// 	}
+// 	// get user
+// 	udb := (*h.Dbs)["users"]
+// 	OK, userData, _ := secureGetUser(w, r, udb)
+// 	if !OK {
+// 		return // Failure states handled by secureGetUser, simply return
+// 	}
+// 	// Get plots
+// 	adb := (*h.Dbs)["plots"]
+// 	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
+// 	if plotsErr != nil || !foundPlot {
+// 		log.Error.Printf("Error in Interact, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
+// 		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
+// 		return
+// 	}
+// 	// Get warehouses
+// 	wdb := (*h.Dbs)["warehouses"]
+// 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "-Warehouse-" + plot.LocationSymbol, wdb)
+// 	if warehousesErr != nil || !foundWarehouse {
+// 		log.Error.Printf("Error in Interact, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+// 		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+// 		return
+// 	}
+// 	// Get farms
+// 	fdb := (*h.Dbs)["farms"]
+// 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(userData.Username + "-Farm-" + plot.LocationSymbol, fdb)
+// 	if farmsErr != nil || !foundFarm {
+// 		log.Error.Printf("Error in Interact, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+// 		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+// 		return
+// 	}
+// 	// catch Clear action, initial Plant action, else send to Progress handler
+// 	plantDict := (*h.PlantDict)
+// 	if strings.Title(body.Action.String()) == "Clear" {
+// 		// This is a clear step, reset plot
+// 		// plot.Clear()
+// 		return
+// 	} else if plot.PlantedPlant == nil {
+// 		// This is the plant step, call Plant
+// 		_ = plot.Plant(w, (*h.Dbs)["plots"], plantDict, warehouse, farm.Tools, body.Consumables, body.Size)
+// 		// Errors and response handled by Plant
+// 	} else {
+// 		// Send to progress handler for harvest or progresssion
+// 		// plot.Progress()
+// 		return
+// 	}
+	
+// 	log.Debug.Println(log.Cyan("-- End Interact --"))
+// }

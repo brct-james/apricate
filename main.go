@@ -39,7 +39,6 @@ func initialize_dbs() {
 	dbs["contracts"] = rdb.NewDatabase(RedisAddr, 3)
 	dbs["warehouses"] = rdb.NewDatabase(RedisAddr, 4)
 	dbs["clearinghouse"] = rdb.NewDatabase(RedisAddr, 5)
-	dbs["plots"] = rdb.NewDatabase(RedisAddr, 6)
 
 	if flush_DBs || regenerate_auth_secret {
 		for _, db := range dbs {
@@ -199,7 +198,8 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/plots/{uuid}/interact", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary}).Methods("POST")
+	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, PlantDict: &plant_dictionary, GoodsList: &goods_list}).Methods("POST")
+	// secure.Handle("/plots/{uuid}/interact", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary, GoodsList: &goods_list}).Methods("POST")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)

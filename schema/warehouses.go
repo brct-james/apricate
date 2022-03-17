@@ -12,16 +12,16 @@ import (
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
-	Goods map[string]Good `json:"goods" binding:"required"`
+	Goods map[string]uint64 `json:"goods" binding:"required"`
 }
 
 func NewEmptyWarehouse(username string, locationSymbol string) *Warehouse {
-	return NewWarehouse(username, locationSymbol, make(map[string]Good))
+	return NewWarehouse(username, locationSymbol, make(map[string]uint64))
 }
 
-func NewWarehouse(username string, locationSymbol string, starting_goods map[string]Good) *Warehouse {
+func NewWarehouse(username string, locationSymbol string, starting_goods map[string]uint64) *Warehouse {
 	return &Warehouse{
-		UUID: username + "-Warehouse-" + locationSymbol,
+		UUID: username + "|Warehouse-" + locationSymbol,
 		LocationSymbol: locationSymbol,
 		Goods: starting_goods,
 	}

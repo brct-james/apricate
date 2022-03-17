@@ -28,7 +28,7 @@ type Assistant struct {
 
 func NewAssistant(username string, countOfUserAssistants int16, archetype AssistantTypes, locationSymbol string) *Assistant {
 	return &Assistant{
-		UUID: username + "-Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
+		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
 		Archetype: archetype,
 		Improvements: make(map[string]uint8),
 		LocationSymbol: locationSymbol,

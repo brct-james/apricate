@@ -107,6 +107,9 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Remove Quality property from goods. Reintroduce for Trophies, use unique items instead~~
 - ~~Define goods in YAML rather than as enum?~~
 - ~~Remove enchantment property from goods. Generate unique Goods for the limited enchantable list~~
+- ~~Warehouses store map[goodName]quantity now instead of Good structs~~
+- Move plot storage to farms, rather than separate DB table
+- Deploy pre-alpha server and separate dev server once complete, host timed pre-alpha test via discord
 
 ---
 

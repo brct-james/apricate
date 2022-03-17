@@ -26,14 +26,14 @@ type Farm struct {
 	Bonuses []FarmBonuses `json:"bonuses" binding:"required"`
 	Tools map[ToolTypes]uint8 `json:"tools" binding:"required"`
 	Buildings map[BuildingTypes]uint8 `json:"buildings" binding:"required"`
-	Plots []string `json:"plots" binding:"required"`
+	Plots map[string]Plot `json:"plots" binding:"required"`
 }
 
 func NewFarm(pdb rdb.Database, totalplotcount uint16, username string, locationSymbol string) *Farm {
 	var bonuses []FarmBonuses
 	var tools map[ToolTypes]uint8
 	var buildings map[BuildingTypes]uint8
-	var plots []string
+	var plots map[string]Plot
 	switch locationSymbol {
 	case "TS-PR-HF":
 		bonuses = make([]FarmBonuses, 0)
@@ -44,10 +44,10 @@ func NewFarm(pdb rdb.Database, totalplotcount uint16, username string, locationS
 		bonuses = make([]FarmBonuses, 0)
 		tools = make(map[ToolTypes]uint8)
 		buildings = make(map[BuildingTypes]uint8)
-		plots = make([]string, 0)
+		plots = make(map[string]Plot)
 	}
 	return &Farm{
-		UUID: username + "-Farm-" + locationSymbol,
+		UUID: username + "|Farm-" + locationSymbol,
 		LocationSymbol: locationSymbol,
 		Bonuses: bonuses,
 		Tools: tools,

@@ -44,13 +44,18 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	contract := NewContract(username, 0, startLocation, ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
 	SaveContractToDB(dbs["contracts"], contract)
 	// generate starting warehouse
-	warehouse := NewWarehouse(username, startLocation, map[string]Good{"Cabbage Seeds":{Name: "Cabbage Seeds", Quantity: 10},"Shelvis Fig Seeds":{Name: "Shelvis Fig Seeds", Quantity: 10},"Perfect Potato":{Name: "Perfect Potato", Quantity: 10}})
+	warehouse := NewWarehouse(username, startLocation, map[string]uint64{"Cabbage Seeds":10,"Shelvis Fig Seeds":10,"Potato":10})
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID
 	var starting_farm_warehouse_id string = warehouse.UUID
 	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
+
+	plotIds := make([]string, 0)
+	for _, plot := range farm.Plots {
+		plotIds = append(plotIds, plot.UUID)
+	}
 
 	return &User{
 		Token: token,
@@ -67,7 +72,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 		},
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
-		Plots: farm.Plots,
+		Plots: plotIds,
 		Warehouses: []string{starting_farm_warehouse_id},
 		Assistants: []string{starting_assistant_id},
 	}
