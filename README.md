@@ -43,7 +43,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every island with atleast one assistant), for navigational purposes
 - `GET: /api/my/plots` returns a list of the player's plots
 - `GET: /api/my/plots/{uuid}` returns the plot specified by `uuid`
-- `PUT: /api/my/plots/{uuid}/clear` returns the plot if successful in attempt to clear plot
+- `PUT: /api/my/plots/{uuid}/clear` returns the plot if successful in attempt to clear plot, no request body expected
 - `POST: /api/my/plots/{uuid}/plant` returns the updated warehouse and plot data if successful in attempt to plant specified plant in plot, as well as the info on the next growth stage of the plant
 - - **Request Body** Expects `name` of seed, `quantity` of seed, `size` of plant. Example:
 ```json
@@ -106,17 +106,15 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Move plot storage to farms, rather than separate DB table~~
 - ~~Refactor dictionaries to a main struct~~
 - ~~Add Sickle, Shade Cloth tool/action, Spectral Grass plant~~
-- Plot `/interact` endpoint with switch on body.action (growth actions)
-- - GA_Wait
-- - GA_Clear
-- - GA_Trim
-- - GA_Dig
-- - GA_Weed
-- - GA_Fertilize
-- - GA_Water
-- - GA_Hill
-- - GA_Sprout
-- Goods are deposited to warehouse when plants harvested
+- ~~Plot `/interact` endpoint with switch on body.action (growth actions)~~
+- Cooldown/growth time is enforced (written, tested, just need to enable by uncommenting when testing done)
+- Add warehouse increment/decrement methods to handle removing the key for goods that are now at 0
+- Harvest functionality in `/interact`
+- - Actually, harvests should give Produce, a superset of Good, and go to special warehouse section so they can have size but not every good
+- - Check logic in `plots:interact()` for returning growthHarvest when harvest is optional and when harvest but not FinalHarvest
+- - Produce deposited to warehouse
+- Warehouses have sections for tools, produce, goods
+- - Farm tools moved to warehouse
 - Tested growth and harvest of cabbage, potatos, shelvis fig, spectral grass, INCLUDING optional actions (make sure yield properly adjusted)
 - Add `GET: /plants/{plantName}/growth-stages/{index}`
 - Update documentation

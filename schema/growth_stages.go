@@ -15,7 +15,7 @@ type GrowthStage struct {
 	ActionToSkip *GrowthAction `yaml:"ActionToSkip" json:"action_to_skip,omitempty"`
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	AddedYield float32 `yaml:"AddedYield" json:"added_yield,omitempty"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
-	GrowthTime *uint64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted
+	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted
 	Harvestable *GrowthHarvest `yaml:"Harvestable" json:"harvestable,omitempty"` // Plants may be harvested at any stage where Harvestable is present, some may have additional stages beyond first harvest opportunity
 }
 
@@ -56,7 +56,7 @@ var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
 	GA_Fertilize: Tool_Pitchfork,
 	GA_Hill: Tool_Rake,
 	GA_Sprout: Tool_SproutingPot,
-	GA_Shade: Tool_ShadeCloth,
+	GA_Shade: Tool_ShadeScroll,
 	GA_Reap: Tool_Sickle,
 }
 

@@ -2,9 +2,11 @@
 package schema
 
 import (
+	"apricate/log"
 	"apricate/rdb"
 	"apricate/responses"
 	"fmt"
+	"strings"
 )
 
 // Defines a plot
@@ -14,6 +16,7 @@ type Plot struct {
 	PlotSize Size `json:"size" binding:"required"`
 	Quantity uint16 `json:"plant_quantity" binding:"required"`
 	PlantedPlant *Plant `json:"plant" binding:"required"`
+	GrowthCompleteTimestamp int64 `json:"growth_complete_timestamp" binding:"required"`
 }
 
 func NewPlot(username string, countOfPlots uint16, locationSymbol string, capacity Size) *Plot {
@@ -23,6 +26,7 @@ func NewPlot(username string, countOfPlots uint16, locationSymbol string, capaci
 		PlotSize: capacity,
 		Quantity: 0,
 		PlantedPlant: nil,
+		GrowthCompleteTimestamp: 0,
 	}
 }
 
@@ -44,8 +48,8 @@ type PlotPlantBody struct {
 
 // Defines a plot action request body
 type PlotInteractBody struct {
-	Action GrowthAction `json:"action" binding:"required"`
-	Consumables Good `json:"consumables,omitempty"`
+	Action string `json:"action" binding:"required"`
+	Consumable string `json:"consumable,omitempty"`
 }
 
 // Defines a plot plant response body
@@ -57,6 +61,7 @@ type PlotPlantResponse struct {
 
 // Defines a plot action response body
 type PlotActionResponse struct {
+	Warehouse *Warehouse `json:"warehouse,omitempty"`
 	Plot *Plot `json:"plot" binding:"required"`
 	NextStage *GrowthStage `json:"next_stage" binding:"required"`
 }
@@ -69,4 +74,60 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 		return responses.Plot_Too_Small
 	}
 	return responses.Generic_Success
+}
+
+// returns ResponseCode, AddedYield, ConsumableQuantityUsed, GrowthHarvest, Cooldown/GrowthTime
+func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64) (responses.ResponseCode, float32, uint64, *GrowthHarvest, int64) {
+	pib.Action = strings.Title(strings.ToLower(pib.Action))
+	log.Important.Println(pib.Action)
+	growthStage := plantDef.GrowthStages[p.PlantedPlant.CurrentStage]
+	// if blank action
+	if pib.Action == string("") {
+		// action sent is missing or invalid
+		return responses.Invalid_Plot_Action, 0, 0, nil, 0
+	}
+	// if has and is skip action
+	if growthStage.ActionToSkip != nil && pib.Action == (*growthStage.ActionToSkip).String() {
+		return responses.Generic_Success, 0, 0, nil, 0
+	}
+	// if action action
+	if pib.Action == (*growthStage.Action).String() {
+		// Growth stage contains no consumables, return success
+		if len(growthStage.ConsumableOptions) == 0 {
+			// if harvest step, return harvest data, else just return added yield
+			if growthStage.Harvestable != nil {
+				return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, 0
+			}
+			return responses.Generic_Success, growthStage.AddedYield, 0, nil, *growthStage.GrowthTime
+		}
+		// Check consumables
+		if pib.Consumable == string("") {
+			// No consumables included in request body, fail
+			return responses.Missing_Consumable_Selection, 0, 0, nil, 0
+		}
+		// Check all consumables for option matching request, return in loop if passes, else fail after
+		scaledGrowthStage, sGSErr := plantDef.GetScaledGrowthStage(p.PlantedPlant.CurrentStage, uint64(p.Quantity), p.PlantedPlant.Size)
+		if sGSErr != nil {
+			// internal server error, could not get scaled growth stage
+			return responses.Internal_Server_Error, 0, 0, nil, 0
+		}
+		for _, consumableOption := range scaledGrowthStage.ConsumableOptions {
+			if consumableOption.Name == pib.Consumable {
+				// found matching consumable option
+				if consumableOption.Quantity <= consumableQuantityAvailable {
+					// have enough, return success
+					if growthStage.Harvestable != nil {
+						// if harvest step, return harvest data, else just return added yield
+						return responses.Generic_Success, growthStage.AddedYield + consumableOption.AddedYield, consumableOption.Quantity, growthStage.Harvestable, *growthStage.GrowthTime
+					}
+					return responses.Generic_Success, growthStage.AddedYield + consumableOption.AddedYield, consumableOption.Quantity, nil, *growthStage.GrowthTime
+				}
+				// insufficient quantity in local warehouse
+				return responses.Not_Enough_Items_In_Warehouse, 0, 0, nil, 0
+			}
+		}
+		return responses.Consumable_Not_In_Options, 0, 0, nil, 0
+	}
+	// else, invalid action specified
+	return responses.Invalid_Plot_Action, 0, 0, nil, 0
 }

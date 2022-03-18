@@ -38,11 +38,15 @@ type PlantDefinition struct {
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
 }
 
-func (d *PlantDefinition) GetScaledGrowthStage(gsIndex int, plantQuantity uint64, plantSize Size) (*GrowthStage, error) {
-	if gsIndex >= len(d.GrowthStages) {
+func (d *PlantDefinition) GetScaledGrowthStage(gsIndex int16, plantQuantity uint64, plantSize Size) (*GrowthStage, error) {
+	if int(gsIndex) >= len(d.GrowthStages) {
 		return nil, fmt.Errorf("growth stage index out of bounds: %d of %d", gsIndex, len(d.GrowthStages))
 	}
 	res := d.GrowthStages[gsIndex]
+	if len(res.ConsumableOptions) == 0 {
+		// No consumables to scale
+		return &res, nil
+	}
 	for index, option := range res.ConsumableOptions {
 		option.Quantity *= plantQuantity * uint64(plantSize)
 		res.ConsumableOptions[index] = option
