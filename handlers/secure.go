@@ -684,7 +684,7 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "Plots", farm.Plots)
 	if saveFarmErr != nil {
-		log.Error.Printf("Error in PlotInfo, could not save farm. error: %v", saveFarmErr)
+		log.Error.Printf("Error in PlantPlot, could not save farm. error: %v", saveFarmErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
 		return
 	}
@@ -704,72 +704,193 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 
+// Handler function for the secure route: /api/my/plots/{uuid}/clear
+type ClearPlot struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- ClearPlot --"))
+	// Get uuid from route
+	route_vars := mux.Vars(r)
+	uuid := route_vars["uuid"]
+	symbolSlice := strings.Split(uuid, "|")
+	if len(symbolSlice) < 3 {
+		// Fail, malformed plot id
+		errmsg := fmt.Sprintf("Malformed plot id, symbolSlice less than 3: %v", symbolSlice)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	farmLocationSymbol := strings.Join(symbolSlice[:len(symbolSlice)-1], "|")
+	log.Debug.Printf("ClearPlot Requested for: %s", uuid)
+
+	// Get farms
+	fdb := (*h.Dbs)["farms"]
+	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
+	if farmsErr != nil || !foundFarm {
+		log.Error.Printf("Error in ClearPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		return
+	}
+
+	// Validate plot available for clearing and body meets internal plot validation
+	plot := farm.Plots[uuid]
+	if plot.PlantedPlant == nil {
+		log.Error.Printf("Error in ClearPlot, plot already empty")
+		responses.SendRes(w, responses.Plot_Already_Empty, plot, "")
+		return
+	}
+
+	plot.PlantedPlant = nil
+	plot.Quantity = 0
+	farm.Plots[uuid] = plot
+
+	// Save to DB
+	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "Plots", farm.Plots)
+	if saveFarmErr != nil {
+		log.Error.Printf("Error in ClearPlot, could not save farm. error: %v", saveFarmErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
+		return
+	}
+
+	// Construct and Send response
+	resmsg := fmt.Sprintf("Successfully cleared plot: %s", uuid)
+	log.Debug.Printf("Sending successful response for PlantPlot",)
+	responses.SendRes(w, responses.Generic_Success, plot, resmsg)
+	
+	log.Debug.Println(log.Cyan("-- End PlantPlot --"))
+}
+
 // // Handler function for the secure route: /api/my/plots/{uuid}/interact
-// type Interact struct {
+// type InteractPlot struct {
 // 	Dbs *map[string]rdb.Database
-// 	PlantDict *map[string]schema.PlantDefinition
-// 	GoodsList *map[string]interface{}
+// 	MainDictionary *schema.MainDictionary
 // }
-// func (h *Interact) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	log.Debug.Println(log.Yellow("-- Interact --"))
+// func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+// 	log.Debug.Println(log.Yellow("-- InteractPlot --"))
 // 	// Get uuid from route
 // 	route_vars := mux.Vars(r)
 // 	uuid := route_vars["uuid"]
-// 	log.Debug.Printf("Interact Requested for: %s", uuid)
+// 	symbolSlice := strings.Split(uuid, "|")
+// 	if len(symbolSlice) < 3 {
+// 		// Fail, malformed plot id
+// 		errmsg := fmt.Sprintf("Malformed plot id, symbolSlice less than 3: %v", symbolSlice)
+// 		log.Debug.Printf(errmsg)
+// 		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+// 		return
+// 	}
+// 	farmLocationSymbol := strings.Join(symbolSlice[:len(symbolSlice)-1], "|")
+// 	locationSymbol := strings.Split(symbolSlice[1], "-")
+// 	warehouseLocationSymbol := symbolSlice[0] + "|Warehouse-" + strings.Join(locationSymbol[1:],"-")
+// 	log.Debug.Printf("InteractPlot Requested for: %s", uuid)
 // 	// unmarshall request body to get action and consumables if applicable
-// 	var body schema.PlotActionBody
+// 	var body schema.PlotPlantBody
 // 	decoder := json.NewDecoder(r.Body)
 // 	if decodeErr := decoder.Decode(&body); decodeErr != nil {
 // 		// Fail case, could not decode
-// 		log.Debug.Printf("Decode Error in Interact: %v", decodeErr)
+// 		errmsg := fmt.Sprintf("Decode Error in InteractPlot: %v", decodeErr)
+// 		log.Debug.Printf(errmsg)
 // 		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
 // 		return
 // 	}
-// 	// get user
-// 	udb := (*h.Dbs)["users"]
-// 	OK, userData, _ := secureGetUser(w, r, udb)
-// 	if !OK {
-// 		return // Failure states handled by secureGetUser, simply return
+// 	// Validate specified seed is a good
+// 	goodsDict := (*h.MainDictionary).Goods
+// 	if _, ok := goodsDict[body.SeedName]; !ok {
+// 		// Fail, seed is not good
+// 		errmsg := fmt.Sprintf("Error in InteractPlot, Seed item does not exist in good dictionary. received seed name: %v", body.SeedName)
+// 		log.Error.Printf(errmsg)
+// 		responses.SendRes(w, responses.Item_Does_Not_Exist, nil, errmsg)
+// 		return
 // 	}
-// 	// Get plots
-// 	adb := (*h.Dbs)["plots"]
-// 	plot, foundPlot, plotsErr := schema.GetPlotFromDB(uuid, adb)
-// 	if plotsErr != nil || !foundPlot {
-// 		log.Error.Printf("Error in Interact, could not get plot from DB. foundPlot: %v, error: %v", foundPlot, plotsErr)
-// 		responses.SendRes(w, responses.DB_Get_Failure, plot, plotsErr.Error())
+// 	// Validate specified seed is a seed
+// 	seedsDict := (*h.MainDictionary).Seeds
+// 	plantName, plantNameOk := seedsDict[body.SeedName]
+// 	if !plantNameOk {
+// 		// Fail, seed name specified does not match a known seed
+// 		errmsg := fmt.Sprintf("Error in InteractPlot, SeedName does not map to seed in seed dictionary. received seed name: %v", body.SeedName)
+// 		log.Error.Printf(errmsg)
+// 		responses.SendRes(w, responses.Item_Is_Not_Seed, nil, errmsg)
 // 		return
 // 	}
 // 	// Get warehouses
 // 	wdb := (*h.Dbs)["warehouses"]
-// 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(userData.Username + "-Warehouse-" + plot.LocationSymbol, wdb)
+// 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
 // 	if warehousesErr != nil || !foundWarehouse {
-// 		log.Error.Printf("Error in Interact, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-// 		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+// 		errmsg := fmt.Sprintf("Error in InteractPlot, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+// 		log.Error.Printf(errmsg)
+// 		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+// 		return
+// 	}
+// 	// Validate seeds specified in given warehouse
+// 	numLocalSeeds, ownedSeedsOk := warehouse.Goods[body.SeedName]; 
+// 	if !ownedSeedsOk {
+// 		// Fail, seed good not in warehouse
+// 		errmsg := fmt.Sprintf("Error in InteractPlot, Seed item not found in local warehouse. received good name: %v, warehouse goods: %v", body.SeedName, warehouse.Goods)
+// 		log.Error.Printf(errmsg)
+// 		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, nil, errmsg)
+// 		return
+// 	}
+// 	if numLocalSeeds < uint64(body.SeedQuantity) {
+// 		// Fail, not enough seeds in local inventory
+// 		errmsg := fmt.Sprintf("Error in InteractPlot, not enough seed item found in local warehouse. received good name: %v, # local goods: %v", body.SeedName, numLocalSeeds)
+// 		log.Error.Printf(errmsg)
+// 		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, map[string]interface{}{"name": body.SeedName, "number_in_warehouse": numLocalSeeds}, errmsg)
 // 		return
 // 	}
 // 	// Get farms
 // 	fdb := (*h.Dbs)["farms"]
-// 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(userData.Username + "-Farm-" + plot.LocationSymbol, fdb)
+// 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 // 	if farmsErr != nil || !foundFarm {
-// 		log.Error.Printf("Error in Interact, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+// 		log.Error.Printf("Error in InteractPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
 // 		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
 // 		return
 // 	}
-// 	// catch Clear action, initial Plant action, else send to Progress handler
-// 	plantDict := (*h.PlantDict)
-// 	if strings.Title(body.Action.String()) == "Clear" {
-// 		// This is a clear step, reset plot
-// 		// plot.Clear()
+// 	// Validate plot available for planting and body meets internal plot validation
+// 	plot := farm.Plots[uuid]
+// 	switch plot.IsPlantable(body) {
+// 	case responses.Plot_Already_Planted:
+// 		log.Error.Printf("Error in PlantPlot, plot already planted")
+// 		responses.SendRes(w, responses.Plot_Already_Planted, plot, "")
 // 		return
-// 	} else if plot.PlantedPlant == nil {
-// 		// This is the plant step, call Plant
-// 		_ = plot.Plant(w, (*h.Dbs)["plots"], plantDict, warehouse, farm.Tools, body.Consumables, body.Size)
-// 		// Errors and response handled by Plant
-// 	} else {
-// 		// Send to progress handler for harvest or progresssion
-// 		// plot.Progress()
+// 	case responses.Plot_Too_Small:
+// 		log.Error.Printf("Error in PlantPlot, plot too small")
+// 		responses.SendRes(w, responses.Plot_Too_Small, plot, "")
+// 		return
+// 	case responses.Generic_Success:
+// 		log.Debug.Printf("Plot ready for planting: %s", plot.UUID)
+// 	default:
+// 		log.Error.Fatalf("Received unexpected response type from plot.IsPlantable. plot: %v body: %v", plot, body)
+// 	}
+
+// 	plot.PlantedPlant = schema.NewPlant(schema.PlantTypeFromString(plantName), body.SeedSize)
+// 	plot.Quantity = body.SeedQuantity
+// 	warehouse.Goods[body.SeedName] -= uint64(body.SeedQuantity)
+// 	farm.Plots[uuid] = plot
+
+// 	// Save to DBs
+// 	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "Goods", warehouse.Goods)
+// 	if saveWarehouseErr != nil {
+// 		log.Error.Printf("Error in PlotInfo, could not save warehouse. error: %v", saveWarehouseErr)
+// 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
 // 		return
 // 	}
+// 	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "Plots", farm.Plots)
+// 	if saveFarmErr != nil {
+// 		log.Error.Printf("Error in PlotInfo, could not save farm. error: %v", saveFarmErr)
+// 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
+// 		return
+// 	}
+
+// 	// Construct and Send response
+// 	response := schema.PlotPlantResponse{Warehouse: &warehouse, Plot: &plot, NextStage: &h.MainDictionary.Plants[plantName].GrowthStages[plot.PlantedPlant.CurrentStage]}
+// 	getPlotPlantResponseJsonString, getPlotPlantResponseJsonStringErr := responses.JSON(response)
+// 	if getPlotPlantResponseJsonStringErr != nil {
+// 		log.Error.Printf("Error in PlotInfo, could not format interact response as JSON. response: %v, error: %v", response, getPlotPlantResponseJsonStringErr)
+// 		responses.SendRes(w, responses.JSON_Marshal_Error, response, getPlotPlantResponseJsonStringErr.Error())
+// 		return
+// 	}
+// 	log.Debug.Printf("Sending response for InteractPlot:\n%v", getPlotPlantResponseJsonString)
+// 	responses.SendRes(w, responses.Generic_Success, response, "")
 	
-// 	log.Debug.Println(log.Cyan("-- End Interact --"))
+// 	log.Debug.Println(log.Cyan("-- End InteractPlot --"))
 // }

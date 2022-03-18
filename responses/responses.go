@@ -42,7 +42,7 @@ const (
 	Plot_Already_Planted ResponseCode = 15
 	Plot_Too_Small ResponseCode = 16
 	Item_Is_Not_Seed ResponseCode = 17
-	// Golem_In_Blocking_Status ResponseCode = 18
+	Plot_Already_Empty ResponseCode = 18
 	// New_Status_Not_Allowed ResponseCode = 19
 	Bad_Request ResponseCode = 20
 	// No_Available_Routes ResponseCode = 21
@@ -161,10 +161,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 		Message: "[Item_Is_Not_Seed] Specified SeedName does not map to known Seed",
 		HttpResponse: http.StatusBadRequest,
 	},
-	// Golem_In_Blocking_Status: {
-	// 	Message: "[Golem_In_Blocking_Status] Golem's current status does not allow changes to be made",
-	// 	HttpResponse: http.StatusConflict,
-	// },
+	Plot_Already_Empty: {
+		Message: "[Plot_Already_Empty] Plot is already empty, cannot be cleared",
+		HttpResponse: http.StatusConflict,
+	},
 	// New_Status_Not_Allowed: {
 	// 	Message: "[New_Status_Not_Allowed] Specified status is not valid for the specified golem's archetype",
 	// 	HttpResponse: http.StatusNotAcceptable,

@@ -215,7 +215,8 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
-	// secure.Handle("/plots/{uuid}/interact", &handlers.Interact{Dbs: &dbs, MainDictionary: &goods_list}).Methods("POST")
+	secure.Handle("/plots/{uuid}/clear", &handlers.ClearPlot{Dbs: &dbs}).Methods("PUT")
+	secure.Handle("/plots/{uuid}/interact", &handlers.InteractPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)
