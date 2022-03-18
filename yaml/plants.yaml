@@ -2,7 +2,6 @@
 Cabbage:
   Name: Cabbage
   ProduceName: Cabbage
-  SeedName: Cabbage Seeds
   Description: The Cabbage is a mundane plant that grows above ground. It is relatively fast growing and easy to care for, not requiring any additional watering in most climates
   GrowthStages:
     - 
@@ -42,12 +41,23 @@ Cabbage:
 Shelvis Fig:
   Name: Shelvis Fig
   ProduceName: Shelvis Fig
-  SeedName: Shelvis Fig Seed
   Description: The Shelvis Fig is a mundane plant with fruit that grows on a shrub above ground. It requires a lot of water to grow, grow with moderate speed, may be harvested twice, and as a specialty of Skellig, its seeds are not available for public sale
   GrowthStages:
+    - Name: Seed
+      Description: Shelvis Figs must be sprouted before transplanting to dirt
+      Action: Sprout
+      Consumables:
+        -
+          Name: Water
+          Quantity: 10
+        -
+          Name: Enchanted Water
+          Quantity: 10
+          AddedYield: 0.1
+      GrowthTime: 60
     - 
-      Name: Seed - 1st Watering
-      Description: Shelvis Figs require copious amounts of water to sprout
+      Name: Sprout - 1st Watering
+      Description: Shelvis Figs require copious amounts of water to grow into seedlings
       Action: Water
       Consumables:
         -
@@ -59,8 +69,8 @@ Shelvis Fig:
           AddedYield: 0.1
       GrowthTime: 120
     - 
-      Name: Seed - 2nd Watering
-      Description: Shelvis Figs require copious amounts of water to sprout
+      Name: Sprout - 2nd Watering
+      Description: Shelvis Figs require copious amounts of water to grow into seedlings
       Action: Water
       Consumables:
         -
@@ -141,7 +151,6 @@ Shelvis Fig:
 Potato:
   Name: Potato
   ProduceName: Potato
-  SeedName: Potato
   Description: The hardy Potato plant is a mundane plant that grows underground. It is an extremely common staple food that grows quickly and can be harvested multiple times. Rather than using seeds is planted as the Potatoes themselves
   GrowthStages:
     -
@@ -214,7 +223,6 @@ Potato:
 Wild Flora:
   Name: Wild Flora
   ProduceName: Wild Flora
-  SeedName: Wild Seeds
   Description: The Wild Flora plant is a magical plant that grows underground. Once fully mature, it can be dug up to find a random plant. Its seeds naturally fill the available land, so one seed can naturally grow a Titanic plant, if you have the ability to support such a plant
   GrowthStages:
     - 

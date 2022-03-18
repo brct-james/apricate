@@ -24,7 +24,7 @@ type RawGoodEntry struct {
 }
 
 // Load good list by unmarhsalling given yaml file
-func GoodListGenerator(path_to_goods_yaml string) []string {
+func GoodListGenerator(path_to_goods_yaml string) map[string]interface{} {
 	goodsBytes := filemngr.ReadFileToBytes(path_to_goods_yaml)
 	var rawGoods []RawGoodEntry
 	err := yaml.Unmarshal(goodsBytes, &rawGoods)
@@ -33,25 +33,25 @@ func GoodListGenerator(path_to_goods_yaml string) []string {
 		// log.Error.Fatalf("%v", err.(*json.SyntaxError))
 		// log.Error.Fatalf("%v", err.(*yaml.TypeError))
 	}
-	goodList := make([]string, 0)
+	goodList := make(map[string]interface{}, 0)
 	for _, good := range rawGoods {
-		goodList = append(goodList, good.Name)
+		goodList[good.Name] = nil
 		if good.Seedy {
-			goodList = append(goodList, good.Name + " Seeds")
+			goodList[good.Name + " Seeds"] = nil
 		}
 		if good.Enchantable {
-			goodList = append(goodList, "Enchanted " + good.Name)
+			goodList["Enchanted " + good.Name] = nil
 		}
 		for _, prefix := range good.Prefixes {
-			goodList = append(goodList, prefix + " " + good.Name)
+			goodList[prefix + " " + good.Name] = nil
 			if good.Enchantable {
-				goodList = append(goodList, "Enchanted " + prefix + " " + good.Name)
+				goodList["Enchanted " + prefix + " " + good.Name] = nil
 			}
 		}
 		for _, suffix := range good.Suffixes {
-			goodList = append(goodList, good.Name + " " + suffix)
+			goodList[good.Name + " " + suffix] = nil
 			if good.Enchantable {
-				goodList = append(goodList, "Enchanted " + good.Name  + " " + suffix)
+				goodList["Enchanted " + good.Name  + " " + suffix] = nil
 			}
 		}
 	}

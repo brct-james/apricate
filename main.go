@@ -26,8 +26,7 @@ var (
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
-	plant_dictionary map[string]schema.PlantDefinition
-	goods_list []string
+	main_dictionary = schema.MainDictionary{}
 	flush_DBs = true
 	regenerate_auth_secret = false
 )
@@ -45,6 +44,35 @@ func initialize_dbs() {
 			db.Flush()
 		}
 	}
+}
+
+func initialize_dictionaries() {
+	// Load Seeds from YAML
+	log.Debug.Println("Loading seeds list")
+	main_dictionary.Seeds = schema.Seeds_load("./yaml/seeds.yaml")
+	for k := range main_dictionary.Seeds {
+		log.Debug.Println(k)
+	}
+	log.Info.Printf("Loaded seeds list")
+
+	/*
+	****** TODO: Validate 1:1 mapping for every seed and plant after loading both
+	*/
+
+	// Load Plants from YAML
+	log.Debug.Println("Loading plant dictionary")
+	main_dictionary.Plants = schema.Plants_load("./yaml/plants.yaml")
+	for k := range main_dictionary.Plants {
+		log.Debug.Println(k)
+	}
+	// log.Debug.Println(responses.JSON(dictionaries["plants"]))
+	log.Info.Printf("Loaded plant dictionary")
+
+	// Load Goods from YAML
+	log.Debug.Println("Loading goods list")
+	main_dictionary.Goods = schema.GoodListGenerator("./yaml/goods.yaml")
+	log.Debug.Println(responses.JSON(main_dictionary.Goods))
+	log.Info.Printf("Loaded goods list")
 }
 
 func setup_my_character() {
@@ -146,20 +174,8 @@ func main() {
 	log.Debug.Println(world)
 	log.Info.Printf("Loaded world")
 
-	// Load Plants from YAML
-	log.Debug.Println("Loading plant dictionary")
-	plant_dictionary = schema.Plants_load("./yaml/plants.yaml")
-	for k := range plant_dictionary {
-		log.Debug.Println(k)
-	}
-	// log.Debug.Println(responses.JSON(plant_dictionary))
-	log.Info.Printf("Loaded plant dictionary")
-
-	// Load Goods from YAML
-	log.Debug.Println("Loading goods list")
-	goods_list = schema.GoodListGenerator("./yaml/goods.yaml")
-	log.Debug.Println(responses.JSON(goods_list))
-	log.Info.Printf("Loaded goods list")
+	// Initialize dictionaries
+	initialize_dictionaries()
 
 	// Begin Serving
 	handle_requests(slur_filter)
@@ -178,8 +194,8 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
 	mxr.Handle("/api/islands", &handlers.IslandsOverview{World: &world}).Methods("GET")
-	mxr.Handle("/api/plants", &handlers.PlantsOverview{Plants: &plant_dictionary}).Methods("GET")
-	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{Plants: &plant_dictionary}).Methods("GET")
+	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
 
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()
@@ -198,8 +214,8 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, PlantDict: &plant_dictionary, GoodsList: &goods_list}).Methods("POST")
-	// secure.Handle("/plots/{uuid}/interact", &handlers.Interact{Dbs: &dbs, PlantDict: &plant_dictionary, GoodsList: &goods_list}).Methods("POST")
+	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
+	// secure.Handle("/plots/{uuid}/interact", &handlers.Interact{Dbs: &dbs, MainDictionary: &goods_list}).Methods("POST")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)

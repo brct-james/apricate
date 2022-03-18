@@ -34,7 +34,6 @@ func NewPlant(ptype PlantType, size Size) *Plant {
 type PlantDefinition struct {
 	Name PlantType `yaml:"Name" json:"name" binding:"required"`
 	ProduceName string `yaml:"ProduceName" json:"produce_name" binding:"required"`
-	SeedName string `yaml:"SeedName" json:"seed_name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
 }
@@ -49,19 +48,6 @@ func (d *PlantDefinition) GetScaledGrowthStage(gsIndex int, plantQuantity uint64
 		res.ConsumableOptions[index] = option
 	}
 	return &res, nil
-}
-
-// Load plant struct by unmarhsalling given yaml file
-func Plants_load(path_to_plants_yaml string) map[string]PlantDefinition {
-	plantsBytes := filemngr.ReadFileToBytes(path_to_plants_yaml)
-	var plants map[string]PlantDefinition
-	err := yaml.Unmarshal(plantsBytes, &plants)
-	if err != nil {
-		log.Error.Fatalf("%v", err)
-		// log.Error.Fatalf("%v", err.(*json.SyntaxError))
-		// log.Error.Fatalf("%v", err.(*yaml.TypeError))
-	}
-	return plants
 }
 
 // enum for plant types
@@ -86,6 +72,10 @@ var plantsToID = map[string]PlantType {
 
 func (s PlantType) String() string {
 	return plantsToString[s]
+}
+
+func PlantTypeFromString(s string) PlantType {
+	return plantsToID[s]
 }
 
 // MarshalJSON marshals the enum as a text string
@@ -142,4 +132,30 @@ func (s *PlantType) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
 	*s = plantsToID[j]
 	return nil
+}
+
+// Load seed struct by unmarhsalling given yaml file
+func Seeds_load(path_to_seeds_yaml string) map[string]string {
+	seedsBytes := filemngr.ReadFileToBytes(path_to_seeds_yaml)
+	var seeds map[string]string
+	err := yaml.Unmarshal(seedsBytes, &seeds)
+	if err != nil {
+		log.Error.Fatalf("%v", err)
+		// log.Error.Fatalf("%v", err.(*json.SyntaxError))
+		// log.Error.Fatalf("%v", err.(*yaml.TypeError))
+	}
+	return seeds
+}
+
+// Load plant struct by unmarhsalling given yaml file
+func Plants_load(path_to_plants_yaml string) map[string]PlantDefinition {
+	plantsBytes := filemngr.ReadFileToBytes(path_to_plants_yaml)
+	var plants map[string]PlantDefinition
+	err := yaml.Unmarshal(plantsBytes, &plants)
+	if err != nil {
+		log.Error.Fatalf("%v", err)
+		// log.Error.Fatalf("%v", err.(*json.SyntaxError))
+		// log.Error.Fatalf("%v", err.(*yaml.TypeError))
+	}
+	return plants
 }

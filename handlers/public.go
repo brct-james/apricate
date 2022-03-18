@@ -160,18 +160,18 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Handler function for the route: /api/plants
 type PlantsOverview struct {
-	Plants *map[string]schema.PlantDefinition
+	MainDictionary *schema.MainDictionary
 }
 func (h *PlantsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantsOverview --"))
-	res := h.Plants
+	res := h.MainDictionary.Plants
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End PlantsOverview --"))
 }
 
 // Handler function for the route: /api/plants
 type PlantOverview struct {
-	Plants *map[string]schema.PlantDefinition
+	MainDictionary *schema.MainDictionary
 }
 func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantOverview --"))
@@ -180,7 +180,7 @@ func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	plant_name := strings.Title(strings.Replace(route_vars["plantName"], "_", " ", -1))
 	log.Debug.Printf("PlantOverview Requested for: %s", plant_name)
 	// Get plant
-	if plant, ok := (*h.Plants)[plant_name]; ok {
+	if plant, ok := (*h.MainDictionary).Plants[plant_name]; ok {
 		res := plant
 		responses.SendRes(w, responses.Generic_Success, res, "")
 	} else {

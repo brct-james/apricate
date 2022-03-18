@@ -37,11 +37,11 @@ const (
 	Specified_Plant_Not_Found ResponseCode = 10
 	No_AuthPair_Context ResponseCode = 11
 	User_Not_Found ResponseCode = 12
-	// Not_Enough_Mana ResponseCode = 13
-	// No_Such_Ritual ResponseCode = 14
-	// No_Golem_Found ResponseCode = 15
-	// Ritual_Not_Known ResponseCode = 16
-	// No_Such_Status ResponseCode = 17
+	Item_Does_Not_Exist ResponseCode = 13
+	Not_Enough_Items_In_Warehouse ResponseCode = 14
+	Plot_Already_Planted ResponseCode = 15
+	Plot_Too_Small ResponseCode = 16
+	Item_Is_Not_Seed ResponseCode = 17
 	// Golem_In_Blocking_Status ResponseCode = 18
 	// New_Status_Not_Allowed ResponseCode = 19
 	Bad_Request ResponseCode = 20
@@ -141,26 +141,26 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 		Message: "[User_Not_Found] User not found!",
 		HttpResponse: http.StatusNotFound,
 	},
-	// Not_Enough_Mana: {
-	// 	Message: "[Not_Enough_Mana] Could not complete requested action due to insufficient mana",
-	// 	HttpResponse: http.StatusNotAcceptable,
-	// },
-	// No_Such_Ritual: {
-	// 	Message: "[No_Such_Ritual] The specified ritual is not recognized",
-	// 	HttpResponse: http.StatusNotFound,
-	// },
-	// No_Golem_Found: {
-	// 	Message: "[No_Golem_Found] Golem with the specified symbol could not be found in user data",
-	// 	HttpResponse: http.StatusNotFound,
-	// },
-	// Ritual_Not_Known: {
-	// 	Message: "[Ritual_Not_Known] User does not know the specified ritual, so it cannot be executed",
-	// 	HttpResponse: http.StatusForbidden,
-	// },
-	// No_Such_Status: {
-	// 	Message: "[No_Such_Status] Specified golem status does not exist",
-	// 	HttpResponse: http.StatusBadRequest,
-	// },
+	Item_Does_Not_Exist: {
+		Message: "[Item_Does_Not_Exist] Specified item does not exist in the master goods dictionary.",
+		HttpResponse: http.StatusNotAcceptable,
+	},
+	Not_Enough_Items_In_Warehouse: {
+		Message: "[Not_Enough_Items_In_Warehouse] The local warehouse does not have enough items for specified action.",
+		HttpResponse: http.StatusNotFound,
+	},
+	Plot_Already_Planted: {
+		Message: "[Plot_Already_Planted] Harvest or clear plot before attempting to plant it.",
+		HttpResponse: http.StatusForbidden,
+	},
+	Plot_Too_Small: {
+		Message: "[Plot_Too_Small] Plot too small for specified plant size & quantity. To pass validation, Quantity * SeedSize must be less-than or equal to PlotSize.",
+		HttpResponse: http.StatusBadRequest,
+	},
+	Item_Is_Not_Seed: {
+		Message: "[Item_Is_Not_Seed] Specified SeedName does not map to known Seed",
+		HttpResponse: http.StatusBadRequest,
+	},
 	// Golem_In_Blocking_Status: {
 	// 	Message: "[Golem_In_Blocking_Status] Golem's current status does not allow changes to be made",
 	// 	HttpResponse: http.StatusConflict,

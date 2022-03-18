@@ -12,6 +12,8 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - Monitor list of assistants or specific assistant with `/api/my/assistants` and `/api/my/assistants/{uuid}`
 - Islands which contain an X-Y grid of Locations from -100 to 100, with each Island separated by sailing lanes connected to Ports in each island
 - Locations are farms or towns, and may hold NPCs or a market.
+- Plant plants in farm plots
+
 ---
 
 ### Endpoints
@@ -32,8 +34,6 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/assistants/{uuid}` returns the assistant specified by `uuid`
 - `GET: /api/my/farms` returns a list of the player's farms
 - `GET: /api/my/farms/{uuid}` returns the farm specified by `uuid`
-- `GET: /api/my/plots` returns a list of the player's plots
-- `GET: /api/my/plots/{uuid}` returns the plot specified by `uuid`
 - `GET: /api/my/contracts` returns a list of the player's contracts
 - `GET: /api/my/contracts/{uuid}` returns the contract specified by `uuid`
 - `GET: /api/my/warehouses` returns a list of the player's warehouses
@@ -41,12 +41,17 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/my/locations` returns the details for any location with an assistant as well as any owned farms
 - `GET: /api/my/locations/{name}` returns the details of the location specified by `name` IF the location is an owned farm or holds an assistant
 - `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every island with atleast one assistant), for navigational purposes
-
----
-
-### Request Bodies
-
-- None yet
+- `GET: /api/my/plots` returns a list of the player's plots
+- `GET: /api/my/plots/{uuid}` returns the plot specified by `uuid`
+- `POST: /api/my/plots/{uuid}/plant` returns the updated warehouse and plot data if successful in attempt to plant specified plant in plot, as well as the info on the next growth stage of the plant
+- - **Request Body** Expects `name` of seed, `quantity` of seed, `size` of plant. Example:
+```json
+{
+    "name": "Cabbage Seeds",
+    "quantity": 10,
+    "size": "Miniature (1)"
+}
+```
 
 ---
 
@@ -84,9 +89,11 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Plot helper functions and initialize on create~~
 - ~~Plot GET endpoints~~
 - ~~Plant struct for plots defined~~
-- Plot helper functions for Growth Actions (plant plot, clear plot, progress plot, harvest plot)
-- - Implement failure responses for Plant helper
-- Plot interact endpoint with switch on body.action (growth actions)
+- Plot interaction endpoints for Growth Actions (plant plot, clear plot, interact with plot)
+- - `/plant`
+- - - ~~Implement failure responses for Plant helper~~
+- - `/clear`
+- Plot `/interact` endpoint with switch on body.action (growth actions)
 - - GA_Wait
 - - GA_Clear
 - - GA_Trim
@@ -96,7 +103,6 @@ Versioning Convention: `major.minor.hotfix`
 - - GA_Water
 - - GA_Hill
 - - GA_Sprout
-- Plants grow when planted on plots
 - Goods are deposited to warehouse when plants harvested
 - Tested at least 3 types of plants excluding Wild Seeds
 - ~~Skelling and Tritum YAML defined~~
@@ -108,8 +114,11 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Define goods in YAML rather than as enum?~~
 - ~~Remove enchantment property from goods. Generate unique Goods for the limited enchantable list~~
 - ~~Warehouses store map[goodName]quantity now instead of Good structs~~
-- Move plot storage to farms, rather than separate DB table
+- ~~Move plot storage to farms, rather than separate DB table~~
+- ~~Refactor dictionaries to a main struct~~
 - Deploy pre-alpha server and separate dev server once complete, host timed pre-alpha test via discord
+- - Get documentation up to date first
+- `GET: /plants/{plantName}/growth-stages/{index}`
 
 ---
 
@@ -117,6 +126,11 @@ Versioning Convention: `major.minor.hotfix`
 
 - Assistants can transfer things between warehouses
 - Boldor, Yoggoth YAML defined
+- Request validation functions
+- Validate 1:1 mapping for every seed and plant after loading both
+- Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)
+- Look through responses and ensure all are using correct response code
+- Look through response codes and ensure all are using correct http response code
 
 ---
 
