@@ -44,6 +44,8 @@ const (
 	GA_Fertilize GrowthAction = 6 // Pitchfork
 	GA_Hill GrowthAction = 7 // Rake
 	GA_Sprout GrowthAction = 8 // Pot
+	GA_Shade GrowthAction = 9 // Shade Cloth
+	GA_Reap GrowthAction = 10 // Sickle
 )
 
 var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
@@ -54,16 +56,14 @@ var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
 	GA_Fertilize: Tool_Pitchfork,
 	GA_Hill: Tool_Rake,
 	GA_Sprout: Tool_SproutingPot,
+	GA_Shade: Tool_ShadeCloth,
+	GA_Reap: Tool_Sickle,
 }
 
 // var toolTypesToGrowthActions = map[ToolTypes]GrowthAction {
 // 	Tool_WaterWand: GA_Water,
 // 	Tool_Shears: GA_Trim,
-// 	Tool_Spade: GA_Dig,
-// 	Tool_Hoe: GA_Weed,
-// 	Tool_Pitchfork: GA_Fertilize,
-// 	Tool_Rake: GA_Hill,
-// 	Tool_SproutingPot: GA_Sprout,
+//	...
 // }
 
 var growthActionsToString = map[GrowthAction]string {
@@ -76,6 +76,8 @@ var growthActionsToString = map[GrowthAction]string {
 	GA_Fertilize: "Fertilize",
 	GA_Hill: "Hill",
 	GA_Sprout: "Sprout",
+	GA_Shade: "Shade",
+	GA_Reap: "Reap",
 }
 
 var growthActionsToID = map[string]GrowthAction {
@@ -88,6 +90,8 @@ var growthActionsToID = map[string]GrowthAction {
 	"Fertilize": GA_Fertilize,
 	"Hill": GA_Hill,
 	"Sprout": GA_Sprout,
+	"Shade": GA_Shade,
+	"Reap": GA_Reap,
 }
 
 func (s GrowthAction) String() string {

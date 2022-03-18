@@ -90,7 +90,7 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Plot GET endpoints~~
 - ~~Plant struct for plots defined~~
 - Plot interaction endpoints for Growth Actions (plant plot, clear plot, interact with plot)
-- - `/plant`
+- - ~~`/plant`~~
 - - - ~~Implement failure responses for Plant helper~~
 - - `/clear`
 - Plot `/interact` endpoint with switch on body.action (growth actions)
@@ -116,6 +116,7 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Warehouses store map[goodName]quantity now instead of Good structs~~
 - ~~Move plot storage to farms, rather than separate DB table~~
 - ~~Refactor dictionaries to a main struct~~
+- ~~Add Sickle, Shade Cloth tool/action, Spectral Grass plant~~
 - Deploy pre-alpha server and separate dev server once complete, host timed pre-alpha test via discord
 - - Get documentation up to date first
 - `GET: /plants/{plantName}/growth-stages/{index}`

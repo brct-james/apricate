@@ -21,3 +21,9 @@
   Name: Fertilizer
   Enchantable: true
   Prefixes: [Dragon]
+-
+  Name: Spectral Grass
+  Seedy: true
+-
+  Name: Spectral Fiber
+  Enchantable: true

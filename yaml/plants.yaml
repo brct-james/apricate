@@ -1,4 +1,27 @@
 ---
+Grass:
+  Name: Spectral Grass
+  ProduceName: Spectral Fiber
+  Description: Spectral Grass is the most basic plant you can grow, and is commonly used to create lightweight clothing ideal for travelling in most climates
+  GrowthStages:
+    -
+      Name: Seed
+      Description: Spectral Grass doesn't require much care and will grow in almost any climate, simply wait for it to grow
+      Action: Wait
+      GrowthTime: 30
+    -
+      Name: Young Plant
+      Description: Spectral Grass must be trimmed before harvesting
+      Action: Trim
+      GrowthTime: 30
+    -
+      Name: Adult Plant
+      Description: Spectral Grass must be harvested as an adult
+      Action: Reap
+      Harvestable:
+        Good: Spectral Fiber
+        Seeds: Spectral Grass Seeds
+        FinalHarvest: true
 Cabbage:
   Name: Cabbage
   ProduceName: Cabbage

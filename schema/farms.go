@@ -37,7 +37,7 @@ func NewFarm(pdb rdb.Database, totalplotcount uint16, username string, locationS
 	switch locationSymbol {
 	case "TS-PR-HF":
 		bonuses = make([]FarmBonuses, 0)
-		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Hoe: 1, Tool_SproutingPot: 1}
+		tools = map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Sickle: 1, Tool_Hoe: 1, Tool_SproutingPot: 1}
 		buildings = map[BuildingTypes]uint8{Building_Home: 1, Building_Field: 1}
 		plots = NewPlots(pdb, username, totalplotcount, "TS-PR-HF", []Size{Average, Average, Modest, Modest})
 	default:

@@ -19,6 +19,8 @@ const (
 	Tool_PestleAndMortar ToolTypes = 7
 	Tool_DryingRack ToolTypes = 8
 	Tool_SproutingPot ToolTypes = 9
+	Tool_ShadeCloth ToolTypes = 10
+	Tool_Sickle ToolTypes = 11
 )
 
 func (s ToolTypes) String() string {
@@ -36,6 +38,8 @@ var toolTypesToString = map[ToolTypes]string {
 	Tool_PestleAndMortar: "Pestle and Mortar",
 	Tool_DryingRack: "Drying Rack",
 	Tool_SproutingPot: "Sprouting Pot",
+	Tool_ShadeCloth: "Shade Cloth",
+	Tool_Sickle: "Sickle",
 }
 
 var toolTypesToID = map[string]ToolTypes {
@@ -49,6 +53,8 @@ var toolTypesToID = map[string]ToolTypes {
 	"Pestle and Mortar": Tool_PestleAndMortar,
 	"Drying Rack": Tool_DryingRack,
 	"Sprouting Pot": Tool_SproutingPot,
+	"Shade Cloth": Tool_ShadeCloth,
+	"Sickle": Tool_Sickle,
 }
 
 // MarshalJSON marshals the enum as a text string
