@@ -673,17 +673,17 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	plot.PlantedPlant = schema.NewPlant(schema.PlantTypeFromString(plantName), body.SeedSize)
 	plot.Quantity = body.SeedQuantity
-	warehouse.Goods[body.SeedName] -= uint64(body.SeedQuantity)
+	warehouse.RemoveGoods(body.SeedName, uint64(body.SeedQuantity))
 	farm.Plots[uuid] = plot
 
 	// Save to DBs
-	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "Goods", warehouse.Goods)
+	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "goods", warehouse.Goods)
 	if saveWarehouseErr != nil {
 		log.Error.Printf("Error in PlotInfo, could not save warehouse. error: %v", saveWarehouseErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
 		return
 	}
-	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "Plots", farm.Plots)
+	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "plots", farm.Plots)
 	if saveFarmErr != nil {
 		log.Error.Printf("Error in PlantPlot, could not save farm. error: %v", saveFarmErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
@@ -747,7 +747,7 @@ func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm.Plots[uuid] = plot
 
 	// Save to DB
-	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "Plots", farm.Plots)
+	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "plots", farm.Plots)
 	if saveFarmErr != nil {
 		log.Error.Printf("Error in ClearPlot, could not save farm. error: %v", saveFarmErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
@@ -903,7 +903,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Save to DBs
 	
-	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "Plots", farm.Plots)
+	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "plots", farm.Plots)
 	if saveFarmErr != nil {
 		log.Error.Printf("Error in PlotInteract, could not save farm. error: %v", saveFarmErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
@@ -912,7 +912,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if body.Consumable != string("") {
 		// if consumables used
-		warehouse.Goods[body.Consumable] -= usedConsumableQuantity
+		warehouse.RemoveGoods(body.Consumable, usedConsumableQuantity)
 	}
 
 	var nextStage *schema.GrowthStage
@@ -928,7 +928,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType.String()].GrowthStages[plot.PlantedPlant.CurrentStage]
 	}
-	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "Goods", warehouse.Goods)
+	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "goods", warehouse.Goods)
 	if saveWarehouseErr != nil {
 		log.Error.Printf("Error in PlotInteract, could not save warehouse. error: %v", saveWarehouseErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())

@@ -27,6 +27,20 @@ func NewWarehouse(username string, locationSymbol string, starting_goods map[str
 	}
 }
 
+func (w *Warehouse) AddGoods(name string, quantity uint64) *Warehouse {
+	w.Goods[name] += quantity
+	return w
+}
+
+func (w *Warehouse) RemoveGoods(name string, quantity uint64) *Warehouse {
+	w.Goods[name] -= quantity
+	log.Important.Printf("%v", w.Goods[name])
+	if w.Goods[name] <= 0 {
+		delete(w.Goods, name)
+	}
+	return w
+}
+
 // Check DB for existing warehouse with given uuid and return bool for if exists, and error if error encountered
 func CheckForExistingWarehouse (uuid string, tdb rdb.Database) (bool, error) {
 	// Get warehouse
