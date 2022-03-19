@@ -652,6 +652,10 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Printf("Error in PlantPlot, plot already planted")
 		responses.SendRes(w, responses.Plot_Already_Planted, plot, "")
 		return
+	case responses.Bad_Request:
+		log.Error.Printf("Error in PlantPlot, seed size invalid")
+		responses.SendRes(w, responses.Bad_Request, plot, "Seed Size specified in request body was invalid")
+		return
 	case responses.Plot_Too_Small:
 		log.Error.Printf("Error in PlantPlot, plot too small")
 		responses.SendRes(w, responses.Plot_Too_Small, plot, "")
@@ -662,7 +666,7 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Fatalf("Received unexpected response type from plot.IsPlantable. plot: %v body: %v", plot, body)
 	}
 
-	plot.PlantedPlant = schema.NewPlant(schema.PlantTypeFromString(plantName), body.SeedSize)
+	plot.PlantedPlant = schema.NewPlant(plantName, body.SeedSize)
 	plot.Quantity = body.SeedQuantity
 	warehouse.RemoveSeeds(body.SeedName, uint64(body.SeedQuantity))
 	farm.Plots[uuid] = plot
@@ -793,12 +797,12 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// // Validate Timestamp
-	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-	// 	// too soon, reject
-	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-	// 	return
-	// }
+	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+		// too soon, reject
+		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+		return
+	}
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody
@@ -824,22 +828,23 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	consumableQuantityAvailable := uint64(0)
+	consumableName := strings.Title(strings.ToLower(body.Consumable))
 	// If consumables included, validate them
-	if body.Consumable != string("") {
+	if consumableName != string("") {
 		// Validate specified consumable is a good
 		goodsDict := (*h.MainDictionary).Goods
-		if _, ok := goodsDict[body.Consumable]; !ok {
+		if _, ok := goodsDict[consumableName]; !ok {
 			// Fail, seed is not good
-			errmsg := fmt.Sprintf("Error in InteractPlot, consumable item does not exist in good dictionary. received consumable name: %v", body.Consumable)
+			errmsg := fmt.Sprintf("Error in InteractPlot, consumable item does not exist in good dictionary. received consumable name: %v", consumableName)
 			log.Error.Printf(errmsg)
 			responses.SendRes(w, responses.Item_Does_Not_Exist, nil, errmsg)
 			return
 		}
 		// Validate consumable specified in given warehouse
-		temp, ownedConsumableOk := warehouse.Goods[body.Consumable]; 
+		temp, ownedConsumableOk := warehouse.Goods[consumableName]; 
 		if !ownedConsumableOk {
 			// Fail, consumable good not in warehouse
-			errmsg := fmt.Sprintf("Error in InteractPlot, consumable item not found in local warehouse. received good name: %v, warehouse goods: %v", body.Consumable, warehouse.Goods)
+			errmsg := fmt.Sprintf("Error in InteractPlot, consumable item not found in local warehouse. received good name: %v, warehouse goods: %v", consumableName, warehouse.Goods)
 			log.Error.Printf(errmsg)
 			responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, nil, errmsg)
 			return
@@ -848,37 +853,37 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate plot available for interaction and body meets internal plot validation
-	plantDef, plantDefOk := h.MainDictionary.Plants[plot.PlantedPlant.PlantType.String()]
+	plantDef, plantDefOk := h.MainDictionary.Plants[plot.PlantedPlant.PlantType]
 
 	if !plantDefOk {
-		plotDefErrMsg := fmt.Sprintf("Error in InteractPlot, Plot [%s] has PlantedPlant type [%s] not found in main dictionary!", plot.UUID, plot.PlantedPlant.PlantType.String())
+		plotDefErrMsg := fmt.Sprintf("Error in InteractPlot, Plot [%s] has PlantedPlant type [%s] not found in main dictionary!", plot.UUID, plot.PlantedPlant.PlantType)
 		log.Error.Println(plotDefErrMsg)
 		responses.SendRes(w, responses.Internal_Server_Error, plot, plotDefErrMsg)
 	}
 	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
 	switch plotValidationResponse {
 	case responses.Invalid_Plot_Action:
-		log.Error.Printf("Error in PlantPlot, Invalid_Plot_Action")
+		log.Error.Printf("Error in PlotInteract, Invalid_Plot_Action")
 		responses.SendRes(w, responses.Invalid_Plot_Action, plot, "")
 		return
 	case responses.Tool_Not_Found:
-		log.Error.Printf("Error in PlantPlot, Tool_Not_Found")
+		log.Error.Printf("Error in PlotInteract, Tool_Not_Found")
 		responses.SendRes(w, responses.Tool_Not_Found, plot, "")
 		return
 	case responses.Missing_Consumable_Selection:
-		log.Error.Printf("Error in PlantPlot, Missing_Consumable_Selection")
+		log.Error.Printf("Error in PlotInteract, Missing_Consumable_Selection")
 		responses.SendRes(w, responses.Missing_Consumable_Selection, plot, "")
 		return
 	case responses.Internal_Server_Error:
-		log.Error.Printf("Error in PlantPlot, Internal_Server_Error")
+		log.Error.Printf("Error in PlotInteract, Internal_Server_Error")
 		responses.SendRes(w, responses.Internal_Server_Error, plot, "Could not get scaled growth stage, contact Developer")
 		return
 	case responses.Not_Enough_Items_In_Warehouse:
-		log.Error.Printf("Error in PlantPlot, Not_Enough_Items_In_Warehouse")
+		log.Error.Printf("Error in PlotInteract, Not_Enough_Items_In_Warehouse")
 		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, plot, "")
 		return
 	case responses.Consumable_Not_In_Options:
-		log.Error.Printf("Error in PlantPlot, Consumable_Not_In_Options")
+		log.Error.Printf("Error in PlotInteract, Consumable_Not_In_Options")
 		responses.SendRes(w, responses.Consumable_Not_In_Options, plot, "")
 		return
 	case responses.Generic_Success:
@@ -887,13 +892,62 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Fatalf("Received unexpected response type from plot.IsPlantable. plot: %v body: %v", plot, body)
 	}
 
-	plot.PlantedPlant.CurrentStage++
+	// Update objects with results of interaction
+
 	plot.PlantedPlant.Yield += addedYield
 	plot.GrowthCompleteTimestamp = time.Now().Unix() + growthTime
 	farm.Plots[uuid] = plot
 
+	if consumableName != string("") {
+		// if consumables used
+		warehouse.RemoveGoods(consumableName, usedConsumableQuantity)
+	}
+
+
+	// Handle updating stage and potential harvesting
+	var nextStage *schema.GrowthStage
+
+	if growthHarvest != nil {
+		// if was a harvest action
+		harvest := plot.CalculateProduce(growthHarvest)
+		log.Debug.Println("Harvest Calculated:")
+		log.Debug.Println(harvest)
+		for _, produce := range harvest.Produce {
+			log.Debug.Printf("Add produce quantity: %d", produce.Quantity)
+			warehouse.AddProduce(produce.Name, produce.Size, produce.Quantity)
+			log.Debug.Println(warehouse.Produce)
+		}
+		for seedname, seedquantity := range harvest.Seeds {
+			log.Debug.Printf("Add seed quantity: %d", seedquantity)
+			warehouse.AddSeeds(seedname, seedquantity)
+		}
+		for goodname, goodquantity := range harvest.Goods {
+			log.Debug.Printf("Add good quantity: %d", goodquantity)
+			warehouse.AddGoods(goodname, goodquantity)
+		}
+		
+		// check if final harvest
+		if growthHarvest.FinalHarvest {
+			// is final harvest
+			// clear
+			plot.PlantedPlant = nil
+			plot.Quantity = 0
+			farm.Plots[uuid] = plot
+		} else {
+			// not final harvest
+			// move up current stage, initialize nextStage for response
+			plot.PlantedPlant.CurrentStage++
+			nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
+		}
+	} else {
+		// if not harvest
+		// move up current stage, initialize nextStage for response
+		plot.PlantedPlant.CurrentStage++
+		nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
+	}
+
 	// Save to DBs
-	
+		
 	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "plots", farm.Plots)
 	if saveFarmErr != nil {
 		log.Error.Printf("Error in PlotInteract, could not save farm. error: %v", saveFarmErr)
@@ -901,25 +955,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if body.Consumable != string("") {
-		// if consumables used
-		warehouse.RemoveGoods(body.Consumable, usedConsumableQuantity)
-	}
-
-	var nextStage *schema.GrowthStage
-
-	if growthHarvest != nil {
-		// if was a harvest action
-		// TODO: write harvest logic
-		log.Important.Println("harvest!")
-		// if not final harvest
-		if !growthHarvest.FinalHarvest {
-			nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType.String()].GrowthStages[plot.PlantedPlant.CurrentStage]
-		}
-	} else {
-		nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType.String()].GrowthStages[plot.PlantedPlant.CurrentStage]
-	}
-	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "goods", warehouse.Goods)
+	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
 	if saveWarehouseErr != nil {
 		log.Error.Printf("Error in PlotInteract, could not save warehouse. error: %v", saveWarehouseErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())

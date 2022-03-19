@@ -18,3 +18,9 @@
 -
   Name: Spectral Fiber
   Enchantable: true
+-
+  Name: Spectral Cloth
+  Enchantable: true
+-
+  Name: Gulb Nut
+  Prefixes: [Roasted]

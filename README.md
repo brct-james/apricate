@@ -12,7 +12,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - Monitor list of assistants or specific assistant with `/api/my/assistants` and `/api/my/assistants/{uuid}`
 - Islands which contain an X-Y grid of Locations from -100 to 100, with each Island separated by sailing lanes connected to Ports in each island
 - Locations are farms or towns, and may hold NPCs or a market.
-- Plant plants in farm plots
+- Plant plants in farm plots, grow plants, and harvest them to your local warehouse
 
 ---
 
@@ -53,6 +53,14 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
     "size": "Miniature (1)"
 }
 ```
+- `POST: /api/my/plots/{uuid}/interact` returns the updated warehouse and plot data if successful in attempt to interact with specified plant in plot, as well as the info on the next growth stage of the plant
+- - **Request Body** Expects `action` desired action, `consumable` name of good to be consumed (optional depending on step, will be ignored if passed to step that has no consumable options). Example:
+```json
+{
+    "action": "Water",
+    "consumable": "Enchanted Water"
+}
+```
 
 ---
 
@@ -73,17 +81,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Complete: **[v0.2]**
-
-- ~~Assistants have helper functions and initialize on create, have GET endpoints~~
-- ~~Farms have helper functions and initialize on create, have GET endpoints~~
-- ~~Contracts have helper functions and initialize on create, have GET endpoints~~
-- ~~Warehouses have helper functions and initialize on create, have GET endpoints~~
-- ~~Pria and Veldis YAML defined~~
-
----
-
-### In-Progress: **[v0.3]**
+### Complete: **[v0.3]**
 
 - ~~PlantDefinition YAML defined for at least 3 types of plants excluding Wild Seeds~~
 - ~~PlantDefinition information public GET endpoints~~
@@ -107,66 +105,77 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Refactor dictionaries to a main struct~~
 - ~~Add Sickle, Shade Cloth tool/action, Spectral Grass plant~~
 - ~~Plot `/interact` endpoint with switch on body.action (growth actions)~~
-- Cooldown/growth time is enforced (written, tested, just need to enable by uncommenting when testing done)
+- ~~Cooldown/growth time is enforced (written, tested, just need to enable by uncommenting when testing done)~~
 - ~~Add warehouse increment/decrement methods to handle removing the key for goods that are now at 0~~
 - ~~Fix bug with path selector (case sensitive)~~
-- Harvest functionality in `/interact`
+- ~~Harvest functionality in `/interact`~~
 - - ~~Actually, harvests should give Produce, a superset of Good, and go to special warehouse section so they can have size but not every good~~
-- - Check logic in `plots:interact()` for returning growthHarvest when harvest is optional and when harvest but not FinalHarvest
-- - Produce deposited to warehouse
+- - ~~Check logic in `plots:interact()` for returning growthHarvest when harvest is optional and when harvest but not FinalHarvest~~
+- - ~~Produce deposited to warehouse~~
 - ~~Warehouses have sections for tools, produce, goods, seeds~~
 - - ~~Farm tools moved to warehouse~~
 - ~~Separate YAML definitions for goods into produce, goods, seeds files~~
-- Tested growth and harvest of cabbage, potatos, shelvis fig, spectral grass, INCLUDING optional actions (make sure yield properly adjusted)
-- Add `GET: /plants/{plantName}/growth-stages/{index}`
+- ~~Tested growth and harvest of cabbage, potatos, shelvis fig, spectral grass, gulb INCLUDING optional actions (make sure yield properly adjusted)~~
+- ~~Add `GET: /plants/{plantName}/growth-stages/{index}`~~
 
 ---
 
-### Planned: **[v0.4]**
+### Started: **[v0.4]**
 
-- Assistants can transfer things between warehouses
-- Boldor, Yoggoth YAML defined
-- Request validation functions
-- Validate 1:1 mapping for every seed and plant after loading both
+- Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
+- Add `GET` endpoints for sectors, `GET` select island endpoint
 - Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)
 - Look through responses and ensure all are using correct response code
 - Look through response codes and ensure all are using correct http response code
+- Update my user auto-creation for Greenitthe with everything in the game for testing
+- Auto created users have name, token saved to ignored yaml file
+- Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)
 
 ---
 
-### Planned: **[v0.5]**
+### Planned: **[v0.5]** First Public Alpha
 
-- One functional market, Local orders (non-player orders to provide baseline supply/demand)
-- Ratelimiting
-- Add `GET` endpoints for sectors, `GET` select island endpoint
+
+- Update starting user template with appropriate tools, seeds, goods, produce
 - Update documentation
-- Deploy pre-alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
+- Deploy alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
 
 ---
 
 ### Planned: **[v0.6]**
 
+- Respond to feedback from v0.5 alpha
 - Add YAML-defined contract/quest paths from NPCs
 - NPCs defined in YAML
+- Use data field for request error responses to convey programmatically what failed validation
+- Request validation functions
+- Validate 1:1 mapping for every seed and plant after loading both
 
 ---
 
 ### Planned: **[v0.7]**
 
+- Respond to feedback from v0.6 alpha
+- Ratelimiting
+- Boldor, Yoggoth, Tyldia YAML defined
+- Assistants can transfer things between warehouses
+- Market uses 4 types of market order, simulates dynamic NPC supply/demand/pricing that evolves over time and based on all player investment in market
+- Markets initial state defined in YAML
 - At least 10 different plants excluding Wild Seeds, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
-- Tyldia YAML defined
 - Wild Seeds implemented
 
 ---
 
 ### Planned: **[v0.8]**
 
+- Respond to feedback from v0.7 alpha
 - At least 20 plants excluding Wild Seeds, add at least 2 additional tools for growing some of the new plants, add randomized contracts, consider adding additional markets, all NPCs on starting map have quests
 
 ---
 
 ### Planned: **[v0.9]**
 
+- Respond to feedback from v0.8 alpha
 - Add refining/crafting with at least 8 recipes, add at least 4 new tools to support crafting, add at least 2 new buildings to support crafting
 - Add researching plants (with associated building) to reveal full information
 - Fog of War and hide unresearched plant information
@@ -175,7 +184,9 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Planned: **[v1.0]**
 
+- Respond to feedback from v0.9 alpha
 - Meta account and progression, leaderboards, full documentation, separate dev partition that won't affect live
+- Live server that is persistent, only wiped on update day. Updates are pushed every (other?) week when available
 
 ---
 

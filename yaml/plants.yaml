@@ -1,7 +1,6 @@
 ---
-Grass:
+Spectral Grass:
   Name: Spectral Grass
-  ProduceName: Spectral Fiber
   Description: Spectral Grass is the most basic plant you can grow, and is commonly used to create lightweight clothing ideal for travelling in most climates
   GrowthStages:
     -
@@ -19,12 +18,13 @@ Grass:
       Description: Spectral Grass must be harvested as an adult
       Action: Reap
       Harvestable:
-        Good: Spectral Fiber
-        Seeds: Spectral Grass Seeds
+        Seeds:
+          Spectral Grass Seeds: 1.0
+        Goods:
+          Spectral Fiber: 1.0
         FinalHarvest: true
 Cabbage:
   Name: Cabbage
-  ProduceName: Cabbage
   Description: The Cabbage is a mundane plant that grows above ground. It is relatively fast growing and easy to care for, not requiring any additional watering in most climates
   GrowthStages:
     - 
@@ -58,12 +58,13 @@ Cabbage:
       Description: Cabbage must be harvested
       Action: Trim
       Harvestable:
-        Good: Cabbage
-        Seeds: Cabbage Seeds
+        Produce: 
+          Cabbage: 1.0
+        Seeds:
+          Cabbage Seeds: 1.0
         FinalHarvest: true
 Shelvis Fig:
   Name: Shelvis Fig
-  ProduceName: Shelvis Fig
   Description: The Shelvis Fig is a mundane plant with fruit that grows on a shrub above ground. It requires a lot of water to grow, grow with moderate speed, may be harvested twice, and as a specialty of Skellig, its seeds are not available for public sale
   GrowthStages:
     - Name: Seed
@@ -141,15 +142,16 @@ Shelvis Fig:
       Action: Trim
       Optional: True
       ActionToSkip: Wait
-      AddedYield: 0.6
+      AddedYield: 0.5
       GrowthTime: 240
     -
       Name: Adult Plant - 1st Harvest
       Description: Shelvis Figs must be harvested as adults, but don't give seeds yet, and will require additional water to provide fruit another time
       Action: Trim
-      GrowthTime: 15
+      GrowthTime: 30
       Harvestable:
-        Good: Shelvis Fig
+        Produce: 
+          Shelvis Fig: 0.75
     -
       Name: Adult Plant - Water
       Description: Shelvis Figs require additional water to provide fruit another time
@@ -157,23 +159,24 @@ Shelvis Fig:
       Consumables:
         -
           Name: Water
-          Quantity: 15
+          Quantity: 40
         -
           Name: Enchanted Water
-          Quantity: 15
-          AddedYield: 0.1
+          Quantity: 40
+          AddedYield: 0.25
       GrowthTime: 360
     -
       Name: Adult Plant - 2nd Harvest
       Description: Shelvis Figs must be harvested a 2nd time, including gathering seeds
       Action: Trim
       Harvestable:
-        Good: Shelvis Fig
-        Seeds: Shelvis Fig Seeds
+        Produce: 
+          Shelvis Fig: 1.0
+        Seeds:
+          Shelvis Fig Seeds: 1.0
         FinalHarvest: True
 Potato:
   Name: Potato
-  ProduceName: Potato Chunk 
   Description: The hardy Potato plant is a mundane plant that grows underground. It is an extremely common staple food that grows quickly and can be harvested multiple times. Rather than using seeds is planted as the Potatoes themselves
   GrowthStages:
     -
@@ -227,48 +230,52 @@ Potato:
       Action: Dig
       GrowthTime: 120
       Harvestable: 
-        Good: Potato
+        Produce: 
+          Potato: 1.0
     - 
       Name: Adult Plant - 2nd Harvest
       Description: Potatoes must be harvested, and may be harvested one final time after a while
       Action: Dig
       GrowthTime: 120
       Harvestable: 
-        Good: Potato
+        Produce: 
+          Potato: 1.0
     - 
       Name: Adult Plant - 3rd Harvest
       Description: Potatoes must be harvested, and may be harvested one final time after a while
       Action: Dig
       Harvestable: 
-        Good: Potato
+        Produce: 
+          Potato: 1.0
         FinalHarvest: true
-      
-Wild Flora:
-  Name: Wild Flora
-  ProduceName: Wild Flora
-  Description: The Wild Flora plant is a magical plant that grows underground. Once fully mature, it can be dug up to find a random plant. Its seeds naturally fill the available land, so one seed can naturally grow a Titanic plant, if you have the ability to support such a plant
+Gulb:
+  Name: Gulb
+  Description: The Gulb plant grows from a Gulb Bulb, and may be harvested for Gulb Nuts
   GrowthStages:
     - 
-      Name: Seed
-      Description: Wild Flora require enchanted water to sprout
+      Name: Bulb
+      Description: Gulb Bulbs required enchanted water to sprout
       Action: Water
       Consumables: 
         - 
-          Name: Water
+          Name: Enchanted Water
           Quantity: 1
-          Enchantment: Enchanted
       GrowthTime: 60
     -
       Name: Seedling
-      Description: Wild Flora seedlings must be fertilized to continue growing
+      Description: Gulb seedlings may be fertilized for additional yield
       Action: Fertilize
+      Optional: True
+      ActionToSkip: Wait
       Consumables:
         - 
           Name: Fertilizer
-          Quantity: 2
+          Quantity: 1
+          AddedYield: 0.1
         -
           Name: Enchanted Fertilizer
           Quantity: 1
+          AddedYield: 0.25
         - 
           Name: Dragon Fertilizer
           Quantity: 1
@@ -280,25 +287,28 @@ Wild Flora:
       GrowthTime: 60
     - 
       Name: Young Plant
-      Description: Wild Flora plants may be hilled for additional yield
+      Description: Gulb plants may be hilled for additional yield
       Action: Hill
       Optional: True
       ActionToSkip: Wait
       AddedYield: 1.0
-      GrowthTime: 1800
+      GrowthTime: 600
     -
       Name: Adolescent Plant
-      Description: Wild Flora plants must be weeded before harvest
+      Description: Gulb plants must be weeded before harvest
       Action: Weed
-      GrowthTime: 300
+      GrowthTime: 180
     -
       Name: Adult Plant - Harvest
-      Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
+      Description: Gulb plants may be harvested early as adults or fertilized again for additional yield
       Action: Dig
       Optional: True
       ActionToSkip: Wait
       Harvestable:
-        Good: Wild Plant
+        Goods: 
+          Gulb Nut: 0.75
+        Seeds:
+          Gulb Bulb: 0.5
         FinalHarvest: true
     -
       Name: Adult Plant - Fertilize
@@ -307,38 +317,128 @@ Wild Flora:
       Consumables:
         - 
           Name: Fertilizer
-          Quantity: 4
+          Quantity: 2
         -
           Name: Enchanted Fertilizer
           Quantity: 2
         - 
           Name: Dragon Fertilizer
           Quantity: 2
+          AddedYield: 0.25
         -
           Name: Enchanted Dragon Fertilizer
-          Quantity: 1
-          AddedYield: 0.5
-      AddedYield: 0.5
-      GrowthTime: 60
+          Quantity: 2
+          AddedYield: 0.75
+      AddedYield: 0.25
+      GrowthTime: 120
     -
       Name: Mature Plant - Harvest
-      Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
+      Description: Mature Wild Flora plants must be harvested
       Action: Dig
-      Optional: True
-      ActionToSkip: Wait
       Harvestable:
-        Good: Wild Plant
+        Goods: 
+          Gulb Nut: 1.0
+        Seeds:
+          Gulb Bulb: 1.0
         FinalHarvest: true
-    -
-      Name: Mature Plant - Trim
-      Description: Mature Wild Flora plants must be trimmed for additional yield
-      Action: Trim
-      AddedYield: 1.5
-      GrowthTime: 3600
-    -
-      Name: Ancient Plant
-      Description: Ancient Wild Flora plants must be harvested
-      Harvestable:
-        Good: Wild Plant
-        HarvestAction: Dig
-        FinalHarvest: true
+# Wild Flora:
+#   Name: Wild Flora
+#   Description: The Wild Flora plant is a magical plant that grows underground. Once fully mature, it can be dug up to find a random plant. Its seeds naturally fill the available land, so one seed can naturally grow a Titanic plant, if you have the ability to support such a plant
+#   GrowthStages:
+#     - 
+#       Name: Seed
+#       Description: Wild Flora require enchanted water to sprout
+#       Action: Water
+#       Consumables: 
+#         - 
+#           Name: Water
+#           Quantity: 1
+#           Enchantment: Enchanted
+#       GrowthTime: 60
+#     -
+#       Name: Seedling
+#       Description: Wild Flora seedlings must be fertilized to continue growing
+#       Action: Fertilize
+#       Consumables:
+#         - 
+#           Name: Fertilizer
+#           Quantity: 2
+#         -
+#           Name: Enchanted Fertilizer
+#           Quantity: 1
+#         - 
+#           Name: Dragon Fertilizer
+#           Quantity: 1
+#           AddedYield: 0.25
+#         -
+#           Name: Enchanted Dragon Fertilizer
+#           Quantity: 1
+#           AddedYield: 0.5
+#       GrowthTime: 60
+#     - 
+#       Name: Young Plant
+#       Description: Wild Flora plants may be hilled for additional yield
+#       Action: Hill
+#       Optional: True
+#       ActionToSkip: Wait
+#       AddedYield: 1.0
+#       GrowthTime: 1800
+#     -
+#       Name: Adolescent Plant
+#       Description: Wild Flora plants must be weeded before harvest
+#       Action: Weed
+#       GrowthTime: 300
+#     -
+#       Name: Adult Plant - Harvest
+#       Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
+#       Action: Dig
+#       Optional: True
+#       ActionToSkip: Wait
+#       Harvestable:
+#         Produce: 
+#           Wild Flora: 1.0
+#         FinalHarvest: true
+#     -
+#       Name: Adult Plant - Fertilize
+#       Description: Wild Flora plants must be fertilized again for additional yield
+#       Action: Fertilize
+#       Consumables:
+#         - 
+#           Name: Fertilizer
+#           Quantity: 4
+#         -
+#           Name: Enchanted Fertilizer
+#           Quantity: 2
+#         - 
+#           Name: Dragon Fertilizer
+#           Quantity: 2
+#         -
+#           Name: Enchanted Dragon Fertilizer
+#           Quantity: 1
+#           AddedYield: 0.5
+#       AddedYield: 0.5
+#       GrowthTime: 60
+#     -
+#       Name: Mature Plant - Harvest
+#       Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
+#       Action: Dig
+#       Optional: True
+#       ActionToSkip: Wait
+#       Harvestable:
+#         Produce: 
+#           Wild Flora: 1.0
+#         FinalHarvest: true
+#     -
+#       Name: Mature Plant - Trim
+#       Description: Mature Wild Flora plants must be trimmed for additional yield
+#       Action: Trim
+#       AddedYield: 1.5
+#       GrowthTime: 3600
+#     -
+#       Name: Ancient Plant
+#       Description: Ancient Wild Flora plants must be harvested
+#       Harvestable:
+#         Produce: 
+#           Wild Flora: 1.0
+#         HarvestAction: Dig
+#         FinalHarvest: true

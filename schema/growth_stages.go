@@ -14,7 +14,7 @@ type GrowthStage struct {
 	Optional bool `yaml:"Optional" json:"optional,omitempty"` // May send Wait action to skip optional steps (growth time of optional steps is skipped as well). 
 	ActionToSkip *GrowthAction `yaml:"ActionToSkip" json:"action_to_skip,omitempty"`
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
-	AddedYield float32 `yaml:"AddedYield" json:"added_yield,omitempty"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
+	AddedYield float64 `yaml:"AddedYield" json:"added_yield,omitempty"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
 	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted
 	Harvestable *GrowthHarvest `yaml:"Harvestable" json:"harvestable,omitempty"` // Plants may be harvested at any stage where Harvestable is present, some may have additional stages beyond first harvest opportunity
 }
@@ -22,13 +22,14 @@ type GrowthStage struct {
 // Defines a growth consumable
 type GrowthConsumable struct {
 	Good `yaml:",inline"`
-	AddedYield float32 `yaml:"AddedYield" json:"added_yield,omitempty"`
+	AddedYield float64 `yaml:"AddedYield" json:"added_yield,omitempty"`
 }
 
 // Defines a growth harvest
 type GrowthHarvest struct { // If there's room in warehouse, harvest sets Harvested to true and adds harvest to warehouse. If not final, next action may be sent instantly - no growth time
-	Good string `yaml:"Good" json:"good,omitempty"`
-	Seeds string `yaml:"Seeds" json:"seeds,omitempty"`
+	Produce map[string]float64 `yaml:"Produce" json:"produce,omitempty"`
+	Seeds map[string]float64 `yaml:"Seeds" json:"seeds,omitempty"`
+	Goods map[string]float64 `yaml:"Goods" json:"goods,omitempty"`
 	FinalHarvest bool `yaml:"FinalHarvest" json:"final_harvest,omitempty"` // If true, when harvested, clears the plot after
 }
 

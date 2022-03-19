@@ -33,17 +33,15 @@ func NewWarehouse(username string, locationSymbol string, starting_tools map[Too
 	}
 }
 
-func (w *Warehouse) AddTools(name ToolTypes, quantity uint8) *Warehouse {
+func (w *Warehouse) AddTools(name ToolTypes, quantity uint8) {
 	w.Tools[name] += quantity
-	return w
 }
 
-func (w *Warehouse) RemoveTools(name ToolTypes, quantity uint8) *Warehouse {
+func (w *Warehouse) RemoveTools(name ToolTypes, quantity uint8) {
 	w.Tools[name] -= quantity
 	if w.Tools[name] <= 0 {
 		delete(w.Tools, name)
 	}
-	return w
 }
 
 func (w *Warehouse) GetProduce(name string, size Size) *Produce {
@@ -54,7 +52,7 @@ func (w *Warehouse) GetProduce(name string, size Size) *Produce {
 	return nil
 }
 
-func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) *Warehouse {
+func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) {
 	produceName := name + "|" + size.String()
 	if entry, ok := w.Produce[produceName]; ok {
 		entry.Quantity += quantity
@@ -62,10 +60,9 @@ func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) *Warehou
 	} else {
 		log.Error.Printf("Cannot add produce, !ok for name: %s", name)
 	}
-	return w
 }
 
-func (w *Warehouse) RemoveProduce(name string, size Size, quantity uint64) *Warehouse {
+func (w *Warehouse) RemoveProduce(name string, size Size, quantity uint64) {
 	produceName := name + "|" + size.String()
 	if entry, ok := w.Produce[produceName]; ok {
 		entry.Quantity -= quantity
@@ -77,33 +74,28 @@ func (w *Warehouse) RemoveProduce(name string, size Size, quantity uint64) *Ware
 	} else {
 		log.Error.Printf("Cannot add produce, !ok for name: %s", name)
 	}
-	return w
 }
 
-func (w *Warehouse) AddSeeds(name string, quantity uint64) *Warehouse {
+func (w *Warehouse) AddSeeds(name string, quantity uint64) {
 	w.Seeds[name] += quantity
-	return w
 }
 
-func (w *Warehouse) RemoveSeeds(name string, quantity uint64) *Warehouse {
+func (w *Warehouse) RemoveSeeds(name string, quantity uint64) {
 	w.Seeds[name] -= quantity
 	if w.Seeds[name] <= 0 {
 		delete(w.Seeds, name)
 	}
-	return w
 }
 
-func (w *Warehouse) AddGoods(name string, quantity uint64) *Warehouse {
+func (w *Warehouse) AddGoods(name string, quantity uint64) {
 	w.Goods[name] += quantity
-	return w
 }
 
-func (w *Warehouse) RemoveGoods(name string, quantity uint64) *Warehouse {
+func (w *Warehouse) RemoveGoods(name string, quantity uint64) {
 	w.Goods[name] -= quantity
 	if w.Goods[name] <= 0 {
 		delete(w.Goods, name)
 	}
-	return w
 }
 
 // Check DB for existing warehouse with given uuid and return bool for if exists, and error if error encountered

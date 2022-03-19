@@ -4,6 +4,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"apricate/auth"
@@ -169,7 +170,7 @@ func (h *PlantsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End PlantsOverview --"))
 }
 
-// Handler function for the route: /api/plants
+// Handler function for the route: /api/plants/{plantName}
 type PlantOverview struct {
 	MainDictionary *schema.MainDictionary
 }
@@ -177,7 +178,7 @@ func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantOverview --"))
 	// Get username from route
 	route_vars := mux.Vars(r)
-	plant_name := strings.Title(strings.Replace(route_vars["plantName"], "_", " ", -1))
+	plant_name := strings.Title(strings.ToLower(strings.Replace(route_vars["plantName"], "_", " ", -1)))
 	log.Debug.Printf("PlantOverview Requested for: %s", plant_name)
 	// Get plant
 	if plant, ok := (*h.MainDictionary).Plants[plant_name]; ok {
@@ -187,4 +188,31 @@ func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.Specified_Plant_Not_Found, nil, "")
 	}
 	log.Debug.Println(log.Cyan("-- End PlantOverview --"))
+}
+
+// Handler function for the route: /api/plants/{plantName}/stage/{stageNum}
+type PlantStageOverview struct {
+	MainDictionary *schema.MainDictionary
+}
+func (h *PlantStageOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- PlantStageOverview --"))
+	// Get username from route
+	route_vars := mux.Vars(r)
+	plant_name := strings.Title(strings.ToLower(strings.Replace(route_vars["plantName"], "_", " ", -1)))
+	stage_num, err := strconv.Atoi(route_vars["stageNum"])
+	if err != nil {
+		errmsg := fmt.Sprintf("PlantStageOverview Requested for: %s, stagenum: %d but failed to parse stageNum to Int for reason: %v", plant_name, stage_num, err)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Could_Not_Parse_URI_Param, nil, errmsg)
+		return
+	}
+	log.Debug.Printf("PlantStageOverview Requested for: %s, stagenum: %d", plant_name, stage_num)
+	// Get plant
+	if plant, ok := (*h.MainDictionary).Plants[plant_name]; ok {
+		res := plant
+		responses.SendRes(w, responses.Generic_Success, res.GrowthStages[stage_num], "")
+	} else {
+		responses.SendRes(w, responses.Specified_Plant_Not_Found, nil, "")
+	}
+	log.Debug.Println(log.Cyan("-- End PlantStageOverview --"))
 }

@@ -50,6 +50,7 @@ const (
 	Missing_Consumable_Selection ResponseCode = 23
 	Plants_Still_Growing ResponseCode = 24
 	Tool_Not_Found ResponseCode = 25
+	Could_Not_Parse_URI_Param ResponseCode = 26
 )
 
 // Defines Response structure for output
@@ -178,6 +179,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Tool_Not_Found: {
 		Message: "[Tool_Not_Found] The local warehouse does not have the requisite tool for the specified action",
+		HttpResponse: http.StatusNotFound,
+	},
+	Could_Not_Parse_URI_Param: {
+		Message: "[Could_Not_Parse_URI_Param] URI param could not be parsed, ensure request formatted correctly",
 		HttpResponse: http.StatusNotFound,
 	},
 }

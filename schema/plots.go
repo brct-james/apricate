@@ -6,7 +6,10 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"fmt"
+	"math"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 // Defines a plot
@@ -37,6 +40,13 @@ func NewPlots(pdb rdb.Database, username string, countOfPlots uint16, locationSy
 		res[plot.UUID] = *plot
 	}
 	return res
+}
+
+// Defines HarvestProduce data
+type HarvestProduce struct {
+	Produce []Produce `json:"produce" binding:"required"`
+	Seeds map[string]uint64 `json:"seeds" binding:"required"`
+	Goods map[string]uint64 `json:"goods" binding:"required"`
 }
 
 // Defines a plot plant request body
@@ -70,6 +80,9 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 	if p.PlantedPlant != nil {
 		return responses.Plot_Already_Planted
 	}
+	if ppb.SeedSize <= 0 {
+		return responses.Bad_Request
+	}
 	if ppb.SeedQuantity > uint16(p.PlotSize/ppb.SeedSize) {
 		return responses.Plot_Too_Small
 	}
@@ -77,9 +90,10 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 }
 
 // returns ResponseCode, AddedYield, ConsumableQuantityUsed, GrowthHarvest, Cooldown/GrowthTime
-func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[ToolTypes]uint8) (responses.ResponseCode, float32, uint64, *GrowthHarvest, int64) {
+func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[ToolTypes]uint8) (responses.ResponseCode, float64, uint64, *GrowthHarvest, int64) {
+	consumableName := strings.Title(strings.ToLower(pib.Consumable))
 	pib.Action = strings.Title(strings.ToLower(pib.Action))
-	log.Important.Println(pib.Action)
+	log.Debug.Println(pib.Action)
 	growthStage := plantDef.GrowthStages[p.PlantedPlant.CurrentStage]
 	// if blank action
 	if pib.Action == string("") {
@@ -110,7 +124,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 			return responses.Generic_Success, growthStage.AddedYield, 0, nil, *growthStage.GrowthTime
 		}
 		// Check consumables
-		if pib.Consumable == string("") {
+		if consumableName == string("") {
 			// No consumables included in request body, fail
 			return responses.Missing_Consumable_Selection, 0, 0, nil, 0
 		}
@@ -121,7 +135,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 			return responses.Internal_Server_Error, 0, 0, nil, 0
 		}
 		for _, consumableOption := range scaledGrowthStage.ConsumableOptions {
-			if consumableOption.Name == pib.Consumable {
+			if consumableOption.Name == consumableName {
 				// found matching consumable option
 				if consumableOption.Quantity <= consumableQuantityAvailable {
 					// have enough, return success
@@ -139,4 +153,32 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 	}
 	// else, invalid action specified
 	return responses.Invalid_Plot_Action, 0, 0, nil, 0
+}
+
+func (p *Plot) CalculateProduce(growthHarvest *GrowthHarvest) HarvestProduce {
+	harvest := HarvestProduce{
+		Produce: make([]Produce, 0),
+		Seeds: make(map[string]uint64),
+		Goods: make(map[string]uint64),
+	}
+	totalYield := p.PlantedPlant.Yield
+	size := p.PlantedPlant.Size
+	rand.Seed(time.Now().UnixNano())
+	randMin := 0.8
+	randMax := 1.2
+	yieldRNG := randMin + rand.Float64() * (randMax - randMin)
+	log.Debug.Println(growthHarvest)
+	// Calculate Produce - Quantity Affected By AddedYield NOT Size
+	for produceName, yieldModifier := range growthHarvest.Produce {
+		harvest.Produce = append(harvest.Produce, *NewProduce(produceName, size, uint64(math.Round(float64(p.Quantity) * yieldRNG * totalYield * yieldModifier))))
+	}
+	// Calculate Seeds - NOT Affected By AddedYield OR Size (Affected by Seed Yield Modifier and Yield RNG, however)
+	for seedName, yieldModifier := range growthHarvest.Seeds {
+		harvest.Seeds[seedName] = uint64(math.Round(float64(p.Quantity) * yieldRNG * yieldModifier))
+	}
+	// Calculate Goods - Quantity Affected By AddedYield AND Size
+	for goodName, yieldModifier := range growthHarvest.Goods {
+		harvest.Goods[goodName] = uint64(math.Round(float64(size) * float64(p.Quantity) * yieldRNG * totalYield * yieldModifier))
+	}
+	return harvest
 }

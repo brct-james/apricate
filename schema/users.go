@@ -44,7 +44,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	contract := NewContract(username, 0, startLocation, ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
 	SaveContractToDB(dbs["contracts"], contract)
 	// generate starting warehouse
-	warehouse := NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Sickle: 1, Tool_Hoe: 1, Tool_SproutingPot: 1, Tool_Pitchfork: 1}, map[string]Produce{"Potato|Miniature": *NewProduce("Potato", Miniature, uint64(10))}, map[string]uint64{"Cabbage Seeds":10,"Shelvis Fig Seeds":10,"Potato Chunk":10,"Spectral Grass Seeds": 16}, map[string]uint64{"Fertilizer":100})
+	warehouse := NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Sickle: 1, Tool_Hoe: 1, Tool_SproutingPot: 1, Tool_Pitchfork: 1, Tool_WaterWand: 1, Tool_Rake: 1}, map[string]Produce{"Potato|Miniature": *NewProduce("Potato", Miniature, uint64(10))}, map[string]uint64{"Cabbage Seeds":10,"Shelvis Fig Seeds":10,"Potato Chunk":10,"Spectral Grass Seeds": 16,"Gulb Bulb": 4}, map[string]uint64{"Fertilizer":100, "Water": 100, "Enchanted Water": 100})
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID

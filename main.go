@@ -22,7 +22,7 @@ import (
 var (
 	ListenPort = ":50250"
 	RedisAddr = "localhost:6382"
-	apiVersion = "0.2.0"
+	apiVersion = "0.3.0"
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
@@ -70,8 +70,8 @@ func initialize_dictionaries() {
 	// Load Plants from YAML
 	log.Debug.Println("Loading plant dictionary")
 	main_dictionary.Plants = schema.Plants_load("./yaml/plants.yaml")
-	for k := range main_dictionary.Plants {
-		log.Debug.Println(k)
+	for k, p := range main_dictionary.Plants {
+		log.Debug.Printf("%s: %s", k, p.Name)
 	}
 	// log.Debug.Println(responses.JSON(dictionaries["plants"]))
 	log.Info.Printf("Loaded plant dictionary")
@@ -204,6 +204,7 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/islands", &handlers.IslandsOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.Handle("/api/plants/{plantName}/stage/{stageNum}", &handlers.PlantStageOverview{MainDictionary: &main_dictionary}).Methods("GET")
 
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()

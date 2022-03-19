@@ -24,5 +24,8 @@ rdebug.ansi
 # Username Slur Filter List
 slur_filter.txt
 
+# Balance Notes
+balance_notes
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
