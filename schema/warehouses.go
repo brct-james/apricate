@@ -12,19 +12,53 @@ import (
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
+	Tools map[ToolTypes]uint8 `json:"tools" binding:"required"`
+	Produce map[string]uint64 `json:"produce" binding:"required"`
+	Seeds map[string]uint64 `json:"seeds" binding:"required"`
 	Goods map[string]uint64 `json:"goods" binding:"required"`
 }
 
 func NewEmptyWarehouse(username string, locationSymbol string) *Warehouse {
-	return NewWarehouse(username, locationSymbol, make(map[string]uint64))
+	return NewWarehouse(username, locationSymbol, make(map[ToolTypes]uint8), make(map[string]uint64), make(map[string]uint64), make(map[string]uint64))
 }
 
-func NewWarehouse(username string, locationSymbol string, starting_goods map[string]uint64) *Warehouse {
+func NewWarehouse(username string, locationSymbol string, starting_tools map[ToolTypes]uint8, starting_produce map[string]uint64, starting_seeds map[string]uint64, starting_goods map[string]uint64) *Warehouse {
 	return &Warehouse{
 		UUID: username + "|Warehouse-" + locationSymbol,
 		LocationSymbol: locationSymbol,
+		Tools: starting_tools,
+		Produce: starting_produce,
+		Seeds: starting_seeds,
 		Goods: starting_goods,
 	}
+}
+
+func (w *Warehouse) AddTools(name ToolTypes, quantity uint8) *Warehouse {
+	w.Tools[name] += quantity
+	return w
+}
+
+func (w *Warehouse) RemoveTools(name ToolTypes, quantity uint8) *Warehouse {
+	w.Tools[name] -= quantity
+	log.Important.Printf("%v", w.Tools[name])
+	if w.Tools[name] <= 0 {
+		delete(w.Tools, name)
+	}
+	return w
+}
+
+func (w *Warehouse) AddProduce(name string, quantity uint64) *Warehouse {
+	w.Produce[name] += quantity
+	return w
+}
+
+func (w *Warehouse) RemoveProduce(name string, quantity uint64) *Warehouse {
+	w.Produce[name] -= quantity
+	log.Important.Printf("%v", w.Produce[name])
+	if w.Produce[name] <= 0 {
+		delete(w.Produce, name)
+	}
+	return w
 }
 
 func (w *Warehouse) AddGoods(name string, quantity uint64) *Warehouse {

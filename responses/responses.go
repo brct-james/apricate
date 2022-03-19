@@ -49,6 +49,7 @@ const (
 	Consumable_Not_In_Options ResponseCode = 22
 	Missing_Consumable_Selection ResponseCode = 23
 	Plants_Still_Growing ResponseCode = 24
+	Tool_Not_Found ResponseCode = 25
 )
 
 // Defines Response structure for output
@@ -174,6 +175,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	Plants_Still_Growing: {
 		Message: "[Plants_Still_Growing] The specified plot's plants are still growing, cannot interact yet",
 		HttpResponse: http.StatusConflict,
+	},
+	Tool_Not_Found: {
+		Message: "[Tool_Not_Found] The local warehouse does not have the requisite tool for the specified action",
+		HttpResponse: http.StatusNotFound,
 	},
 }
 

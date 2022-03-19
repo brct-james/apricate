@@ -77,7 +77,7 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 }
 
 // returns ResponseCode, AddedYield, ConsumableQuantityUsed, GrowthHarvest, Cooldown/GrowthTime
-func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64) (responses.ResponseCode, float32, uint64, *GrowthHarvest, int64) {
+func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[ToolTypes]uint8) (responses.ResponseCode, float32, uint64, *GrowthHarvest, int64) {
 	pib.Action = strings.Title(strings.ToLower(pib.Action))
 	log.Important.Println(pib.Action)
 	growthStage := plantDef.GrowthStages[p.PlantedPlant.CurrentStage]
@@ -88,10 +88,19 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 	}
 	// if has and is skip action
 	if growthStage.ActionToSkip != nil && pib.Action == (*growthStage.ActionToSkip).String() {
-		return responses.Generic_Success, 0, 0, nil, 0
+		if _, countOk := tools[growthStage.ActionToSkip.ToolType()]; countOk {
+			// Success, have correct tool
+			return responses.Generic_Success, 0, 0, nil, 0
+		}
+		// Failure, don't have correct tool
+		return responses.Tool_Not_Found, 0, 0, nil, 0
 	}
 	// if action action
 	if pib.Action == (*growthStage.Action).String() {
+		if _, countOk := tools[growthStage.Action.ToolType()]; !countOk {
+			// Failure, don't have correct tool
+			return responses.Tool_Not_Found, 0, 0, nil, 0
+		}
 		// Growth stage contains no consumables, return success
 		if len(growthStage.ConsumableOptions) == 0 {
 			// if harvest step, return harvest data, else just return added yield

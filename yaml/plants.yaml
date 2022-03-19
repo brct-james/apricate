@@ -173,7 +173,7 @@ Shelvis Fig:
         FinalHarvest: True
 Potato:
   Name: Potato
-  ProduceName: Potato
+  ProduceName: Potato Chunk 
   Description: The hardy Potato plant is a mundane plant that grows underground. It is an extremely common staple food that grows quickly and can be harvested multiple times. Rather than using seeds is planted as the Potatoes themselves
   GrowthStages:
     -

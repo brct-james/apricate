@@ -27,6 +27,10 @@ func (s ToolTypes) String() string {
 	return toolTypesToString[s]
 }
 
+func StringToTool(s string) ToolTypes {
+	return toolTypesToID[s]
+}
+
 var toolTypesToString = map[ToolTypes]string {
 	Tool_Spade: "Spade",
 	Tool_Hoe: "Hoe",

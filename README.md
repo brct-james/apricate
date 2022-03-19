@@ -108,17 +108,16 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Add Sickle, Shade Cloth tool/action, Spectral Grass plant~~
 - ~~Plot `/interact` endpoint with switch on body.action (growth actions)~~
 - Cooldown/growth time is enforced (written, tested, just need to enable by uncommenting when testing done)
-- Add warehouse increment/decrement methods to handle removing the key for goods that are now at 0
+- ~~Add warehouse increment/decrement methods to handle removing the key for goods that are now at 0~~
+- ~~Fix bug with path selector (case sensitive)~~
 - Harvest functionality in `/interact`
 - - Actually, harvests should give Produce, a superset of Good, and go to special warehouse section so they can have size but not every good
 - - Check logic in `plots:interact()` for returning growthHarvest when harvest is optional and when harvest but not FinalHarvest
 - - Produce deposited to warehouse
-- Warehouses have sections for tools, produce, goods
-- - Farm tools moved to warehouse
+- ~~Warehouses have sections for tools, produce, goods, seeds~~
+- - ~~Farm tools moved to warehouse~~
 - Tested growth and harvest of cabbage, potatos, shelvis fig, spectral grass, INCLUDING optional actions (make sure yield properly adjusted)
 - Add `GET: /plants/{plantName}/growth-stages/{index}`
-- Update documentation
-- Deploy pre-alpha server and separate dev server once complete, host timed pre-alpha test via discord
 
 ---
 
@@ -139,6 +138,8 @@ Versioning Convention: `major.minor.hotfix`
 - One functional market, Local orders (non-player orders to provide baseline supply/demand)
 - Ratelimiting
 - Add `GET` endpoints for sectors, `GET` select island endpoint
+- Update documentation
+- Deploy pre-alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
 
 ---
 

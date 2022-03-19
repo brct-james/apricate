@@ -14,6 +14,11 @@ type Good struct {
 	Quantity uint64 `yaml:"Quantity" json:"quantity" binding:"required"`
 }
 
+// Define produce
+type Produce struct {
+	Good
+}
+
 // Define a raw good entry, that is processed by a generator to populate a good list
 type RawGoodEntry struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`

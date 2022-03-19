@@ -864,15 +864,15 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Println(plotDefErrMsg)
 		responses.SendRes(w, responses.Internal_Server_Error, plot, plotDefErrMsg)
 	}
-	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime := plot.IsInteractable(body, plantDef, consumableQuantityAvailable)
+	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
 	switch plotValidationResponse {
-	case responses.Plot_Not_Planted:
-		log.Error.Printf("Error in PlantPlot, Plot_Not_Planted")
-		responses.SendRes(w, responses.Plot_Not_Planted, plot, "")
-		return
 	case responses.Invalid_Plot_Action:
 		log.Error.Printf("Error in PlantPlot, Invalid_Plot_Action")
 		responses.SendRes(w, responses.Invalid_Plot_Action, plot, "")
+		return
+	case responses.Tool_Not_Found:
+		log.Error.Printf("Error in PlantPlot, Tool_Not_Found")
+		responses.SendRes(w, responses.Tool_Not_Found, plot, "")
 		return
 	case responses.Missing_Consumable_Selection:
 		log.Error.Printf("Error in PlantPlot, Missing_Consumable_Selection")
