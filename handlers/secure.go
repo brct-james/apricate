@@ -602,15 +602,6 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
 		return
 	}
-	// Validate specified seed is a good
-	goodsDict := (*h.MainDictionary).Goods
-	if _, ok := goodsDict[body.SeedName]; !ok {
-		// Fail, seed is not good
-		errmsg := fmt.Sprintf("Error in PlantPlot, Seed item does not exist in good dictionary. received seed name: %v", body.SeedName)
-		log.Error.Printf(errmsg)
-		responses.SendRes(w, responses.Item_Does_Not_Exist, nil, errmsg)
-		return
-	}
 	// Validate specified seed is a seed
 	seedsDict := (*h.MainDictionary).Seeds
 	plantName, plantNameOk := seedsDict[body.SeedName]

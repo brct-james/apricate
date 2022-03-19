@@ -111,11 +111,12 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Add warehouse increment/decrement methods to handle removing the key for goods that are now at 0~~
 - ~~Fix bug with path selector (case sensitive)~~
 - Harvest functionality in `/interact`
-- - Actually, harvests should give Produce, a superset of Good, and go to special warehouse section so they can have size but not every good
+- - ~~Actually, harvests should give Produce, a superset of Good, and go to special warehouse section so they can have size but not every good~~
 - - Check logic in `plots:interact()` for returning growthHarvest when harvest is optional and when harvest but not FinalHarvest
 - - Produce deposited to warehouse
 - ~~Warehouses have sections for tools, produce, goods, seeds~~
 - - ~~Farm tools moved to warehouse~~
+- ~~Separate YAML definitions for goods into produce, goods, seeds files~~
 - Tested growth and harvest of cabbage, potatos, shelvis fig, spectral grass, INCLUDING optional actions (make sure yield properly adjusted)
 - Add `GET: /plants/{plantName}/growth-stages/{index}`
 

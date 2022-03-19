@@ -26,29 +26,29 @@ func (s Size) String() string {
 }
 
 var sizeToString = map[Size]string {
-	Miniature: "Miniature (1)",
-	Tiny: "Tiny (2)",
-	Small: "Small (4)",
-	Modest: "Modest (8)",
-	Average: "Average (16)",
-	Large: "Large (32)",
-	Huge: "Huge (64)",
-	Gigantic: "Gigantic (256)",
-	Colossal: "Colossal (1024)",
-	Titanic: "Titanic (4096)",
+	Miniature: "Miniature",
+	Tiny: "Tiny",
+	Small: "Small",
+	Modest: "Modest",
+	Average: "Average",
+	Large: "Large",
+	Huge: "Huge",
+	Gigantic: "Gigantic",
+	Colossal: "Colossal",
+	Titanic: "Titanic",
 }
 
 var sizeToID = map[string]Size {
-	"Miniature (1)": Miniature,
-	"Tiny (2)": Tiny,
-	"Small (4)": Small,
-	"Modest (8)": Modest,
-	"Average (16)": Average,
-	"Large (32)": Large,
-	"Huge (64)": Huge,
-	"Gigantic (256)": Gigantic,
-	"Colossal (1024)": Colossal,
-	"Titanic (4096)": Titanic,
+	"Miniature": Miniature,
+	"Tiny": Tiny,
+	"Small": Small,
+	"Modest": Modest,
+	"Average": Average,
+	"Large": Large,
+	"Huge": Huge,
+	"Gigantic": Gigantic,
+	"Colossal": Colossal,
+	"Titanic": Titanic,
 }
 
 // MarshalJSON marshals the enum as a quoted json string

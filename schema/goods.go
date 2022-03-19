@@ -14,15 +14,10 @@ type Good struct {
 	Quantity uint64 `yaml:"Quantity" json:"quantity" binding:"required"`
 }
 
-// Define produce
-type Produce struct {
-	Good
-}
-
 // Define a raw good entry, that is processed by a generator to populate a good list
 type RawGoodEntry struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
-	Seedy bool `yaml:"Seedy" json:"seedy,omitempty"`
+	IsProduce bool `yaml:"IsProduce" json:"is_produce,omitempty"` // specify to ignore the base entry and only generate for prefixes and suffixes
 	Enchantable bool `yaml:"Enchantable" json:"enchantable,omitempty"`
 	Prefixes []string `yaml:"Prefixes" json:"prefixes,omitempty"`
 	Suffixes []string `yaml:"Suffixes" json:"suffixes,omitempty"`
@@ -41,9 +36,6 @@ func GoodListGenerator(path_to_goods_yaml string) map[string]interface{} {
 	goodList := make(map[string]interface{}, 0)
 	for _, good := range rawGoods {
 		goodList[good.Name] = nil
-		if good.Seedy {
-			goodList[good.Name + " Seeds"] = nil
-		}
 		if good.Enchantable {
 			goodList["Enchanted " + good.Name] = nil
 		}

@@ -13,16 +13,16 @@ type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
 	Tools map[ToolTypes]uint8 `json:"tools" binding:"required"`
-	Produce map[string]uint64 `json:"produce" binding:"required"`
+	Produce map[string]Produce `json:"produce" binding:"required"`
 	Seeds map[string]uint64 `json:"seeds" binding:"required"`
 	Goods map[string]uint64 `json:"goods" binding:"required"`
 }
 
 func NewEmptyWarehouse(username string, locationSymbol string) *Warehouse {
-	return NewWarehouse(username, locationSymbol, make(map[ToolTypes]uint8), make(map[string]uint64), make(map[string]uint64), make(map[string]uint64))
+	return NewWarehouse(username, locationSymbol, make(map[ToolTypes]uint8), make(map[string]Produce), make(map[string]uint64), make(map[string]uint64))
 }
 
-func NewWarehouse(username string, locationSymbol string, starting_tools map[ToolTypes]uint8, starting_produce map[string]uint64, starting_seeds map[string]uint64, starting_goods map[string]uint64) *Warehouse {
+func NewWarehouse(username string, locationSymbol string, starting_tools map[ToolTypes]uint8, starting_produce map[string]Produce, starting_seeds map[string]uint64, starting_goods map[string]uint64) *Warehouse {
 	return &Warehouse{
 		UUID: username + "|Warehouse-" + locationSymbol,
 		LocationSymbol: locationSymbol,
@@ -46,15 +46,36 @@ func (w *Warehouse) RemoveTools(name ToolTypes, quantity uint8) *Warehouse {
 	return w
 }
 
-func (w *Warehouse) AddProduce(name string, quantity uint64) *Warehouse {
-	w.Produce[name] += quantity
+func (w *Warehouse) GetProduce(name string, size Size) *Produce {
+	produceName := name + "|" + size.String()
+	if entry, ok := w.Produce[produceName]; ok {
+		return &entry
+	}
+	return nil
+}
+
+func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) *Warehouse {
+	produceName := name + "|" + size.String()
+	if entry, ok := w.Produce[produceName]; ok {
+		entry.Quantity += quantity
+		w.Produce[produceName] = entry
+	} else {
+		log.Error.Printf("Cannot add produce, !ok for name: %s", name)
+	}
 	return w
 }
 
-func (w *Warehouse) RemoveProduce(name string, quantity uint64) *Warehouse {
-	w.Produce[name] -= quantity
-	if w.Produce[name] <= 0 {
-		delete(w.Produce, name)
+func (w *Warehouse) RemoveProduce(name string, size Size, quantity uint64) *Warehouse {
+	produceName := name + "|" + size.String()
+	if entry, ok := w.Produce[produceName]; ok {
+		entry.Quantity -= quantity
+		if(entry.Quantity <= 0) {
+			delete (w.Produce, produceName)
+		} else {
+			w.Produce[produceName] = entry
+		}
+	} else {
+		log.Error.Printf("Cannot add produce, !ok for name: %s", name)
 	}
 	return w
 }

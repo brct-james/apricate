@@ -3,27 +3,18 @@
   Name: Water
   Prefixes: [Enchanted]
 -
-  Name: Wild Seeds
--
-  Name: Wild Flora
--
   Name: Cabbage
-  Seedy: true
+  IsProduce: true
   Prefixes: [Pickled]
 -
   Name: Shelvis Fig
-  Seedy: true
+  IsProduce: true
   Prefixes: [Pickled]
   Suffixes: [Ale]
--
-  Name: Potato
 -
   Name: Fertilizer
   Enchantable: true
   Prefixes: [Dragon]
--
-  Name: Spectral Grass
-  Seedy: true
 -
   Name: Spectral Fiber
   Enchantable: true

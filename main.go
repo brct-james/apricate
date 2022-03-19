@@ -49,11 +49,19 @@ func initialize_dbs() {
 func initialize_dictionaries() {
 	// Load Seeds from YAML
 	log.Debug.Println("Loading seeds list")
-	main_dictionary.Seeds = schema.Seeds_load("./yaml/seeds.yaml")
+	main_dictionary.Seeds = schema.Seeds_load("./yaml/items/seeds.yaml")
 	for k := range main_dictionary.Seeds {
 		log.Debug.Println(k)
 	}
 	log.Info.Printf("Loaded seeds list")
+
+	// Load Produce from YAML
+	log.Debug.Println("Loading produce list")
+	main_dictionary.Produce = schema.Produce_load("./yaml/items/produce.yaml")
+	for k := range main_dictionary.Produce {
+		log.Debug.Println(k)
+	}
+	log.Info.Printf("Loaded produce list")
 
 	/*
 	****** TODO: Validate 1:1 mapping for every seed and plant after loading both
@@ -70,7 +78,7 @@ func initialize_dictionaries() {
 
 	// Load Goods from YAML
 	log.Debug.Println("Loading goods list")
-	main_dictionary.Goods = schema.GoodListGenerator("./yaml/goods.yaml")
+	main_dictionary.Goods = schema.GoodListGenerator("./yaml/items/goods.yaml")
 	log.Debug.Println(responses.JSON(main_dictionary.Goods))
 	log.Info.Printf("Loaded goods list")
 }
