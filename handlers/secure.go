@@ -631,10 +631,10 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Validate seeds specified in given warehouse
-	numLocalSeeds, ownedSeedsOk := warehouse.Goods[body.SeedName]; 
+	numLocalSeeds, ownedSeedsOk := warehouse.Seeds[body.SeedName]; 
 	if !ownedSeedsOk {
 		// Fail, seed good not in warehouse
-		errmsg := fmt.Sprintf("Error in PlantPlot, Seed item not found in local warehouse. received good name: %v, warehouse goods: %v", body.SeedName, warehouse.Goods)
+		errmsg := fmt.Sprintf("Error in PlantPlot, Seed item not found in local warehouse. received good name: %v, warehouse goods: %v", body.SeedName, warehouse.Seeds)
 		log.Error.Printf(errmsg)
 		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, nil, errmsg)
 		return
@@ -673,11 +673,11 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	plot.PlantedPlant = schema.NewPlant(schema.PlantTypeFromString(plantName), body.SeedSize)
 	plot.Quantity = body.SeedQuantity
-	warehouse.RemoveGoods(body.SeedName, uint64(body.SeedQuantity))
+	warehouse.RemoveSeeds(body.SeedName, uint64(body.SeedQuantity))
 	farm.Plots[uuid] = plot
 
 	// Save to DBs
-	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "goods", warehouse.Goods)
+	saveWarehouseErr := schema.SaveWarehouseDataAtPathToDB(wdb, warehouseLocationSymbol, "seeds", warehouse.Seeds)
 	if saveWarehouseErr != nil {
 		log.Error.Printf("Error in PlotInfo, could not save warehouse. error: %v", saveWarehouseErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())

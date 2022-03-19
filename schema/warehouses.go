@@ -40,7 +40,6 @@ func (w *Warehouse) AddTools(name ToolTypes, quantity uint8) *Warehouse {
 
 func (w *Warehouse) RemoveTools(name ToolTypes, quantity uint8) *Warehouse {
 	w.Tools[name] -= quantity
-	log.Important.Printf("%v", w.Tools[name])
 	if w.Tools[name] <= 0 {
 		delete(w.Tools, name)
 	}
@@ -54,9 +53,21 @@ func (w *Warehouse) AddProduce(name string, quantity uint64) *Warehouse {
 
 func (w *Warehouse) RemoveProduce(name string, quantity uint64) *Warehouse {
 	w.Produce[name] -= quantity
-	log.Important.Printf("%v", w.Produce[name])
 	if w.Produce[name] <= 0 {
 		delete(w.Produce, name)
+	}
+	return w
+}
+
+func (w *Warehouse) AddSeeds(name string, quantity uint64) *Warehouse {
+	w.Seeds[name] += quantity
+	return w
+}
+
+func (w *Warehouse) RemoveSeeds(name string, quantity uint64) *Warehouse {
+	w.Seeds[name] -= quantity
+	if w.Seeds[name] <= 0 {
+		delete(w.Seeds, name)
 	}
 	return w
 }
@@ -68,7 +79,6 @@ func (w *Warehouse) AddGoods(name string, quantity uint64) *Warehouse {
 
 func (w *Warehouse) RemoveGoods(name string, quantity uint64) *Warehouse {
 	w.Goods[name] -= quantity
-	log.Important.Printf("%v", w.Goods[name])
 	if w.Goods[name] <= 0 {
 		delete(w.Goods, name)
 	}
