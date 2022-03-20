@@ -50,10 +50,10 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 {
     "name": "Cabbage Seeds",
     "quantity": 10,
-    "size": "Miniature (1)"
+    "size": "Miniature"
 }
 ```
-- `POST: /api/my/plots/{uuid}/interact` returns the updated warehouse and plot data if successful in attempt to interact with specified plant in plot, as well as the info on the next growth stage of the plant
+- `PATCH: /api/my/plots/{uuid}/interact` returns the updated warehouse and plot data if successful in attempt to interact with specified plant in plot, as well as the info on the next growth stage of the plant
 - - **Request Body** Expects `action` desired action, `consumable` name of good to be consumed (optional depending on step, will be ignored if passed to step that has no consumable options). Example:
 ```json
 {
@@ -123,7 +123,9 @@ Versioning Convention: `major.minor.hotfix`
 ### Started: **[v0.4]**
 
 - Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
-- Add `GET` endpoints for sectors, `GET` select island endpoint
+- ~~Add `GET` endpoints for regions, `GET` select island endpoint~~
+- - ~~Sectors are regions now~~
+- Helper functions for getting entries from route_vars/mux.Vars(r) so that always returned in correct format (e.g. Title(ToLower), ToUpper, etc.)
 - Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)
 - Look through responses and ensure all are using correct response code
 - Look through response codes and ensure all are using correct http response code
@@ -135,7 +137,6 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Planned: **[v0.5]** First Public Alpha
 
-
 - Update starting user template with appropriate tools, seeds, goods, produce
 - Update documentation
 - Deploy alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
@@ -146,6 +147,10 @@ Versioning Convention: `major.minor.hotfix`
 
 - Respond to feedback from v0.5 alpha
 - Add YAML-defined contract/quest paths from NPCs
+- NPC endpoints for story/lore and contracts
+- - `/talk`
+- Cheat codes, maybe entered by talking to the NPC on your farm
+- Rename Contracts to QuestContracts to fit the theme better (yes, its a capitalist society, but its an oldtimey fantasy world, gotta have quests)
 - NPCs defined in YAML
 - Use data field for request error responses to convey programmatically what failed validation
 - Request validation functions

@@ -178,7 +178,7 @@ func main() {
 	log.Info.Printf("Created/Loaded Username Slur Filter")
 
 	// Load World from YAML
-	world = schema.World_load("./yaml/world/sectors.yaml", "./yaml/world/islands", "./yaml/world/locations")
+	world = schema.World_load("./yaml/world/regions.yaml", "./yaml/world/islands", "./yaml/world/locations")
 	log.Debug.Println(world)
 	log.Info.Printf("Loaded world")
 
@@ -202,6 +202,9 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
 	mxr.Handle("/api/islands", &handlers.IslandsOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/islands/{islandName}", &handlers.IslandOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/regions/{regionName}", &handlers.RegionOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plantName}/stage/{stageNum}", &handlers.PlantStageOverview{MainDictionary: &main_dictionary}).Methods("GET")

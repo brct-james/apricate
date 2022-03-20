@@ -48,6 +48,45 @@ func (h *IslandsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End IslandsOverview --"))
 }
 
+// Handler function for the route: /api/islands/{islandName}
+type IslandOverview struct {
+	World *schema.World
+}
+func (h *IslandOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- IslandOverview --"))
+	// Get islandName from route
+	route_vars := mux.Vars(r)
+	islandName := route_vars["islandName"]
+	res := h.World.Islands[islandName]
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End IslandOverview --"))
+}
+
+// Handler function for the route: /api/regions
+type RegionsOverview struct {
+	World *schema.World
+}
+func (h *RegionsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RegionsOverview --"))
+	res := h.World.Regions
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End RegionsOverview --"))
+}
+
+// Handler function for the route: /api/regions/{regionName}
+type RegionOverview struct {
+	World *schema.World
+}
+func (h *RegionOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RegionOverview --"))
+	// Get regionName from route
+	route_vars := mux.Vars(r)
+	regionName := route_vars["regionName"]
+	res := h.World.Regions[regionName]
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End RegionOverview --"))
+}
+
 // Handler function for the route: /api/users/{username}
 type UsernameInfo struct {
 	Dbs *map[string]rdb.Database

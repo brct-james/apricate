@@ -1,9 +1,9 @@
 ---
-Tyldia Spur:
+Tyldian Spur:
   Name: Tyldian Spur
   Symbol: TS
-  SectorGroup: Northern Extremities
-  Description: The starting sector, a small leg separated from the Central Wheel sector-group by Tyldia
+  RegionGroup: Northern Extremities
+  Description: The starting region, a small leg separated from the Central Wheel region-group by Tyldia
   Islands:
     - 
       Name: Pria
