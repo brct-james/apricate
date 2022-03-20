@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"apricate/auth"
 	"apricate/log"
@@ -14,11 +13,7 @@ import (
 	"apricate/responses"
 	"apricate/schema"
 	"apricate/tokengen"
-
-	"github.com/gorilla/mux"
 )
-
-// Helper Functions
 
 // Handler Functions
 
@@ -55,8 +50,7 @@ type IslandOverview struct {
 func (h *IslandOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- IslandOverview --"))
 	// Get islandName from route
-	route_vars := mux.Vars(r)
-	islandName := route_vars["islandName"]
+	islandName := GetVarEntries(r, "islandName", SpacedName)
 	res := h.World.Islands[islandName]
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End IslandOverview --"))
@@ -80,8 +74,7 @@ type RegionOverview struct {
 func (h *RegionOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- RegionOverview --"))
 	// Get regionName from route
-	route_vars := mux.Vars(r)
-	regionName := route_vars["regionName"]
+	regionName := GetVarEntries(r, "regionName", SpacedName)
 	res := h.World.Regions[regionName]
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End RegionOverview --"))
@@ -94,8 +87,7 @@ type UsernameInfo struct {
 func (h *UsernameInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- usernameInfo --"))
 	// Get username from route
-	route_vars := mux.Vars(r)
-	username := route_vars["username"]
+	username := GetVarEntries(r, "username", None)
 	log.Debug.Printf("UsernameInfo Requested for: %s", username)
 	// Get username info from DB
 	token, genTokenErr := tokengen.GenerateToken(username)
@@ -143,8 +135,7 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println("Recover udb from context")
 	udb := (*h.Dbs)["users"]
 	// Get username from route
-	route_vars := mux.Vars(r)
-	username := route_vars["username"]
+	username := GetVarEntries(r, "username", None)
 	log.Debug.Printf("Username Requested: %s", username)
 	// Validate username (length & content, plus characters)
 	usernameValidationStatus := auth.ValidateUsername(username, h.SlurFilter)
@@ -216,8 +207,7 @@ type PlantOverview struct {
 func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantOverview --"))
 	// Get username from route
-	route_vars := mux.Vars(r)
-	plant_name := strings.Title(strings.ToLower(strings.Replace(route_vars["plantName"], "_", " ", -1)))
+	plant_name := GetVarEntries(r, "plantName", SpacedName)
 	log.Debug.Printf("PlantOverview Requested for: %s", plant_name)
 	// Get plant
 	if plant, ok := (*h.MainDictionary).Plants[plant_name]; ok {
@@ -235,10 +225,10 @@ type PlantStageOverview struct {
 }
 func (h *PlantStageOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantStageOverview --"))
-	// Get username from route
-	route_vars := mux.Vars(r)
-	plant_name := strings.Title(strings.ToLower(strings.Replace(route_vars["plantName"], "_", " ", -1)))
-	stage_num, err := strconv.Atoi(route_vars["stageNum"])
+	// Get plant_name from route
+	plant_name := GetVarEntries(r, "plantName", SpacedName)
+	stageNumRaw := GetVarEntries(r, "stageNum", None)
+	stage_num, err := strconv.Atoi(stageNumRaw)
 	if err != nil {
 		errmsg := fmt.Sprintf("PlantStageOverview Requested for: %s, stagenum: %d but failed to parse stageNum to Int for reason: %v", plant_name, stage_num, err)
 		log.Debug.Printf(errmsg)

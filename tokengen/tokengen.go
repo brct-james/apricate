@@ -2,6 +2,7 @@ package tokengen
 
 import (
 	"os"
+	"strings"
 
 	"apricate/log"
 
@@ -13,7 +14,7 @@ func GenerateToken(username string) (string, error) {
 	// Creating access token
 	// Set claims for jwt
 	atClaims := jwt.MapClaims{}
-	atClaims["username"]=username
+	atClaims["username"]=strings.ToLower(username)
 	// Use signing method HS256
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	log.Debug.Printf("Got APRICATE_ACCESS_SECRET:\n%s", os.Getenv("APRICATE_ACCESS_SECRET"))

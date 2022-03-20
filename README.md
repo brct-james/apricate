@@ -18,6 +18,10 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 
 ### Endpoints
 
+Note: Spaces may be replaced with underscores in URI parameters (or not), and params should always be case insensitive. Usernames are displayed with the user-given capitalization but the server ignores case when parsing, so `GrEEn` is not a valid username if `Green` is taken, and you get the user `Green` when requesting `GrEEn`
+Note Note: The keys of request bodies are case and space sensitive
+Note Note Note: When in doubt just use the same space delimiter and case as the game itself
+
 **Public Routes**
 <!-- - `GET: /api/v0/leaderboards` list all available leaderboards and their descriptions
 - `GET: /api/v0/leaderboards/{board}` get the specified leaderboard rankings -->
@@ -122,16 +126,18 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Started: **[v0.4]**
 
-- Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
 - ~~Add `GET` endpoints for regions, `GET` select island endpoint~~
 - - ~~Sectors are regions now~~
-- Helper functions for getting entries from route_vars/mux.Vars(r) so that always returned in correct format (e.g. Title(ToLower), ToUpper, etc.)
+- ~~Helper functions for getting entries from route_vars/mux.Vars(r) so that always returned in correct format (e.g. Title(ToLower), ToUpper, etc.)~~
+- - ~~URI params are case insensitive~~
+- - ~~Usernames are case insensitive, though saved and displayed casefully~~
 - Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)
 - Look through responses and ensure all are using correct response code
 - Look through response codes and ensure all are using correct http response code
 - Update my user auto-creation for Greenitthe with everything in the game for testing
 - Auto created users have name, token saved to ignored yaml file
 - Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)
+- Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
 
 ---
 

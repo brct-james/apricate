@@ -2,86 +2,16 @@
 package handlers
 
 import (
-	"apricate/auth"
 	"apricate/log"
-	"apricate/metrics"
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/gorilla/mux"
 )
-
-// HELPER FUNCTIONS
-
-// Attempt to get validation context
-func GetValidationFromCtx(r *http.Request) (auth.ValidationPair, error) {
-	log.Debug.Println("Recover validationpair from context")
-	userInfo, ok := r.Context().Value(auth.ValidationContext).(auth.ValidationPair)
-	if !ok {
-		return auth.ValidationPair{}, errors.New("could not get ValidationPair")
-	}
-	return userInfo, nil
-}
-
-// Get User from Middleware and DB
-// Returns: OK, userData, userAuthPair
-func secureGetUser(w http.ResponseWriter, r *http.Request, udb rdb.Database) (bool, schema.User, auth.ValidationPair) {
-	// Get userinfoContext from validation middleware
-	userInfo, userInfoErr := GetValidationFromCtx(r)
-	if userInfoErr != nil {
-		// Fail state getting context
-		log.Error.Printf("Could not get validationpair in secureGetUser")
-		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
-		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
-		return false, schema.User{}, userInfo
-	}
-	log.Debug.Printf("Validated with username: %s and token %s", userInfo.Username, userInfo.Token)
-	// Check db for user
-	thisUser, userFound, getUserErr := schema.GetUserFromDB(userInfo.Token, udb)
-	if getUserErr != nil {
-		// fail state
-		getErrorMsg := fmt.Sprintf("in secureGetUser, could not get from DB for username: %s, error: %v", userInfo.Username, getUserErr)
-		responses.SendRes(w, responses.UDB_Get_Failure, nil, getErrorMsg)
-		return false, schema.User{}, auth.ValidationPair{}
-	}
-	if !userFound {
-		// fail state - user not found
-		userNotFoundMsg := fmt.Sprintf("in secureGetUser, no user found in DB with username: %s", userInfo.Username)
-		responses.SendRes(w, responses.User_Not_Found, nil, userNotFoundMsg)
-		return false, schema.User{}, auth.ValidationPair{}
-	}
-
-	// Any time a user hits a secure endpoint, track a call from their account
-	metrics.TrackUserCall(userInfo.Username)
-
-	// // Get wdb
-	// wdbSuccess, wdb := GetWdbFromCtx(w, r)
-	// if !wdbSuccess {
-	// 	log.Debug.Printf("Could not get wdb from ctx")
-	// 	return false, schema.User{}, auth.ValidationPair{} // Fail state, could not get wdb, handled by func - simply return
-	// }
-	// // Success state, got wdb
-
-	// // Success case
-	// thisUser, calcErr := gamelogic.CalculateUserUpdates(thisUser, wdb)
-	// if calcErr != nil {
-	// 	// Fail state could not calculate user updates
-	// 	resMsg := fmt.Sprintf("calcErr: %v", calcErr)
-	// 	responses.SendRes(w, responses.Generic_Failure, nil, resMsg)
-	// 	return false, thisUser, userInfo
-	// }
-
-	// // Lastly, GetGolemMapWithPublicInfo
-	// thisUser.Golems = schema.UpdateGolemMapLinkedData(thisUser, thisUser.Golems) 
-	return true, thisUser, userInfo
-}
 
 // HANDLER FUNCTIONS
 
@@ -143,8 +73,7 @@ type AssistantInfo struct {
 func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- AssistantInfo --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	log.Debug.Printf("AssistantInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["assistants"]
 	assistant, foundAssistant, assistantsErr := schema.GetAssistantFromDB(uuid, adb)
@@ -310,8 +239,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		myLocs[farm.LocationSymbol] = true
 	}
 	// Get symbol from route
-	route_vars := mux.Vars(r)
-	symbol := strings.ToUpper(route_vars["symbol"])
+	symbol := GetVarEntries(r, "symbol", UUID)
 	// finally get specified location if available
 	var resLocation schema.Location
 	found := false
@@ -366,8 +294,7 @@ type FarmInfo struct {
 func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- FarmInfo --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	log.Debug.Printf("FarmInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["farms"]
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(uuid, adb)
@@ -423,8 +350,7 @@ type ContractInfo struct {
 func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- ContractInfo --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	log.Debug.Printf("ContractInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["contracts"]
 	contract, foundContract, contractsErr := schema.GetContractFromDB(uuid, adb)
@@ -480,8 +406,7 @@ type WarehouseInfo struct {
 func (h *WarehouseInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- WarehouseInfo --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	log.Debug.Printf("WarehouseInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(uuid, adb)
@@ -545,8 +470,7 @@ type PlotInfo struct {
 func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlotInfo --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	log.Debug.Printf("PlotInfo Requested for: %s", uuid)
 	// Get farm
 	symbolSlice := strings.Split(uuid, "|")
@@ -578,8 +502,7 @@ type PlantPlot struct {
 func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantPlot --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	symbolSlice := strings.Split(uuid, "|")
 	if len(symbolSlice) < 3 {
 		// Fail, malformed plot id
@@ -707,8 +630,7 @@ type ClearPlot struct {
 func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- ClearPlot --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	symbolSlice := strings.Split(uuid, "|")
 	if len(symbolSlice) < 3 {
 		// Fail, malformed plot id
@@ -765,8 +687,7 @@ type InteractPlot struct {
 func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- InteractPlot --"))
 	// Get uuid from route
-	route_vars := mux.Vars(r)
-	uuid := route_vars["uuid"]
+	uuid := GetVarEntries(r, "uuid", UUID)
 	symbolSlice := strings.Split(uuid, "|")
 	if len(symbolSlice) < 3 {
 		// Fail, malformed plot id
