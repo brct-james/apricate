@@ -104,7 +104,7 @@ func (h *UsernameInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if getUserErr != nil {
 		// fail state
 		getErrorMsg := fmt.Sprintf("in publicGetUser, could not get from DB for username: %s, error: %v", username, getUserErr)
-		responses.SendRes(w, responses.UDB_Get_Failure, nil, getErrorMsg)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, getErrorMsg)
 		return
 	}
 	if !userFound {
@@ -161,7 +161,7 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// fail state - db error
 		dbGetErrorMsg := fmt.Sprintf("in UsernameClaim | Username: %v | UDB Get Error: %v", username, dbGetError)
 		log.Debug.Println(dbGetErrorMsg)
-		responses.SendRes(w, responses.UDB_Get_Failure, nil, dbGetErrorMsg)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, dbGetErrorMsg)
 		return
 	}
 	if userExists {

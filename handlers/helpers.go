@@ -77,7 +77,7 @@ func secureGetUser(w http.ResponseWriter, r *http.Request, udb rdb.Database) (bo
 	if getUserErr != nil {
 		// fail state
 		getErrorMsg := fmt.Sprintf("in secureGetUser, could not get from DB for username: %s, error: %v", userInfo.Username, getUserErr)
-		responses.SendRes(w, responses.UDB_Get_Failure, nil, getErrorMsg)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, getErrorMsg)
 		return false, schema.User{}, auth.ValidationPair{}
 	}
 	if !userFound {

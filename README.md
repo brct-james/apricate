@@ -131,12 +131,11 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Helper functions for getting entries from route_vars/mux.Vars(r) so that always returned in correct format (e.g. Title(ToLower), ToUpper, etc.)~~
 - - ~~URI params are case insensitive~~
 - - ~~Usernames are case insensitive, though saved and displayed casefully~~
-- Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)
-- Look through responses and ensure all are using correct response code
-- Look through response codes and ensure all are using correct http response code
-- Update my user auto-creation for Greenitthe with everything in the game for testing
-- Auto created users have name, token saved to ignored yaml file
-- Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)
+- ~~Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)~~
+- ~~Look through responses and ensure all are using correct response code~~
+- ~~Look through response codes and ensure all are using correct http response code~~
+- ~~Update my user auto-creation for Greenitthe with everything in the game for testing~~
+- ~~Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)~~
 - Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
 
 ---

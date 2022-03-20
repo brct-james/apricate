@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
-	"apricate/tokengen"
 
 	"github.com/gorilla/mux"
 )
@@ -85,61 +83,12 @@ func initialize_dictionaries() {
 
 func setup_my_character() {
 	if flush_DBs || regenerate_auth_secret {
-		username := "Greenitthe"
-		// generate token
-		token, genTokenErr := tokengen.GenerateToken(username)
-		if genTokenErr != nil {
-			// fail state
-			log.Important.Printf("in UsernameClaim: Attempted to generate token using username %s but was unsuccessful with error: %v", username, genTokenErr)
-			genErrorMsg := fmt.Sprintf("Username: %v | GenerateTokenErr: %v", username, genTokenErr)
-			panic(genErrorMsg)
-		}
-		// create new user in DB
-		newUser := schema.NewUser(token, username, dbs)
-		newUser.Title = schema.Achievement_Owner
-		newUser.Achievements = []schema.Achievement{schema.Achievement_Owner, schema.Achievement_Contributor, schema.Achievement_Noob}
-		saveUserErr := schema.SaveUserToDB(dbs["users"], newUser)
-		if saveUserErr != nil {
-			// fail state - could not save
-			saveUserErrMsg := fmt.Sprintf("in UsernameClaim | Username: %v | CreateNewUserInDB failed, dbSaveResult: %v", username, saveUserErr)
-			log.Debug.Println(saveUserErrMsg)
-			panic(saveUserErrMsg)
-		}
-		// Write out my token
-		lines, readErr := filemngr.ReadFileToLineSlice("secrets.env")
-		if readErr != nil {
-			// Auth is mission-critical, using Fatal
-			log.Error.Fatalf("Could not read lines from secrets.env. Err: %v", readErr)
-		}
-		secretString :=  "GREENITTHE_TOKEN=" + string(token)
-		// Search existing file for secret identifier
-		found, i := filemngr.KeyInSliceOfLines("GREENITTHE_TOKEN=", lines)
-		if found {
-			// Update existing secret
-			lines [i] = secretString
-		} else {
-			// Create secret in env file since could not find one to update
-			// If empty file then replace 1st line else append to end
-			log.Debug.Printf("Creating new secret in env file. secrets.env[0] == ''? %v", lines[0] == "")
-			if lines[0] == "" {
-				log.Debug.Printf("Blank secrets.env, replacing line 0")
-				lines[0] = secretString
-			} else {
-				log.Debug.Printf("Not blank secrets.env, appending to end")
-				lines = append(lines, secretString)
-			}
-		}
-		
-		// Join and write out
-		writeErr := filemngr.WriteLinesToFile("secrets.env", lines)
-		if writeErr != nil {
-			log.Error.Fatalf("Could not write secrets.net: %v", writeErr)
-		}
-		log.Info.Println("Wrote token for user: Greenitthe to secrets.env")
-		// Created successfully
-		// Track in user metrics
-		metrics.TrackNewUser(username)
-		log.Debug.Printf("Generated token %s and claimed username %s", token, username)
+		schema.PregenerateUser("Greenitthe", dbs)
+		metrics.TrackNewUser("Greenitthe")
+		schema.PregenerateUser("Viridis", dbs)
+		metrics.TrackNewUser("Viridis")
+		schema.PregenerateUser("Green", dbs)
+		metrics.TrackNewUser("Green")
 	}
 	log.Info.Println("Neither flushing DBs, nor regenerating auth secret. Token for user: Greenitthe should already exist in secrets.env. Skipping creation")
 }

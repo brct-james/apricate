@@ -31,7 +31,7 @@ const (
 	DB_Save_Failure ResponseCode = 4
 	Generate_Token_Failure ResponseCode = 5
 	DB_Get_Failure ResponseCode = 6
-	UDB_Get_Failure ResponseCode = 7
+	// UDB_Get_Failure ResponseCode = 7
 	Internal_Server_Error ResponseCode = 8
 	No_Assitant_At_Location ResponseCode = 9
 	Specified_Plant_Not_Found ResponseCode = 10
@@ -78,7 +78,7 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 		HttpResponse: http.StatusNotImplemented,
 	},
 	Generic_Failure: {
-		Message: "[Generic_Failure] Contact developer",
+		Message: "[Generic_Failure] This should usually be a more descriptive error. If you're seeing this, please contact Developer",
 		HttpResponse: http.StatusBadRequest,
 	},
 	Generic_Success: {
@@ -91,7 +91,7 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Username_Validation_Failure: {
 		Message: "[Username_Validation_Failure] Please ensure username conforms to requirements and account does not already exist!",
-		HttpResponse: http.StatusBadRequest,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	DB_Save_Failure: {
 		Message: "[DB_Save_Failure] Failed to save to DB",
@@ -105,10 +105,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 		Message: "[DB_Get_Failure] Could not get requested information from DB",
 		HttpResponse: http.StatusInternalServerError,
 	},
-	UDB_Get_Failure: {
-		Message: "[UDB_Get_Failure] Could not get from user DB",
-		HttpResponse: http.StatusInternalServerError,
-	},
+	// UDB_Get_Failure: {
+	// 	Message: "[UDB_Get_Failure] Could not get from user DB",
+	// 	HttpResponse: http.StatusInternalServerError,
+	// },
 	Internal_Server_Error: {
 		Message: "[Internal_Server_Error] Server encountered an error that is not the user's fault, contact Developer",
 		HttpResponse: http.StatusInternalServerError,
@@ -119,7 +119,7 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Specified_Plant_Not_Found: {
 		Message: "[Specified_Plant_Not_Found] Could not get specified plant from dictionary",
-		HttpResponse: http.StatusNotFound,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	No_AuthPair_Context: {
 		Message: "[No_AuthPair_Context] Failed to get AuthPair context from middleware",
@@ -135,19 +135,19 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Not_Enough_Items_In_Warehouse: {
 		Message: "[Not_Enough_Items_In_Warehouse] The local warehouse does not have enough items for specified action.",
-		HttpResponse: http.StatusNotFound,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	Plot_Already_Planted: {
 		Message: "[Plot_Already_Planted] Harvest or clear plot before attempting to plant it.",
-		HttpResponse: http.StatusForbidden,
+		HttpResponse: http.StatusConflict,
 	},
 	Plot_Too_Small: {
 		Message: "[Plot_Too_Small] Plot too small for specified plant size & quantity. To pass validation, Quantity * SeedSize must be less-than or equal to PlotSize.",
-		HttpResponse: http.StatusBadRequest,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	Item_Is_Not_Seed: {
 		Message: "[Item_Is_Not_Seed] Specified SeedName does not map to known Seed",
-		HttpResponse: http.StatusBadRequest,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	Plot_Already_Empty: {
 		Message: "[Plot_Already_Empty] Plot is already empty, cannot be cleared",
@@ -163,11 +163,11 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Invalid_Plot_Action: {
 		Message: "[Invalid_Plot_Action] Action specified in request body is either missing or fails to validate as either the current growth stage's Action or SkipAction (if applicable)",
-		HttpResponse: http.StatusBadRequest,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	Consumable_Not_In_Options: {
 		Message: "[Consumable_Not_In_Options] The specified consumable does not match a valid option from the current Growth Stage",
-		HttpResponse: http.StatusBadRequest,
+		HttpResponse: http.StatusNotAcceptable,
 	},
 	Missing_Consumable_Selection: {
 		Message: "[Missing_Consumable_Selection] The request body did not include a consumable selection, and specified action was not the SkipAction, consumables not optional",

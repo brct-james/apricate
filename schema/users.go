@@ -4,8 +4,10 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	"apricate/filemngr"
 	"apricate/log"
 	"apricate/rdb"
 	"apricate/tokengen"
@@ -76,6 +78,64 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 		Warehouses: []string{starting_farm_warehouse_id},
 		Assistants: []string{starting_assistant_id},
 	}
+}
+
+func PregenerateUser(username string, dbs map[string]rdb.Database) {
+	// generate token
+	token, genTokenErr := tokengen.GenerateToken(username)
+	if genTokenErr != nil {
+		// fail state
+		log.Important.Printf("in UsernameClaim: Attempted to generate token using username %s but was unsuccessful with error: %v", username, genTokenErr)
+		genErrorMsg := fmt.Sprintf("Username: %v | GenerateTokenErr: %v", username, genTokenErr)
+		panic(genErrorMsg)
+	}
+	// create new user in DB
+	newUser := NewUser(token, username, dbs)
+	newUser.Title = Achievement_Owner
+	newUser.Achievements = []Achievement{Achievement_Owner, Achievement_Contributor, Achievement_Noob}
+	saveUserErr := SaveUserToDB(dbs["users"], newUser)
+	if saveUserErr != nil {
+		// fail state - could not save
+		saveUserErrMsg := fmt.Sprintf("in UsernameClaim | Username: %v | CreateNewUserInDB failed, dbSaveResult: %v", username, saveUserErr)
+		log.Debug.Println(saveUserErrMsg)
+		panic(saveUserErrMsg)
+	}
+	// Write out my token
+	lines, readErr := filemngr.ReadFileToLineSlice("secrets.env")
+	if readErr != nil {
+		// Auth is mission-critical, using Fatal
+		log.Error.Fatalf("Could not read lines from secrets.env. Err: %v", readErr)
+	}
+	secretIdentifier := strings.ToUpper(username) + "_TOKEN="
+	secretString :=  secretIdentifier + string(token)
+	// Search existing file for secret identifier
+	found, i := filemngr.KeyInSliceOfLines(secretIdentifier, lines)
+	if found {
+		// Update existing secret
+		lines [i] = secretString
+	} else {
+		// Create secret in env file since could not find one to update
+		// If empty file then replace 1st line else append to end
+		log.Debug.Printf("Creating new secret in env file. secrets.env[0] == ''? %v", lines[0] == "")
+		if lines[0] == "" {
+			log.Debug.Printf("Blank secrets.env, replacing line 0")
+			lines[0] = secretString
+		} else {
+			log.Debug.Printf("Not blank secrets.env, appending to end")
+			lines = append(lines, secretString)
+		}
+	}
+	
+	// Join and write out
+	writeErr := filemngr.WriteLinesToFile("secrets.env", lines)
+	if writeErr != nil {
+		log.Error.Fatalf("Could not write secrets.env: %v", writeErr)
+	}
+	log.Info.Printf("Wrote token for user: %s to secrets.env", username)
+	// Created successfully
+	// Track in user metrics
+	// metrics.TrackNewUser(username) // CANT IN SCHEMA MOD CAUSE IMPORT CYCLE
+	log.Debug.Printf("Generated token %s and claimed username %s", token, username)
 }
 
 // Check DB for existing user with given token and return bool for if exists, and error if error encountered

@@ -28,7 +28,7 @@ func (h *AccountInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	getUserJsonString, getUserJsonStringErr := responses.JSON(userData)
 	if getUserJsonStringErr != nil {
-		log.Error.Printf("Error in AccountInfo, could not format thisUser as JSON. userData: %v, error: %v", userData, getUserJsonStringErr)
+		log.Important.Printf("in AccountInfo, could not format thisUser as JSON. userData: %v, error: %v", userData, getUserJsonStringErr)
 		responses.SendRes(w, responses.JSON_Marshal_Error, userData, getUserJsonStringErr.Error())
 		return
 	}
@@ -78,7 +78,7 @@ func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	adb := (*h.Dbs)["assistants"]
 	assistant, foundAssistant, assistantsErr := schema.GetAssistantFromDB(uuid, adb)
 	if assistantsErr != nil || !foundAssistant {
-		log.Error.Printf("Error in AssistantInfo, could not get assistant from DB. foundAssistant: %v, error: %v", foundAssistant, assistantsErr)
+		log.Debug.Printf("in AssistantInfo, could not get assistant from DB. foundAssistant: %v, error: %v", foundAssistant, assistantsErr)
 		responses.SendRes(w, responses.DB_Get_Failure, assistant, assistantsErr.Error())
 		return
 	}
