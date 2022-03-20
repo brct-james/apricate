@@ -179,6 +179,8 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/nearby-locations", &handlers.NearbyLocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations", &handlers.LocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
+	secure.Handle("/markets", &handlers.MarketsInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
+	secure.Handle("/markets/{symbol}", &handlers.MarketInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")

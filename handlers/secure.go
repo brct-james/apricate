@@ -258,6 +258,87 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End LocationInfo --"))
 }
 
+// Handler function for the secure route: /api/my/markets
+// Returns a list of markets 
+type MarketsInfo struct {
+	Dbs *map[string]rdb.Database
+	MainDictionary *schema.MainDictionary
+}
+func (h *MarketsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- MarketsInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get assistant markets to determine fog of war
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in MarketsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	// use myLocs as a set to get all unique markets visible in fow
+	myLocs := make(map[string]bool)
+	for _, assistant := range assistants {
+		myLocs[assistant.LocationSymbol] = true
+	}
+	// finally get all markets in each region
+	resMarkets := make([]schema.Market, 0)
+	for market := range myLocs {
+		resMarkets = append(resMarkets, h.MainDictionary.Markets[market])
+	}
+	responses.SendRes(w, responses.Generic_Success, resMarkets, "")
+	log.Debug.Println(log.Cyan("-- End MarketsInfo --"))
+}
+
+// Handler function for the secure route: /api/my/markets
+// Returns a list of markets 
+type MarketInfo struct {
+	Dbs *map[string]rdb.Database
+	MainDictionary *schema.MainDictionary
+}
+func (h *MarketInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- MarketInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get assistant markets to determine fog of war
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in MarketInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	// use myLocs as a set to get all unique markets visible in fow
+	myLocs := make(map[string]bool)
+	for _, assistant := range assistants {
+		myLocs[assistant.LocationSymbol] = true
+	}
+	// Get symbol from route
+	symbol := GetVarEntries(r, "symbol", UUID)
+	// finally get specified market if available
+	var resMarket schema.Market
+	found := false
+	for market := range myLocs {
+		if strings.ToUpper(market) == symbol {
+			resMarket = h.MainDictionary.Markets[market]
+			found = true
+		}
+	}
+	if !found {
+		log.Debug.Printf("Not found %s in markets %v", symbol, myLocs)
+		responses.SendRes(w, responses.No_Assitant_At_Location, nil, "")
+		return
+	}
+	responses.SendRes(w, responses.Generic_Success, resMarket, "")
+	log.Debug.Println(log.Cyan("-- End MarketInfo --"))
+}
+
 // Handler function for the secure route: /api/my/farms
 type FarmsInfo struct {
 	Dbs *map[string]rdb.Database

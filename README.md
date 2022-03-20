@@ -133,6 +133,7 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Update my user auto-creation for Greenitthe with everything in the game for testing~~
 - ~~Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)~~
 - Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
+- - ~~`GET` endpoints~~
 - - multiply good base value by the integer value of the Size to get total value
 - - metric tracking number of each item bought and sold
 
@@ -170,7 +171,7 @@ Versioning Convention: `major.minor.hotfix`
 - Market uses 4 types of market order, simulates dynamic NPC supply/demand/pricing that evolves over time and based on all player investment in market
 - Markets initial state defined in YAML
 - At least 10 different plants excluding Wild Seeds, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
-- Wild Seeds implemented
+- Atomize functions, write tests
 
 ---
 
@@ -195,6 +196,7 @@ Versioning Convention: `major.minor.hotfix`
 - Respond to feedback from v0.9 alpha
 - Meta account and progression, leaderboards, full documentation, separate dev partition that won't affect live
 - Live server that is persistent, only wiped on update day. Updates are pushed every (other?) week when available
+- Wild Seeds implemented?
 
 ---
 
