@@ -5,5 +5,6 @@ type MainDictionary struct {
 	Goods map[string]interface{} `yaml:"Goods" json:"goods" binding:"required"`
 	Seeds map[string]string`yaml:"Seeds" json:"seeds" binding:"required"`
 	Produce map[string]string `yaml:"Produce" json:"produce" binding:"required"`
-	Plants map[string]PlantDefinition`yaml:"Plants" json:"plants" binding:"required"`
+	Plants map[string]PlantDefinition `yaml:"Plants" json:"plants" binding:"required"`
+	Markets map[string]Market `yaml:"Markets" json:"markets" binding:"required"`
 }

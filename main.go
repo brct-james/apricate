@@ -79,6 +79,12 @@ func initialize_dictionaries() {
 	main_dictionary.Goods = schema.GoodListGenerator("./yaml/items/goods.yaml")
 	log.Debug.Println(responses.JSON(main_dictionary.Goods))
 	log.Info.Printf("Loaded goods list")
+
+	// Load Markets from YAML
+	log.Debug.Println("Loading Markets list")
+	main_dictionary.Markets = schema.Markets_load("./yaml/world/markets.yaml")
+	log.Debug.Println(responses.JSON(main_dictionary.Markets))
+	log.Info.Printf("Loaded Markets list")
 }
 
 func setup_my_character() {

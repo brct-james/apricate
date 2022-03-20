@@ -1,0 +1,15 @@
+---
+TS-PR-HF:
+  Name: Homestead Farm Outlet
+  Location: TS-PR-HF
+  Imports:
+    Produce:
+      Cabbage: 1
+      Shelvis Fig: 1
+    Seeds:
+      Cabbage Seeds: 1
+    Goods:
+      Fertilizer: 1
+  Exports: 
+    Water: 1
+    Enchanted Water: 10
