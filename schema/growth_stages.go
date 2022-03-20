@@ -36,8 +36,8 @@ type GrowthHarvest struct { // If there's room in warehouse, harvest sets Harves
 // enum for growthaction types
 type GrowthAction uint8
 const (
-	GA_Wait GrowthAction = 0 // Special: Skips optional actions
-	GA_Clear GrowthAction = 1 // Special: Clears plot, destroying plants in-progress
+	GA_Skip GrowthAction = 0 // Special: Skips optional actions
+	GA_Wait GrowthAction = 1 // None
 	GA_Water GrowthAction = 2 // Water Wand
 	GA_Trim GrowthAction = 3 // Shears
 	GA_Dig GrowthAction = 4 // Spade
@@ -68,8 +68,8 @@ var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
 // }
 
 var growthActionsToString = map[GrowthAction]string {
+	GA_Skip: "Skip",
 	GA_Wait: "Wait",
-	GA_Clear: "Clear",
 	GA_Water: "Water",
 	GA_Trim: "Trim",
 	GA_Dig: "Dig",
@@ -82,8 +82,8 @@ var growthActionsToString = map[GrowthAction]string {
 }
 
 var growthActionsToID = map[string]GrowthAction {
+	"Skip": GA_Skip,
 	"Wait": GA_Wait,
-	"Clear": GA_Clear,
 	"Water": GA_Water,
 	"Trim": GA_Trim,
 	"Dig": GA_Dig,

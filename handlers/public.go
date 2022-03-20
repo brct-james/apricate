@@ -172,7 +172,7 @@ func (h *UsernameClaim) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// create new user in DB
-	newUser := schema.NewUser(token, username, *h.Dbs)
+	newUser := schema.NewUser(token, username, *h.Dbs, false)
 	saveUserErr := schema.SaveUserToDB(udb, newUser)
 	if saveUserErr != nil {
 		// fail state - could not save

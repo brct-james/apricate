@@ -137,6 +137,7 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Update my user auto-creation for Greenitthe with everything in the game for testing~~
 - ~~Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)~~
 - Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
+- - multiply good base value by the integer value of the Size to get total value
 
 ---
 

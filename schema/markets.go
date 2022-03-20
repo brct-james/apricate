@@ -23,6 +23,7 @@ type MarketIOField struct {
 	Produce map[string]uint64 `yaml:"Produce" json:"produce,omitempty"`
 	Seeds map[string]uint64 `yaml:"Seeds" json:"seeds,omitempty"`
 	Goods map[string]uint64 `yaml:"Goods" json:"goods,omitempty"`
+	Tools map[ToolTypes]uint64 `yaml:"Tools" json:"tools,omitempty"`
 }
 
 // Load market struct by unmarhsalling given yaml file
@@ -34,26 +35,5 @@ func Markets_load(path_to_markets_yaml string) map[string]Market {
 		log.Error.Fatalln(err)
 	}
 	
-	log.Debug.Printf("Range Markets")
-	for marketIdx, market := range markets {
-		log.Debug.Printf("%s", market.Name)
-		produceList := make(map[string]uint64, 0)
-		for produceName, basePrice := range market.Imports.Produce {
-			log.Debug.Printf("%s", produceName)
-			for i := uint64(1); i <= 64; i*=2 {
-				produceList[produceName + "|" + Size(i).String()] = basePrice * i
-			}
-		}
-		market.Imports.Produce = produceList
-		produceList = make(map[string]uint64, 0)
-		for produceName, basePrice := range market.Exports.Produce {
-			log.Debug.Printf("%s", produceName)
-			for i := uint64(1); i <= 64; i*=2 {
-				produceList[produceName + "|" + Size(i).String()] = basePrice * i
-			}
-		}
-		market.Exports.Produce = produceList
-		markets[marketIdx] = market
-	}
 	return markets
 }

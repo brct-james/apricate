@@ -23,6 +23,55 @@ Spectral Grass:
         Goods:
           Spectral Fiber: 1.0
         FinalHarvest: true
+Spinosus Vas:
+  Name: Spinosus Vas
+  Description: The Spinosus Vas is a bulbous plant with sharp spikes protruding at all angles. It is able to draw water from the air itself, allowing it to accumulate large amounts of water in its body even in arid climates
+  GrowthStages:
+    -
+      Name: Seed
+      Description: The Spinosus Vas requires a bit of water to kickstart the growth process
+      Action: Water
+      Consumables:
+        -
+          Name: Water
+          Quantity: 5
+        -
+          Name: Enchanted Water
+          Quantity: 5
+          AddedYield: 0.25
+      GrowthTime: 30
+    -
+      Name: Young Plant - Shade
+      Description: The Spinosus Vas may be shaded while it grows to improve yield
+      Action: Shade
+      Optional: True
+      ActionToSkip: Skip
+      AddedYield: 1.0
+      GrowthTime: 45
+    -
+      Name: Young Plant - Weed
+      Description: The Spinosus Vas may be weeded to improve yield
+      Action: Weed
+      Optional: True
+      ActionToSkip: Skip
+      AddedYield: 0.25
+      GrowthTime: 15
+    -
+      Name: Young Plant - Grow
+      Description: The Spinosus Vas takes a while to grow and absorb water
+      Action: Wait
+      GrowthTime: 30
+    -
+      Name: Adult Plant
+      Description: Spectral Grass must be harvested as an adult, though rarely provides seeds
+      Action: Dig
+      Harvestable:
+        Seeds:
+          Spinosus Vas: 0.01
+        Goods:
+          Water: 20.0
+          Enchanted Water: 0.1
+        FinalHarvest: true
 Cabbage:
   Name: Cabbage
   Description: The Cabbage is a mundane plant that grows above ground. It is relatively fast growing and easy to care for, not requiring any additional watering in most climates
@@ -32,7 +81,7 @@ Cabbage:
       Description: You may fertilize cabbage as a seed to increase yields. Any fertilizer will do, cabbage doesn't respond to higher quality fertilizers
       Action: Fertilize
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       Consumables:
         - 
           Name: Fertilizer
@@ -141,7 +190,7 @@ Shelvis Fig:
       Description: Shelvis Figs may be trimmed before harvest to increase yield
       Action: Trim
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       AddedYield: 0.5
       GrowthTime: 240
     -
@@ -197,7 +246,7 @@ Potato:
       Description: Potatoes may be fertilized to increase yield
       Action: Fertilize
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       Consumables:
         - 
           Name: Fertilizer
@@ -221,7 +270,7 @@ Potato:
       Description: Potatoes may be hilled to increase yield
       Action: Hill
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       AddedYield: 1.0
       GrowthTime: 60
     -
@@ -266,7 +315,7 @@ Gulb:
       Description: Gulb seedlings may be fertilized for additional yield
       Action: Fertilize
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       Consumables:
         - 
           Name: Fertilizer
@@ -290,7 +339,7 @@ Gulb:
       Description: Gulb plants may be hilled for additional yield
       Action: Hill
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       AddedYield: 1.0
       GrowthTime: 600
     -
@@ -303,7 +352,7 @@ Gulb:
       Description: Gulb plants may be harvested early as adults or fertilized again for additional yield
       Action: Dig
       Optional: True
-      ActionToSkip: Wait
+      ActionToSkip: Skip
       Harvestable:
         Goods: 
           Gulb Nut: 0.75
@@ -380,7 +429,7 @@ Gulb:
 #       Description: Wild Flora plants may be hilled for additional yield
 #       Action: Hill
 #       Optional: True
-#       ActionToSkip: Wait
+#       ActionToSkip: Skip
 #       AddedYield: 1.0
 #       GrowthTime: 1800
 #     -
@@ -393,7 +442,7 @@ Gulb:
 #       Description: Wild Flora plants may be harvested as adults or fertilized again for additional yield
 #       Action: Dig
 #       Optional: True
-#       ActionToSkip: Wait
+#       ActionToSkip: Skip
 #       Harvestable:
 #         Produce: 
 #           Wild Flora: 1.0
@@ -423,7 +472,7 @@ Gulb:
 #       Description: Mature Wild Flora plants may be harvested or instead trimmed for additional yield
 #       Action: Dig
 #       Optional: True
-#       ActionToSkip: Wait
+#       ActionToSkip: Skip
 #       Harvestable:
 #         Produce: 
 #           Wild Flora: 1.0

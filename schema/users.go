@@ -33,7 +33,7 @@ type PublicInfo struct {
 	Achievements []Achievement `json:"achievements" binding:"required"`
 }
 
-func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
+func NewUser(token string, username string, dbs map[string]rdb.Database, devUser bool) *User {
 	// starting location
 	startLocation := "TS-PR-HF"
 	// generate starting assistant
@@ -46,13 +46,21 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 	contract := NewContract(username, 0, startLocation, ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
 	SaveContractToDB(dbs["contracts"], contract)
 	// generate starting warehouse
-	warehouse := NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Spade: 1, Tool_Shears: 1, Tool_Sickle: 1, Tool_Hoe: 1, Tool_SproutingPot: 1, Tool_Pitchfork: 1, Tool_WaterWand: 1, Tool_Rake: 1}, map[string]Produce{"Potato|Miniature": *NewProduce("Potato", Miniature, uint64(10))}, map[string]uint64{"Cabbage Seeds":10,"Shelvis Fig Seeds":10,"Potato Chunk":10,"Spectral Grass Seeds": 16,"Gulb Bulb": 4}, map[string]uint64{"Fertilizer":100, "Water": 100, "Enchanted Water": 100})
+	var warehouse *Warehouse
+	if devUser {
+		warehouse = NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Spade: 1, Tool_Hoe: 1, Tool_Rake: 1, Tool_Pitchfork: 1, Tool_Shears: 1, Tool_WaterWand: 1, Tool_Knife: 1, Tool_PestleAndMortar: 1, Tool_DryingRack: 1, Tool_SproutingPot: 1, Tool_ShadeScroll: 1, Tool_Sickle: 1}, map[string]Produce{"Potato|Miniature": *NewProduce("Potato", Miniature, uint64(1000))}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
+	} else {
+		warehouse = NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Shears: 1, Tool_Sickle: 1}, map[string]Produce{}, map[string]uint64{"Cabbage Seeds":10,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{"Water": 10})
+	}
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
 	var starting_farm_id string = farm.UUID
 	var starting_farm_warehouse_id string = warehouse.UUID
 	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
+
+	starting_currencies := map[string]uint64{"Coins": 100}
+	starting_favor := map[string]int8{"Reldor": 50}
 
 	plotIds := make([]string, 0)
 	for _, plot := range farm.Plots {
@@ -65,8 +73,8 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 			Username: username,
 			Title: Achievement_Noob,
 			Ledger: Ledger{
-				Currencies: make(map[string]uint64),
-				Favor: make(map[string]int8),
+				Currencies: starting_currencies,
+				Favor: starting_favor,
 				Escrow: make(map[string]uint64),
 			},
 			Achievements: []Achievement{Achievement_Noob},
@@ -90,7 +98,7 @@ func PregenerateUser(username string, dbs map[string]rdb.Database) {
 		panic(genErrorMsg)
 	}
 	// create new user in DB
-	newUser := NewUser(token, username, dbs)
+	newUser := NewUser(token, username, dbs, true)
 	newUser.Title = Achievement_Owner
 	newUser.Achievements = []Achievement{Achievement_Owner, Achievement_Contributor, Achievement_Noob}
 	saveUserErr := SaveUserToDB(dbs["users"], newUser)

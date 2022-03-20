@@ -5,11 +5,40 @@ TS-PR-HF:
   Imports:
     Produce:
       Cabbage: 1
-      Shelvis Fig: 1
+      Shelvis Fig: 10
+      Potato: 1
     Seeds:
-      Cabbage Seeds: 1
+      Cabbage Seeds: 2
+      Potato Chunk: 1
+      Shelvis Fig Seeds: 50
+      Spectral Grass Seeds: 1
+      Gulb Bulb: 25
+      Spinosus Vas Seeds: 2
     Goods:
-      Fertilizer: 1
-  Exports: 
-    Water: 1
-    Enchanted Water: 10
+      Water: 1
+      Enchanted Water: 5
+      Spectral Fiber: 3
+      Gulb Nut: 4
+  Exports:
+    Seeds:
+      Cabbage Seeds: 4
+      Potato Chunk: 2
+      Shelvis Fig Seeds: 100
+      Spectral Grass Seeds: 2
+      Gulb Bulb: 50
+      Spinosus Vas Seeds: 5
+    Goods:
+      Water: 2
+      Enchanted Water: 10
+      Fertilizer: 5
+      Enchanted Fertilizer: 10
+      Dragon Fertilizer: 15
+      Enchanted Dragon Fertilizer: 20
+    Tools:
+      Spade: 100
+      Hoe: 250
+      Rake: 150
+      Pitchfork: 500
+      Water Wand: 250
+      Sprouting Pot: 1000
+      Scroll of Hyperspecific Cloud Cover: 250
