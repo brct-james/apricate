@@ -67,9 +67,9 @@ Spinosus Vas:
       Action: Dig
       Harvestable:
         Seeds:
-          Spinosus Vas: 0.01
+          Spinosus Vas Seeds: 0.01
         Goods:
-          Water: 20.0
+          Water: 10.0
           Enchanted Water: 0.1
         FinalHarvest: true
 Cabbage:

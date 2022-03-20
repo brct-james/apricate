@@ -18,10 +18,6 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 
 ### Endpoints
 
-Note: Spaces may be replaced with underscores in URI parameters (or not), and params should always be case insensitive. Usernames are displayed with the user-given capitalization but the server ignores case when parsing, so `GrEEn` is not a valid username if `Green` is taken, and you get the user `Green` when requesting `GrEEn`
-Note Note: The keys of request bodies are case and space sensitive
-Note Note Note: When in doubt just use the same space delimiter and case as the game itself
-
 **Public Routes**
 <!-- - `GET: /api/v0/leaderboards` list all available leaderboards and their descriptions
 - `GET: /api/v0/leaderboards/{board}` get the specified leaderboard rankings -->
@@ -138,6 +134,7 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)~~
 - Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
 - - multiply good base value by the integer value of the Size to get total value
+- - metric tracking number of each item bought and sold
 
 ---
 

@@ -40,7 +40,7 @@ func GetVarEntries(r *http.Request, varName string, format StringFormat) string 
 	case AllCaps:
 		entry = strings.ToUpper(entry)
 	case UUID:
-		entry = strings.ToUpper(entry)
+		// none
 	case SpacedName:
 		entry = strings.Title(strings.ToLower(strings.Replace(entry, "_", " ", -1)))
 	default:
