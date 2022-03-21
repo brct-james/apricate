@@ -1,4 +1,4 @@
-description: 'All user info, public or private'
+description: 'User information, public and private'
 type: object
 x-examples:
   example-1:
