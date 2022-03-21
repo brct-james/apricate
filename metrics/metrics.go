@@ -46,7 +46,7 @@ func TrackNewUser(username string) {
 	TrackUserCall(username)
 }
 
-// // Active Users
+// Active Users
 var ActivityThresholdInMinutes int = 60
 var TrackingActiveUsers = schema.ActiveUsersMetric {
 	Metric: schema.Metric{Name:"Active Users", Description:fmt.Sprintf("List of every user who is considered active: have registered as a new user or hit a secure endpoint in the last %d minutes.", ActivityThresholdInMinutes)},
@@ -72,6 +72,38 @@ func TrackUserCall(username string) {
 	}
 	// Existing user
 	TrackingActiveUsers.UserActivity[userIndex].LastCallTimestamp = time.Now().Unix()
+}
+
+// Global Market Buy/Sell
+var TrackingMarket = schema.GlobalMarketBuySellMetric {
+	Metric: schema.Metric{Name:"Global Market Buy/Sell", Description:"List of all items that have been bought or sold, and how many times each has been bought and sold."},
+	MarketData: make(map[string]schema.GMBSMarketData),
+}
+func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {
+	existingData, edOK := TrackingMarket.MarketData[itemName]
+	if !edOK {
+		// New Data
+		if isBuy {
+			TrackingMarket.MarketData[itemName] = schema.GMBSMarketData{
+				Bought: quantity,
+				Sold: 0,
+			}
+		} else {
+			TrackingMarket.MarketData[itemName] = schema.GMBSMarketData{
+				Bought: 0,
+				Sold: quantity,
+			}
+		}
+	} else {
+		// Existing Data
+		if isBuy {
+			existingData.Bought += quantity
+			TrackingMarket.MarketData[itemName] = existingData
+		} else {
+			existingData.Sold += quantity
+			TrackingMarket.MarketData[itemName] = existingData
+		}
+	}
 }
 
 // // Users by Achievement

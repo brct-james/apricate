@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"apricate/log"
+	"apricate/metrics"
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
@@ -293,8 +294,8 @@ func (h *MarketsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End MarketsInfo --"))
 }
 
-// Handler function for the secure route: /api/my/markets
-// Returns a list of markets 
+// Handler function for the secure route: /api/my/markets/{symbol}
+// Returns a markets 
 type MarketInfo struct {
 	Dbs *map[string]rdb.Database
 	MainDictionary *schema.MainDictionary
@@ -976,4 +977,200 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responses.SendRes(w, responses.Generic_Success, response, "")
 	
 	log.Debug.Println(log.Cyan("-- End InteractPlot --"))
+}
+
+// Handler function for the secure route: /api/my/markets/{symbol}/order
+// Returns a list of markets 
+type MarketOrder struct {
+	Dbs *map[string]rdb.Database
+	MainDictionary *schema.MainDictionary
+}
+func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- MarketOrder --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// Get assistant markets to determine fog of war
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in MarketOrder, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	// use myLocs as a set to get all unique markets visible in fow
+	myLocs := make(map[string]bool)
+	for _, assistant := range assistants {
+		myLocs[assistant.LocationSymbol] = true
+	}
+	// Get symbol from route
+	symbol := GetVarEntries(r, "symbol", UUID)
+	// finally get specified market if available
+	var resMarket schema.Market
+	found := false
+	for market := range myLocs {
+		if strings.ToUpper(market) == symbol {
+			resMarket = h.MainDictionary.Markets[market]
+			found = true
+		}
+	}
+	if !found {
+		log.Debug.Printf("Not found %s in markets %v", symbol, myLocs)
+		responses.SendRes(w, responses.No_Assitant_At_Location, nil, "")
+		return
+	}
+
+	// NOW handle setting up the order and executing it if type is MARKET order
+	// unmarshall request order to get action and consumables if applicable
+	var order schema.MarketOrder
+	decoder := json.NewDecoder(r.Body)
+	if decodeErr := decoder.Decode(&order); decodeErr != nil {
+		// Fail case, could not decode
+		errmsg := fmt.Sprintf("Decode Error in MarketOrder: %v", decodeErr)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+		return
+	}
+
+	// Get warehouse
+	wdb := (*h.Dbs)["warehouses"]
+	warehouseLocationSymbol := userData.Username + "|Warehouse-" + symbol
+	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+	if warehousesErr != nil || !foundWarehouse {
+		errmsg := fmt.Sprintf("Error in MarketOrder, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		log.Error.Printf(errmsg)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+		return
+	}
+
+	// Validate order parameters
+	if order.Quantity <= 0 {
+		// fail, quantity too low
+		errmsg := fmt.Sprintf("in MarketOrder, invalid order quantity, must be > 0, got %d.", order.Quantity)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	// Find order item in specified market imports/exports
+	var ioField schema.MarketIOField
+	if order.TXType == schema.BUY {
+		ioField = resMarket.Exports
+	} else {
+		ioField = resMarket.Imports
+	}
+	var itemDict map[string]uint64
+	var warehouseDict map[string]uint64
+	var itemName string
+	var sizeMod uint64
+	switch order.ItemType {
+	case schema.GOOD:
+		itemDict = ioField.Goods
+		warehouseDict = warehouse.Goods
+		itemName = order.ItemName
+		sizeMod = 1
+	case schema.SEED:
+		itemDict = ioField.Seeds
+		warehouseDict = warehouse.Seeds
+		itemName = order.ItemName
+		sizeMod = 1
+	case schema.TOOL:
+		itemDict = ioField.Tools
+		warehouseDict = warehouse.Tools
+		itemName = order.ItemName
+		sizeMod = 1
+	case schema.PRODUCE:
+		itemDict = ioField.Produce
+		warehouseDict = warehouse.GetSimpleProduceDict()
+		splitSlice := strings.Split(order.ItemName, "|")
+		itemName = splitSlice[0]
+		sizeMod = uint64(schema.SizeToID[splitSlice[1]])
+	}
+
+	// get market value
+	marketValue, mvOk := itemDict[itemName]
+	if !mvOk {
+		// fail, item not in specified market list
+		errmsg := "in MarketOrder, order.ItemName not in itemDict, ensure correct ItemType specified and item is available for trade in specified market for given transaction type"
+		log.Debug.Printf("%s, %s: %v", errmsg, itemName, itemDict)
+		responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
+		return
+	}
+
+	// execute buy or sell is have enough in warehouse/ledger
+	coins := userData.Ledger.Currencies["Coins"]
+	if order.TXType == schema.BUY {
+		orderCost := order.Quantity * marketValue * sizeMod
+		// Validate currency in ledger in sufficient quantity
+		if orderCost > coins {
+			// fail, not enough currency for specified item and quantity
+			errmsg := fmt.Sprintf("in MarketOrder, order cost %d > coins: %d", orderCost, coins)
+			log.Debug.Printf(errmsg)
+			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
+			return
+		}
+		// Execute buy
+		coins -= orderCost
+		warehouseDict[order.ItemName] += order.Quantity
+		metrics.TrackMarketBuySell(order.ItemName, true, order.Quantity)
+	} else {
+		orderProfit := order.Quantity * marketValue * sizeMod
+		// Validate in warehouse in sufficient quantity
+		warehouseQuantity, wqOk := warehouseDict[order.ItemName]
+		if !wqOk {
+			// fail, item not in location's warehouse
+			errmsg := "in MarketOrder, specified item not found in local warehouse, ensure order.ItemType is specified correctly"
+			log.Debug.Printf("%s, %s: %v", errmsg, order.ItemName, warehouseDict)
+			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
+			return
+		}
+		if warehouseQuantity < order.Quantity {
+			// fail, not enough in location's warehouse
+			errmsg := fmt.Sprintf("in MarketOrder, order specifies greater quantity %d than available in local warehouse %d.", order.Quantity, warehouseQuantity)
+			log.Debug.Printf(errmsg)
+			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
+			return
+		}
+		// Execute sell
+		coins += orderProfit
+		warehouseDict[order.ItemName] -= order.Quantity
+		// Handle deleting if necessary
+		if warehouseDict[order.ItemName] <= 0 {
+			delete(warehouseDict, order.ItemName)
+		}
+		metrics.TrackMarketBuySell(order.ItemName, false, order.Quantity)
+	}
+	
+	// Apply results to original objects
+	switch order.ItemType {
+	case schema.GOOD:
+		warehouse.Goods = warehouseDict
+	case schema.SEED:
+		warehouse.Goods = warehouseDict
+	case schema.TOOL:
+		warehouse.Goods = warehouseDict
+	case schema.PRODUCE:
+		warehouse.SetSimpleProduceDict(warehouseDict)
+	}
+	userData.Ledger.Currencies["Coins"] = coins
+
+	// Save warehouse
+	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+	if saveWarehouseErr != nil {
+		log.Error.Printf("Error in MarketOrder, could not save warehouse. error: %v", saveWarehouseErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+		return
+	}
+
+	// Save user
+	saveUserErr := schema.SaveUserToDB((*h.Dbs)["users"], &userData)
+	if saveUserErr != nil {
+		log.Error.Printf("Error in MarketOrder, could not save user. error: %v", saveUserErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
+		return
+	}
+
+	responses.SendRes(w, responses.Generic_Success, map[string]interface{}{"warehouse": warehouse, "ledger": userData.Ledger}, "")
+	log.Debug.Println(log.Cyan("-- End MarketOrder --"))
 }

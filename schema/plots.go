@@ -90,7 +90,7 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 }
 
 // returns ResponseCode, AddedYield, ConsumableQuantityUsed, GrowthHarvest, Cooldown/GrowthTime
-func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[ToolTypes]uint8) (responses.ResponseCode, float64, uint64, *GrowthHarvest, int64) {
+func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[string]uint64) (responses.ResponseCode, float64, uint64, *GrowthHarvest, int64) {
 	consumableName := strings.Title(strings.ToLower(pib.Consumable))
 	pib.Action = strings.Title(strings.ToLower(pib.Action))
 	log.Debug.Println(pib.Action)
@@ -102,7 +102,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 	}
 	// if has and is skip action
 	if growthStage.ActionToSkip != nil && pib.Action == (*growthStage.ActionToSkip).String() {
-		if _, countOk := tools[growthStage.ActionToSkip.ToolType()]; countOk {
+		if _, countOk := tools[growthStage.ActionToSkip.String()]; countOk {
 			// Success, have correct tool
 			return responses.Generic_Success, 0, 0, nil, 0
 		}
@@ -111,7 +111,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 	}
 	// if action action
 	if pib.Action == (*growthStage.Action).String() {
-		if _, countOk := tools[growthStage.Action.ToolType()]; !countOk {
+		if _, countOk := tools[growthStage.Action.String()]; !countOk {
 			// Failure, don't have correct tool
 			return responses.Tool_Not_Found, 0, 0, nil, 0
 		}

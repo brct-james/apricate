@@ -3,6 +3,8 @@ TS-PR-HF:
   Name: Homestead Farm Outlet
   Location: TS-PR-HF
   Imports:
+    Tools:
+      Spade: 1
     Produce:
       Cabbage: 1
       Shelvis Fig: 10
@@ -20,6 +22,8 @@ TS-PR-HF:
       Spectral Fiber: 3
       Gulb Nut: 4
   Exports:
+    Produce:
+      Potato: 2
     Seeds:
       Cabbage Seeds: 4
       Potato Chunk: 2

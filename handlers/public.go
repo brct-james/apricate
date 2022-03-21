@@ -245,3 +245,11 @@ func (h *PlantStageOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Debug.Println(log.Cyan("-- End PlantStageOverview --"))
 }
+
+// Handler function for the route: /api/metrics
+func MetricsOverview(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- MetricsOverview --"))
+	res := map[string]interface{}{"Global Market Buy/Sell": metrics.TrackingMarket}
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End MetricsOverview --"))
+}

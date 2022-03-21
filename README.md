@@ -27,6 +27,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
 - `GET: /api/plants` returns the data on every plant in the game
 - `GET: /api/plants/{plantName}` returns the data on the specified plant
+- `GET: /api/metrics` returns map of metrics, including global market buy/sell
 
 **Secure Routes**
 - `GET: /api/my/account` returns the private user data (includes token)
@@ -59,6 +60,19 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 {
     "action": "Water",
     "consumable": "Enchanted Water"
+}
+```
+- `GET: /api/my/markets` returns a list of the markets the player can see
+- `GET: /api/my/markets/{symbol}` returns the market specified by `symbol`
+- `PATCH: /api/my/markets/{symbol}/order` returns the user ledger and local warehouse data if successful in placing the market order specified by the request body
+- - **Request Body** Expects `order_type` (`MARKET` only available currently, filled instantly at current market price), `transaction_type` from [`BUY`, `SELL`], `item_type` from [`PRODUCE`, `GOODS`, `SEEDS`, `TOOLS`], `item_name` of desired transactable item from local market listing (for `PRODUCE` include the `Size` in the name after a pipe e.g. `Potato|Miniature`), and `quantity` of good to be transacted. Example:
+```json
+{
+    "order_type": "MARKET",
+    "transaction_type": "SELL",
+    "item_type": "PRODUCE",
+    "item_name": "Potato|Tiny",
+    "quantity": 1000
 }
 ```
 
@@ -132,16 +146,19 @@ Versioning Convention: `major.minor.hotfix`
 - ~~Look through response codes and ensure all are using correct http response code~~
 - ~~Update my user auto-creation for Greenitthe with everything in the game for testing~~
 - ~~Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)~~
-- Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)
+- ~~Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)~~
 - - ~~`GET` endpoints~~
-- - multiply good base value by the integer value of the Size to get total value
-- - metric tracking number of each item bought and sold
+- - ~~multiply good base value by the integer value of the Size to get total value~~
+- - ~~metric tracking number of each item bought and sold~~
+- - ~~Troubleshoot/test buy/sell, figure out produce specifics, maybe remove "Location" from market order request as that should be obvious from the `/my/markets/TS-PR-HF/order` endpoint~~
+- Update `my/.../{selector}` endpoints to not need the Username or type (e.g. Warehouse- or Assistant-) parts in selector (just `/my/markets/TS-PR-HF` for example)
+- ~~Get for items bought and sold metric~~
 
 ---
 
 ### Planned: **[v0.5]** First Public Alpha
 
-- Update starting user template with appropriate tools, seeds, goods, produce
+- Update starting user template with appropriate tools, seeds, goods, produce, currencies
 - Update documentation
 - Deploy alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
 

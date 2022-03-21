@@ -38,7 +38,7 @@ var sizeToString = map[Size]string {
 	Titanic: "Titanic",
 }
 
-var sizeToID = map[string]Size {
+var SizeToID = map[string]Size {
 	"Miniature": Miniature,
 	"Tiny": Tiny,
 	"Small": Small,
@@ -67,7 +67,7 @@ func (s *Size) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
-	*s = sizeToID[j]
+	*s = SizeToID[j]
 	return nil
 }
 
@@ -85,6 +85,6 @@ func (s *Size) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
-	*s = sizeToID[j]
+	*s = SizeToID[j]
 	return nil
 }

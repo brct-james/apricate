@@ -28,6 +28,16 @@ type UserCallTimestamp struct {
 	LastCallTimestamp int64 `json:"last_call_timestamp" binding:"required"`
 }
 
+// Global Market Buy/Sell
+type GlobalMarketBuySellMetric struct {
+	Metric
+	MarketData map[string]GMBSMarketData `json:"market_item_data" binding:"required"`
+}
+type GMBSMarketData struct {
+	Bought uint64 `json:"bought" binding:"required"`
+	Sold uint64 `json:"sold" binding:"required"`
+}
+
 // // Users by Achievement
 // type UsersByAchievementMetric struct {
 // 	Metric

@@ -163,6 +163,7 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plantName}/stage/{stageNum}", &handlers.PlantStageOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.HandleFunc("/api/metrics", handlers.MetricsOverview).Methods("GET")
 
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()
@@ -181,6 +182,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/markets", &handlers.MarketsInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
 	secure.Handle("/markets/{symbol}", &handlers.MarketInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
+	secure.Handle("/markets/{symbol}/order", &handlers.MarketOrder{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")

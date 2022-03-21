@@ -6,23 +6,24 @@ import (
 	"apricate/rdb"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Defines a warehouse
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
-	Tools map[ToolTypes]uint8 `json:"tools" binding:"required"`
+	Tools map[string]uint64 `json:"tools" binding:"required"`
 	Produce map[string]Produce `json:"produce" binding:"required"`
 	Seeds map[string]uint64 `json:"seeds" binding:"required"`
 	Goods map[string]uint64 `json:"goods" binding:"required"`
 }
 
 func NewEmptyWarehouse(username string, locationSymbol string) *Warehouse {
-	return NewWarehouse(username, locationSymbol, make(map[ToolTypes]uint8), make(map[string]Produce), make(map[string]uint64), make(map[string]uint64))
+	return NewWarehouse(username, locationSymbol, make(map[string]uint64), make(map[string]Produce), make(map[string]uint64), make(map[string]uint64))
 }
 
-func NewWarehouse(username string, locationSymbol string, starting_tools map[ToolTypes]uint8, starting_produce map[string]Produce, starting_seeds map[string]uint64, starting_goods map[string]uint64) *Warehouse {
+func NewWarehouse(username string, locationSymbol string, starting_tools map[string]uint64, starting_produce map[string]Produce, starting_seeds map[string]uint64, starting_goods map[string]uint64) *Warehouse {
 	return &Warehouse{
 		UUID: username + "|Warehouse-" + locationSymbol,
 		LocationSymbol: locationSymbol,
@@ -33,11 +34,11 @@ func NewWarehouse(username string, locationSymbol string, starting_tools map[Too
 	}
 }
 
-func (w *Warehouse) AddTools(name ToolTypes, quantity uint8) {
+func (w *Warehouse) AddTools(name string, quantity uint64) {
 	w.Tools[name] += quantity
 }
 
-func (w *Warehouse) RemoveTools(name ToolTypes, quantity uint8) {
+func (w *Warehouse) RemoveTools(name string, quantity uint64) {
 	w.Tools[name] -= quantity
 	if w.Tools[name] <= 0 {
 		delete(w.Tools, name)
@@ -50,6 +51,22 @@ func (w *Warehouse) GetProduce(name string, size Size) *Produce {
 		return &entry
 	}
 	return nil
+}
+
+func (w *Warehouse) GetSimpleProduceDict() map[string]uint64 {
+	res := make(map[string]uint64, len(w.Produce))
+	for key, entry := range w.Produce {
+		res[key] = entry.Quantity
+	}
+	return res
+}
+
+func (w *Warehouse) SetSimpleProduceDict(produce map[string]uint64) {
+	res := make(map[string]Produce, len(produce))
+	for key, quantity := range produce {
+		res[key] = *NewProduce(strings.Split(key, "|")[0], SizeToID[strings.Split(key, "|")[1]], quantity)
+	}
+	w.Produce = res
 }
 
 func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) {

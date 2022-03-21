@@ -23,7 +23,7 @@ type MarketIOField struct {
 	Produce map[string]uint64 `yaml:"Produce" json:"produce,omitempty"`
 	Seeds map[string]uint64 `yaml:"Seeds" json:"seeds,omitempty"`
 	Goods map[string]uint64 `yaml:"Goods" json:"goods,omitempty"`
-	Tools map[ToolTypes]uint64 `yaml:"Tools" json:"tools,omitempty"`
+	Tools map[string]uint64 `yaml:"Tools" json:"tools,omitempty"`
 }
 
 // Load market struct by unmarhsalling given yaml file

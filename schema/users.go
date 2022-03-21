@@ -48,9 +48,9 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	// generate starting warehouse
 	var warehouse *Warehouse
 	if devUser {
-		warehouse = NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Spade: 1, Tool_Hoe: 1, Tool_Rake: 1, Tool_Pitchfork: 1, Tool_Shears: 1, Tool_WaterWand: 1, Tool_Knife: 1, Tool_PestleAndMortar: 1, Tool_DryingRack: 1, Tool_SproutingPot: 1, Tool_ShadeScroll: 1, Tool_Sickle: 1}, map[string]Produce{"Potato|Miniature": *NewProduce("Potato", Miniature, uint64(1000))}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Spade": 1, "Hoe": 1, "Rake": 1, "Pitchfork": 1, "Shears": 1, "Water Wand": 1, "Knife": 1, "Pestle and Mortar": 1, "Drying Rack": 1, "Sprouting Pot": 1, "Scroll of Hyperspecific Cloud Cover": 1, "Sickle": 1}, map[string]Produce{"Potato|Tiny": *NewProduce("Potato", Miniature, uint64(1000))}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
 	} else {
-		warehouse = NewWarehouse(username, startLocation, map[ToolTypes]uint8{Tool_Shears: 1, Tool_Sickle: 1}, map[string]Produce{}, map[string]uint64{"Cabbage Seeds":10,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{"Water": 10})
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Shears": 1, "Sickle": 1}, map[string]Produce{}, map[string]uint64{"Cabbage Seeds":10,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{"Water": 10})
 	}
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these

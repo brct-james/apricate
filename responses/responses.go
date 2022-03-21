@@ -51,6 +51,7 @@ const (
 	Plants_Still_Growing ResponseCode = 24
 	Tool_Not_Found ResponseCode = 25
 	Could_Not_Parse_URI_Param ResponseCode = 26
+	Market_Order_Failed_Validation ResponseCode = 27
 )
 
 // Defines Response structure for output
@@ -184,6 +185,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	Could_Not_Parse_URI_Param: {
 		Message: "[Could_Not_Parse_URI_Param] URI param could not be parsed, ensure request formatted correctly",
 		HttpResponse: http.StatusNotFound,
+	},
+	Market_Order_Failed_Validation: {
+		Message: "[Market_Order_Failed_Validation] Market Order could not be validated against specified market given user specified conditions",
+		HttpResponse: http.StatusConflict,
 	},
 }
 
