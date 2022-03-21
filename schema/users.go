@@ -4,8 +4,10 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	"apricate/filemngr"
 	"apricate/log"
 	"apricate/rdb"
 	"apricate/tokengen"
@@ -18,7 +20,8 @@ type User struct {
 	Contracts []string `json:"contracts" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
 	Farms []string `json:"farms" binding:"required"`
-	Inventories []string `json:"inventories" binding:"required"`
+	Plots []string `json:"plots" binding:"required"`
+	Warehouses []string `json:"warehouses" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -30,15 +33,55 @@ type PublicInfo struct {
 	Achievements []Achievement `json:"achievements" binding:"required"`
 }
 
-func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
+// Tracking User Coins for Metrics
+var TrackingUserCoins = UserCoinsMetric {
+	Metric: Metric{Name:"User Coins", Description:"Map of every registered user and their coins",},
+	Coins: make(map[string]uint64),
+}
+func TrackUserCoins(username string, coins uint64) {
+	TrackingUserCoins.Coins[username] = coins
+}
+
+func NewUser(token string, username string, dbs map[string]rdb.Database, devUser bool) *User {
+	// starting location
+	startLocation := "TS-PR-HF"
 	// generate starting assistant
-	assistant := NewAssistant(Hireling, "Pria|Homestead Farm")
+	assistant := NewAssistant(username, 0, Hireling, startLocation)
 	SaveAssistantToDB(dbs["assistants"], assistant)
+	// generate starting farm
+	farm := NewFarm(dbs["plots"], 0, username, startLocation)
+	SaveFarmToDB(dbs["farms"], farm)
+	// generate starting contract
+	contract := NewContract(username, 0, startLocation, ContractType_Talk, "Viridis", []ContractTerms{{NPC: "Reldor"}}, []ContractReward{{RewardType: RewardType_Currency, Item: "Coins", Quantity: 100}})
+	SaveContractToDB(dbs["contracts"], contract)
+	// generate starting warehouse
+	var warehouse *Warehouse
+	if devUser {
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Spade": 1, "Hoe": 1, "Rake": 1, "Pitchfork": 1, "Shears": 1, "Water Wand": 1, "Knife": 1, "Pestle and Mortar": 1, "Drying Rack": 1, "Sprouting Pot": 1, "Scroll of Hyperspecific Cloud Cover": 1, "Sickle": 1}, map[string]Produce{"Potato|Tiny": *NewProduce("Potato", Miniature, uint64(1000))}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
+	} else {
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Shears": 1, "Sickle": 1}, map[string]Produce{}, map[string]uint64{"Cabbage Seeds":8,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{})
+	}
+	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
-	var starting_farm_id string = ""
-	var starting_farm_inventory_id string = ""
-	var starting_contract_id string = ""
+	var starting_farm_id string = farm.UUID
+	var starting_farm_warehouse_id string = warehouse.UUID
+	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
+
+	var starting_currencies map[string]uint64
+	var starting_favor map[string]int8
+	if devUser {
+		starting_currencies = map[string]uint64{"Coins": 1000}
+		starting_favor = map[string]int8{"Vince Kosuga": 50}
+	} else {
+		starting_currencies = map[string]uint64{"Coins": 100}
+		starting_favor = map[string]int8{"Vince Kosuga": 50}
+	}
+
+	plotIds := make([]string, 0)
+	for _, plot := range farm.Plots {
+		plotIds = append(plotIds, plot.UUID)
+	}
 
 	return &User{
 		Token: token,
@@ -46,8 +89,8 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 			Username: username,
 			Title: Achievement_Noob,
 			Ledger: Ledger{
-				Currencies: make(map[string]uint64),
-				Favor: make(map[string]int8),
+				Currencies: starting_currencies,
+				Favor: starting_favor,
 				Escrow: make(map[string]uint64),
 			},
 			Achievements: []Achievement{Achievement_Noob},
@@ -55,9 +98,68 @@ func NewUser(token string, username string, dbs map[string]rdb.Database) *User {
 		},
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
-		Inventories: []string{starting_farm_inventory_id},
+		Plots: plotIds,
+		Warehouses: []string{starting_farm_warehouse_id},
 		Assistants: []string{starting_assistant_id},
 	}
+}
+
+func PregenerateUser(username string, dbs map[string]rdb.Database) {
+	// generate token
+	token, genTokenErr := tokengen.GenerateToken(username)
+	if genTokenErr != nil {
+		// fail state
+		log.Important.Printf("in UsernameClaim: Attempted to generate token using username %s but was unsuccessful with error: %v", username, genTokenErr)
+		genErrorMsg := fmt.Sprintf("Username: %v | GenerateTokenErr: %v", username, genTokenErr)
+		panic(genErrorMsg)
+	}
+	// create new user in DB
+	newUser := NewUser(token, username, dbs, true)
+	newUser.Title = Achievement_Owner
+	newUser.Achievements = []Achievement{Achievement_Owner, Achievement_Contributor, Achievement_Noob}
+	saveUserErr := SaveUserToDB(dbs["users"], newUser)
+	if saveUserErr != nil {
+		// fail state - could not save
+		saveUserErrMsg := fmt.Sprintf("in UsernameClaim | Username: %v | CreateNewUserInDB failed, dbSaveResult: %v", username, saveUserErr)
+		log.Debug.Println(saveUserErrMsg)
+		panic(saveUserErrMsg)
+	}
+	// Write out my token
+	lines, readErr := filemngr.ReadFileToLineSlice("secrets.env")
+	if readErr != nil {
+		// Auth is mission-critical, using Fatal
+		log.Error.Fatalf("Could not read lines from secrets.env. Err: %v", readErr)
+	}
+	secretIdentifier := strings.ToUpper(username) + "_TOKEN="
+	secretString :=  secretIdentifier + string(token)
+	// Search existing file for secret identifier
+	found, i := filemngr.KeyInSliceOfLines(secretIdentifier, lines)
+	if found {
+		// Update existing secret
+		lines [i] = secretString
+	} else {
+		// Create secret in env file since could not find one to update
+		// If empty file then replace 1st line else append to end
+		log.Debug.Printf("Creating new secret in env file. secrets.env[0] == ''? %v", lines[0] == "")
+		if lines[0] == "" {
+			log.Debug.Printf("Blank secrets.env, replacing line 0")
+			lines[0] = secretString
+		} else {
+			log.Debug.Printf("Not blank secrets.env, appending to end")
+			lines = append(lines, secretString)
+		}
+	}
+	
+	// Join and write out
+	writeErr := filemngr.WriteLinesToFile("secrets.env", lines)
+	if writeErr != nil {
+		log.Error.Fatalf("Could not write secrets.env: %v", writeErr)
+	}
+	log.Info.Printf("Wrote token for user: %s to secrets.env", username)
+	// Created successfully
+	// Track in user metrics
+	// metrics.TrackNewUser(username) // CANT IN SCHEMA MOD CAUSE IMPORT CYCLE
+	log.Debug.Printf("Generated token %s and claimed username %s", token, username)
 }
 
 // Check DB for existing user with given token and return bool for if exists, and error if error encountered
@@ -132,6 +234,7 @@ func GetUserByUsernameFromDB(username string, tdb rdb.Database) (User, bool, err
 // Attempt to save user, returns error or nil if successful
 func SaveUserToDB(tdb rdb.Database, userData *User) error {
 	log.Debug.Printf("Saving user %s to DB", userData.Username)
+	TrackUserCoins(userData.Username, userData.Ledger.Currencies["Coins"])
 	err := tdb.SetJsonData(userData.Token, ".", userData)
 	// creationSuccess := rdb.CreateUser(tdb, username, token, 0)
 	return err

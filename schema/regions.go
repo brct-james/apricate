@@ -5,14 +5,15 @@ import (
 	"apricate/filemngr"
 	"apricate/log"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Defines a region
 type Region struct {
-	Name string `yaml:"Name" json:"name" binding:"required"`
+	Identifier
+	RegionGroup string `yaml:"RegionGroup" json:"region_group" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
-	Ports map[string]Port `yaml:"Ports" json:"ports" binding:"required"`
+	Islands []Identifier `yaml:"Islands" json:"islands" binding:"required"`
 }
 
 // Load region struct by unmarhsalling given yaml file

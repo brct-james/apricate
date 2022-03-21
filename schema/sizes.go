@@ -9,15 +9,16 @@ import (
 // enum for assistant types
 type Size uint16
 const (
-	Miniscule Size = 1
+	Miniature Size = 1
 	Tiny Size = 2
 	Small Size = 4
-	Average Size = 8
-	Large Size = 16
-	Huge Size = 32
-	Gigantic Size = 64
-	Colossal Size = 128
-	Titanic Size = 256
+	Modest Size = 8
+	Average Size = 16
+	Large Size = 32
+	Huge Size = 64
+	Gigantic Size = 256
+	Colossal Size = 1024
+	Titanic Size = 4096
 )
 
 func (s Size) String() string {
@@ -25,27 +26,29 @@ func (s Size) String() string {
 }
 
 var sizeToString = map[Size]string {
-	Miniscule: "Miniscule (1)",
-	Tiny: "Tiny (2)",
-	Small: "Small (4)",
-	Average: "Average (8)",
-	Large: "Large (16)",
-	Huge: "Huge (32)",
-	Gigantic: "Gigantic (64)",
-	Colossal: "Colossal (128)",
-	Titanic: "Titanic (256)",
+	Miniature: "Miniature",
+	Tiny: "Tiny",
+	Small: "Small",
+	Modest: "Modest",
+	Average: "Average",
+	Large: "Large",
+	Huge: "Huge",
+	Gigantic: "Gigantic",
+	Colossal: "Colossal",
+	Titanic: "Titanic",
 }
 
-var sizeToID = map[string]Size {
-	"Miniscule (1)": Miniscule,
-	"Tiny (2)": Tiny,
-	"Small (4)": Small,
-	"Average (8)": Average,
-	"Large (16)": Large,
-	"Huge (32)": Huge,
-	"Gigantic (64)": Gigantic,
-	"Colossal (128)": Colossal,
-	"Titanic (256)": Titanic,
+var SizeToID = map[string]Size {
+	"Miniature": Miniature,
+	"Tiny": Tiny,
+	"Small": Small,
+	"Modest": Modest,
+	"Average": Average,
+	"Large": Large,
+	"Huge": Huge,
+	"Gigantic": Gigantic,
+	"Colossal": Colossal,
+	"Titanic": Titanic,
 }
 
 // MarshalJSON marshals the enum as a quoted json string
@@ -64,6 +67,24 @@ func (s *Size) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
-	*s = sizeToID[j]
+	*s = SizeToID[j]
+	return nil
+}
+
+// MarshalYAML marshals the enum as a quoted yaml string
+func (s Size) MarshalYAML() (interface{}, error) {
+	buffer := bytes.NewBufferString(sizeToString[s])
+	return buffer.Bytes(), nil
+}
+
+// UnmarshalYAML unmashals a quoted yaml string to the enum value
+func (s *Size) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var j string
+	if err := unmarshal(&j); err != nil {
+		return err
+	}
+
+	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
+	*s = SizeToID[j]
 	return nil
 }

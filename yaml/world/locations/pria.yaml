@@ -1,0 +1,33 @@
+---
+TS-PR-HF:
+  Name: Homestead Farm
+  Symbol: TS-PR-HF
+  Description: The small country farm you retired to after the war
+  RegionName: Pria
+  X: -40
+  Y: 70
+  NPCs: [Vince Kosuga]
+TS-PR-YD:
+  Name: Yudoa
+  Symbol: TS-PR-YD
+  Description: A small farming-centric village near your Homestead
+  RegionName: Pria
+  X: -18
+  Y: 36
+  NPCs: [Sylvia Filavana, Pixis Filavana, Boro]
+TS-PR-BG:
+  Name: Balgora
+  Symbol: TS-PR-BG
+  Description: A moderately sized town that focuses on ranching livestock
+  RegionName: Pria
+  X: -24
+  Y: 0
+  NPCs: [Bilgrith Yeldor, Tara Tyris]
+TS-PR-PFG:
+  Name: Port Fulgrath
+  Symbol: TS-PR-PFG
+  Description: A port-side fishing vilage
+  RegionName: Pria
+  X: 26
+  Y: 6
+  NPCs: [Umilio Tyris, Timaris Falavana]

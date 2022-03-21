@@ -6,7 +6,7 @@ type Route struct {
 	UUID string `json:"uuid" binding:"required"`
 	Name string `json:"name" binding:"required"`
 	IsPortTravel bool `json:"is_port_travel" binding:"required"`
-	Start Location `json:"start" binding:"required"`
-	End Location `json:"end" binding:"required"`
+	StartSymbol string `json:"start_symbol" binding:"required"`
+	EndSymbol string `json:"end_symbol" binding:"required"`
 	ArrivalTime int64 `json:"arrival_time" binding:"required"`
 }

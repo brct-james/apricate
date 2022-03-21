@@ -21,11 +21,23 @@ type UniqueUsersMetric struct {
 // Active Users
 type ActiveUsersMetric struct {
 	Metric
-	UserActivity []UserCallTimestamp `json:"user_activity" binding:"required"` //usernames
+	UserActivity map[string]int64 `json:"user_activity" binding:"required"` //usernames
 }
-type UserCallTimestamp struct {
-	Username string `json:"username" binding:"required"`
-	LastCallTimestamp int64 `json:"last_call_timestamp" binding:"required"`
+
+// User Coins
+type UserCoinsMetric struct {
+	Metric
+	Coins map[string]uint64 `json:"coins" binding:"required"`
+}
+
+// Global Market Buy/Sell
+type GlobalMarketBuySellMetric struct {
+	Metric
+	MarketData map[string]GMBSMarketData `json:"market_item_data" binding:"required"`
+}
+type GMBSMarketData struct {
+	Bought uint64 `json:"bought" binding:"required"`
+	Sold uint64 `json:"sold" binding:"required"`
 }
 
 // // Users by Achievement

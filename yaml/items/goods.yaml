@@ -1,0 +1,26 @@
+---
+-
+  Name: Water
+  Prefixes: [Enchanted]
+-
+  Name: Cabbage
+  IsProduce: true
+  Prefixes: [Pickled]
+-
+  Name: Shelvis Fig
+  IsProduce: true
+  Prefixes: [Pickled]
+  Suffixes: [Ale]
+-
+  Name: Fertilizer
+  Enchantable: true
+  Prefixes: [Dragon]
+-
+  Name: Spectral Fiber
+  Enchantable: true
+-
+  Name: Spectral Cloth
+  Enchantable: true
+-
+  Name: Gulb Nut
+  Prefixes: [Roasted]

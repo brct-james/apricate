@@ -1,0 +1,28 @@
+---
+Tyldian Spur:
+  Name: Tyldian Spur
+  Symbol: TS
+  RegionGroup: Northern Extremities
+  Description: The starting region, a small leg separated from the Central Wheel region-group by Tyldia
+  Islands:
+    - 
+      Name: Pria
+      Symbol: TS-PR
+    - 
+      Name: Veldis
+      Symbol: TS-VD
+    - 
+      Name: Skellig
+      Symol: TS-SK
+    - 
+      Name: Tritum
+      Symbol: TS-TT
+    - 
+      Name: Boldor
+      Symbol: TS-BD
+    - 
+      Name: Yoggoth
+      Symbol: TS-YG
+    - 
+      Name: Tyldia
+      Symbol: TS-TD
