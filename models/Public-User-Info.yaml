@@ -1,0 +1,51 @@
+description: Publicly available user information
+type: object
+x-examples:
+  example-1:
+    username: Greenitthe
+    title: Owner
+    ledger:
+      currencies:
+        Coins: 1000
+      favor:
+        Vince Kosuga: 50
+      escrow: {}
+    user-since: 1647895469
+    achievements:
+      - Owner
+      - Contributor
+      - Noob
+properties:
+  username:
+    type: string
+    minLength: 1
+  title:
+    type: string
+    minLength: 1
+  ledger:
+    type: object
+    required:
+      - currencies
+      - favor
+      - escrow
+    properties:
+      currencies:
+        type: object
+      favor:
+        type: object
+      escrow:
+        type: object
+  user-since:
+    type: number
+  achievements:
+    type: array
+    items:
+      type: string
+required:
+  - username
+  - title
+  - ledger
+  - user-since
+  - achievements
+x-tags:
+  - Users
