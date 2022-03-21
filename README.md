@@ -2,20 +2,6 @@
 
 Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 
-## Features
-
-- Basic account functionality
-- - Claim Account: `POST: https://apricate.io/api/users/{username}/claim`
-- - - Don't forget to save the token from the response to your claim request. You must use this as a bearer token in the auth header for secure `/my/` routes
-- - - Usernames must include only letters, numbers, `-`, and `_`. There are some reserved sequences for game-specific prefixes. A slur filter exists, I hope never to need it.
-- - Get public user info at `/api/users/{username}` and get private user info including token at `/api/my/account`
-- Monitor list of assistants or specific assistant with `/api/my/assistants` and `/api/my/assistants/{uuid}`
-- Islands which contain an X-Y grid of Locations from -100 to 100, with each Island separated by sailing lanes connected to Ports in each island
-- Locations are farms or towns, and may hold NPCs or a market.
-- Plant plants in farm plots, grow plants, and harvest them to your local warehouse
-
----
-
 ### Endpoints
 
 **Public Routes**
@@ -32,20 +18,20 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 **Secure Routes**
 - `GET: /api/my/account` returns the private user data (includes token)
 - `GET: /api/my/assistants` returns a list of the player's assistants
-- `GET: /api/my/assistants/{uuid}` returns the assistant specified by `uuid`
+- `GET: /api/my/assistants/{id}` returns the assistant specified by `id` (use numeric ID, i.e. for the uuid: `Greenitthe|Assistant-0` call this with 0 e.g. `GET: /api/my/assistants/0`)
 - `GET: /api/my/farms` returns a list of the player's farms
-- `GET: /api/my/farms/{uuid}` returns the farm specified by `uuid`
+- `GET: /api/my/farms/{location-symbol}` returns the farm specified by `location-symbol` (for the uuid: `Greenitthe|Farm-TS-PR-HF` call this with TS-PR-HF e.g. `GET: /api/my/farms/TS-PR-HF`)
 - `GET: /api/my/contracts` returns a list of the player's contracts
-- `GET: /api/my/contracts/{uuid}` returns the contract specified by `uuid`
+- `GET: /api/my/contracts/{id}` returns the contract specified by `id` (use numeric ID, i.e. for the uuid: `Greenitthe|Contract-0` call this with 0 e.g. `GET: /api/my/contracts/0`)
 - `GET: /api/my/warehouses` returns a list of the player's warehouses
-- `GET: /api/my/warehouses/{uuid}` returns the warehouse specified by `uuid`
+- `GET: /api/my/warehouses/{location-symbol}` returns the warehouse specified by `location-symbol` (for the uuid: `Greenitthe|Warehouse-TS-PR-HF` call this with 0 e.g. `GET: /api/my/warehouses/TS-PR-HF`)
 - `GET: /api/my/locations` returns the details for any location with an assistant as well as any owned farms
-- `GET: /api/my/locations/{name}` returns the details of the location specified by `name` IF the location is an owned farm or holds an assistant
+- `GET: /api/my/locations/{location-symbol}` returns the details of the location specified by `location-symbol` IF the location is an owned farm or holds an assistant
 - `GET: /api/my/nearby-locations` returns a list of the names of every nearby location (all locations of every island with atleast one assistant), for navigational purposes
 - `GET: /api/my/plots` returns a list of the player's plots
-- `GET: /api/my/plots/{uuid}` returns the plot specified by `uuid`
-- `PUT: /api/my/plots/{uuid}/clear` returns the plot if successful in attempt to clear plot, no request body expected
-- `POST: /api/my/plots/{uuid}/plant` returns the updated warehouse and plot data if successful in attempt to plant specified plant in plot, as well as the info on the next growth stage of the plant
+- `GET: /api/my/plots/{plot-id}` returns the plot specified by `plot-id`  (for the uuid: `Greenitthe|Farm-TS-PR-HF|Plot-1` call this with 0 e.g. `GET: /api/my/warehouses/TS-PR-HF_Plot-1`)
+- `PUT: /api/my/plots/{plot-id}/clear` returns the plot if successful in attempt to clear plot, no request body expected
+- `POST: /api/my/plots/{plot-id}/plant` returns the updated warehouse and plot data if successful in attempt to plant specified plant in plot, as well as the info on the next growth stage of the plant
 - - **Request Body** Expects `name` of seed, `quantity` of seed, `size` of plant. Example:
 ```json
 {
@@ -54,7 +40,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
     "size": "Miniature"
 }
 ```
-- `PATCH: /api/my/plots/{uuid}/interact` returns the updated warehouse and plot data if successful in attempt to interact with specified plant in plot, as well as the info on the next growth stage of the plant
+- `PATCH: /api/my/plots/{plot-id}/interact` returns the updated warehouse and plot data if successful in attempt to interact with specified plant in plot, as well as the info on the next growth stage of the plant
 - - **Request Body** Expects `action` desired action, `consumable` name of good to be consumed (optional depending on step, will be ignored if passed to step that has no consumable options). Example:
 ```json
 {
@@ -63,8 +49,8 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 }
 ```
 - `GET: /api/my/markets` returns a list of the markets the player can see
-- `GET: /api/my/markets/{symbol}` returns the market specified by `symbol`
-- `PATCH: /api/my/markets/{symbol}/order` returns the user ledger and local warehouse data if successful in placing the market order specified by the request body
+- `GET: /api/my/markets/{location-symbol}` returns the market specified by `location-symbol`
+- `PATCH: /api/my/markets/{location-symbol}/order` returns the user ledger and local warehouse data if successful in placing the market order specified by the request body
 - - **Request Body** Expects `order_type` (`MARKET` only available currently, filled instantly at current market price), `transaction_type` from [`BUY`, `SELL`], `item_type` from [`PRODUCE`, `GOODS`, `SEEDS`, `TOOLS`], `item_name` of desired transactable item from local market listing (for `PRODUCE` include the `Size` in the name after a pipe e.g. `Potato|Miniature`), and `quantity` of good to be transacted. Example:
 ```json
 {
@@ -95,46 +81,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Complete: **[v0.3]**
-
-- ~~PlantDefinition YAML defined for at least 3 types of plants excluding Wild Seeds~~
-- ~~PlantDefinition information public GET endpoints~~
-- ~~Plot helper functions and initialize on create~~
-- ~~Plot GET endpoints~~
-- ~~Plant struct for plots defined~~
-- ~~Plot interaction endpoints for non-growth-action plot management (plant plot, clear plot)~~
-- - ~~`/plant`~~
-- - - ~~Implement failure responses for Plant helper~~
-- - ~~`/clear`~~
-- ~~Skelling and Tritum YAML defined~~
-- ~~Convert from UUID to composite string like "username|farmid|plotid" e.g. "Greenitthe|Homestead Farm|Plot-1" for warehouses, farms, plots, assistants, contracts. UUID wont be used~~
-- ~~Convert to symbol based sector/island/location~~
-- ~~Convert regions to islands~~
-- ~~Add sectors~~
-- ~~Remove Quality property from goods. Reintroduce for Trophies, use unique items instead~~
-- ~~Define goods in YAML rather than as enum?~~
-- ~~Remove enchantment property from goods. Generate unique Goods for the limited enchantable list~~
-- ~~Warehouses store map[goodName]quantity now instead of Good structs~~
-- ~~Move plot storage to farms, rather than separate DB table~~
-- ~~Refactor dictionaries to a main struct~~
-- ~~Add Sickle, Shade Cloth tool/action, Spectral Grass plant~~
-- ~~Plot `/interact` endpoint with switch on body.action (growth actions)~~
-- ~~Cooldown/growth time is enforced (written, tested, just need to enable by uncommenting when testing done)~~
-- ~~Add warehouse increment/decrement methods to handle removing the key for goods that are now at 0~~
-- ~~Fix bug with path selector (case sensitive)~~
-- ~~Harvest functionality in `/interact`~~
-- - ~~Actually, harvests should give Produce, a superset of Good, and go to special warehouse section so they can have size but not every good~~
-- - ~~Check logic in `plots:interact()` for returning growthHarvest when harvest is optional and when harvest but not FinalHarvest~~
-- - ~~Produce deposited to warehouse~~
-- ~~Warehouses have sections for tools, produce, goods, seeds~~
-- - ~~Farm tools moved to warehouse~~
-- ~~Separate YAML definitions for goods into produce, goods, seeds files~~
-- ~~Tested growth and harvest of cabbage, potatos, shelvis fig, spectral grass, gulb INCLUDING optional actions (make sure yield properly adjusted)~~
-- ~~Add `GET: /plants/{plantName}/growth-stages/{index}`~~
-
----
-
-### Started: **[v0.4]**
+### Complete: **[v0.4]**
 
 - ~~Add `GET` endpoints for regions, `GET` select island endpoint~~
 - - ~~Sectors are regions now~~
@@ -151,12 +98,13 @@ Versioning Convention: `major.minor.hotfix`
 - - ~~multiply good base value by the integer value of the Size to get total value~~
 - - ~~metric tracking number of each item bought and sold~~
 - - ~~Troubleshoot/test buy/sell, figure out produce specifics, maybe remove "Location" from market order request as that should be obvious from the `/my/markets/TS-PR-HF/order` endpoint~~
-- Update `my/.../{selector}` endpoints to not need the Username or type (e.g. Warehouse- or Assistant-) parts in selector (just `/my/markets/TS-PR-HF` for example)
+- ~~Update `my/.../{selector}` endpoints to not need the Username or type (e.g. Warehouse- or Assistant-) parts in selector (just `/my/markets/TS-PR-HF` for example), if using numeric id, add plain id to struct~~
 - ~~Get for items bought and sold metric~~
+- ~~Add user coins metric~~
 
 ---
 
-### Planned: **[v0.5]** First Public Alpha
+### Started: **[v0.5]** First Public Alpha
 
 - Update starting user template with appropriate tools, seeds, goods, produce, currencies
 - Update documentation
@@ -196,6 +144,7 @@ Versioning Convention: `major.minor.hotfix`
 
 - Respond to feedback from v0.7 alpha
 - At least 20 plants excluding Wild Seeds, add at least 2 additional tools for growing some of the new plants, add randomized contracts, consider adding additional markets, all NPCs on starting map have quests
+- Leaderboards (basically top-10 of ranked metrics?)
 
 ---
 

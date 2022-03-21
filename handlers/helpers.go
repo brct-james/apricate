@@ -56,6 +56,8 @@ func GetValidationFromCtx(r *http.Request) (auth.ValidationPair, error) {
 	if !ok {
 		return auth.ValidationPair{}, errors.New("could not get ValidationPair")
 	}
+	// Any time a user hits a secure endpoint, track a call from their account
+	metrics.TrackUserCall(userInfo.Username)
 	return userInfo, nil
 }
 
@@ -86,9 +88,6 @@ func secureGetUser(w http.ResponseWriter, r *http.Request, udb rdb.Database) (bo
 		responses.SendRes(w, responses.User_Not_Found, nil, userNotFoundMsg)
 		return false, schema.User{}, auth.ValidationPair{}
 	}
-
-	// Any time a user hits a secure endpoint, track a call from their account
-	metrics.TrackUserCall(userInfo.Username)
 
 	return true, thisUser, userInfo
 }

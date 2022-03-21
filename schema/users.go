@@ -33,6 +33,15 @@ type PublicInfo struct {
 	Achievements []Achievement `json:"achievements" binding:"required"`
 }
 
+// Tracking User Coins for Metrics
+var TrackingUserCoins = UserCoinsMetric {
+	Metric: Metric{Name:"User Coins", Description:"Map of every registered user and their coins",},
+	Coins: make(map[string]uint64),
+}
+func TrackUserCoins(username string, coins uint64) {
+	TrackingUserCoins.Coins[username] = coins
+}
+
 func NewUser(token string, username string, dbs map[string]rdb.Database, devUser bool) *User {
 	// starting location
 	startLocation := "TS-PR-HF"
@@ -59,8 +68,15 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
 
-	starting_currencies := map[string]uint64{"Coins": 100}
-	starting_favor := map[string]int8{"Reldor": 50}
+	var starting_currencies map[string]uint64
+	var starting_favor map[string]int8
+	if devUser {
+		starting_currencies = map[string]uint64{"Coins": 1000}
+		starting_favor = map[string]int8{"Vince Kosuga": 50}
+	} else {
+		starting_currencies = map[string]uint64{"Coins": 100}
+		starting_favor = map[string]int8{"Vince Kosuga": 50}
+	}
 
 	plotIds := make([]string, 0)
 	for _, plot := range farm.Plots {
@@ -218,6 +234,7 @@ func GetUserByUsernameFromDB(username string, tdb rdb.Database) (User, bool, err
 // Attempt to save user, returns error or nil if successful
 func SaveUserToDB(tdb rdb.Database, userData *User) error {
 	log.Debug.Printf("Saving user %s to DB", userData.Username)
+	TrackUserCoins(userData.Username, userData.Ledger.Currencies["Coins"])
 	err := tdb.SetJsonData(userData.Token, ".", userData)
 	// creationSuccess := rdb.CreateUser(tdb, username, token, 0)
 	return err

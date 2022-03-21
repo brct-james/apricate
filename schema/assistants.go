@@ -20,15 +20,17 @@ const (
 // Defines an assistant
 type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
+	ID uint64 `json:"id" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
 	Route string `json:"route" binding:"required"`
 }
 
-func NewAssistant(username string, countOfUserAssistants int16, archetype AssistantTypes, locationSymbol string) *Assistant {
+func NewAssistant(username string, countOfUserAssistants uint64, archetype AssistantTypes, locationSymbol string) *Assistant {
 	return &Assistant{
 		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
+		ID: countOfUserAssistants,
 		Archetype: archetype,
 		Improvements: make(map[string]uint8),
 		LocationSymbol: locationSymbol,

@@ -21,6 +21,7 @@ const (
 // Defines a contract
 type Contract struct {
 	UUID string `json:"uuid" binding:"required"`
+	ID uint64 `json:"id" binding:"required"`
 	ContractType ContractTypes `json:"type" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
 	NPC string `json:"NPC" binding:"required"`
@@ -49,9 +50,10 @@ type ContractReward struct {
 	Quantity uint64 `json:"quantity" binding:"required"`
 }
 
-func NewContract(username string, countOfUserContracts int16, locationSymbol string, contractType ContractTypes, npc string, terms []ContractTerms, reward []ContractReward) *Contract {
+func NewContract(username string, countOfUserContracts uint64, locationSymbol string, contractType ContractTypes, npc string, terms []ContractTerms, reward []ContractReward) *Contract {
 	return &Contract{
 		UUID: username + "|Contract-" + fmt.Sprintf("%d", countOfUserContracts),
+		ID: countOfUserContracts,
 		ContractType: contractType,
 		LocationSymbol: locationSymbol,
 		NPC: npc,

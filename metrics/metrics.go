@@ -5,22 +5,10 @@ import (
 	"apricate/schema"
 	"apricate/timecalc"
 	"fmt"
-	"strings"
 	"time"
 )
 
 // Helper Functions
-
-// Return found, index, UserCallTimestamp
-func findActiveUserByName(userActivityTimestamps []schema.UserCallTimestamp, username string) (bool, int, schema.UserCallTimestamp) {
-	for index, user := range userActivityTimestamps {
-		if strings.EqualFold(username, user.Username) {
-			// found user
-			return true, index, user
-		}
-	}
-	return false, -1, schema.UserCallTimestamp{}
-}
 
 // Assemble users metrics for json response
 func AssembleUsersMetrics() (schema.UsersMetricEndpointResponse) {
@@ -50,33 +38,30 @@ func TrackNewUser(username string) {
 var ActivityThresholdInMinutes int = 60
 var TrackingActiveUsers = schema.ActiveUsersMetric {
 	Metric: schema.Metric{Name:"Active Users", Description:fmt.Sprintf("List of every user who is considered active: have registered as a new user or hit a secure endpoint in the last %d minutes.", ActivityThresholdInMinutes)},
-	UserActivity: make([]schema.UserCallTimestamp, 0),
+	UserActivity: make(map[string]int64, 0),
 }
 func CalculateActiveUsers() ([]string) {
 	res := make([]string, 0)
-	for _, user := range TrackingActiveUsers.UserActivity {
-		exclusion_time := timecalc.AddMinutesToTimestamp(time.Unix(user.LastCallTimestamp, 0), ActivityThresholdInMinutes)
+	for username, timestamp := range TrackingActiveUsers.UserActivity {
+		exclusion_time := timecalc.AddMinutesToTimestamp(time.Unix(timestamp, 0), ActivityThresholdInMinutes)
 		if exclusion_time.After(time.Now()) {
 			//include user from active users, as exclusion time in future
-			res = append(res, user.Username)
+			res = append(res, username)
 		}
 	}
 	return res
 }
 func TrackUserCall(username string) {
-	foundUser, userIndex, _ := findActiveUserByName(TrackingActiveUsers.UserActivity, username)
-	if !foundUser {
-		// New User
-		TrackingActiveUsers.UserActivity = append(TrackingActiveUsers.UserActivity, schema.UserCallTimestamp{Username: username, LastCallTimestamp: time.Now().Unix()})
-		return
-	}
-	// Existing user
-	TrackingActiveUsers.UserActivity[userIndex].LastCallTimestamp = time.Now().Unix()
+	TrackingActiveUsers.UserActivity[username] = time.Now().Unix()
 }
+
+// User Coins
+// See schema.User
+var TrackingUserCoins = &schema.TrackingUserCoins
 
 // Global Market Buy/Sell
 var TrackingMarket = schema.GlobalMarketBuySellMetric {
-	Metric: schema.Metric{Name:"Global Market Buy/Sell", Description:"List of all items that have been bought or sold, and how many times each has been bought and sold."},
+	Metric: schema.Metric{Name:"Global Market Buy/Sell", Description:"Map of all items that have been bought or sold, and how many times each has been bought and sold."},
 	MarketData: make(map[string]schema.GMBSMarketData),
 }
 func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {

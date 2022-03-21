@@ -249,7 +249,7 @@ func (h *PlantStageOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Handler function for the route: /api/metrics
 func MetricsOverview(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- MetricsOverview --"))
-	res := map[string]interface{}{"Global Market Buy/Sell": metrics.TrackingMarket}
+	res := map[string]interface{}{"Global Market Buy/Sell": metrics.TrackingMarket, "User Coins": metrics.TrackingUserCoins}
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End MetricsOverview --"))
 }

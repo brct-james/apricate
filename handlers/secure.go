@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"apricate/auth"
 	"apricate/log"
 	"apricate/metrics"
 	"apricate/rdb"
@@ -73,8 +74,18 @@ type AssistantInfo struct {
 }
 func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- AssistantInfo --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	id := GetVarEntries(r, "id", AllCaps)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	uuid := userInfo.Username + "|Assistant-" + id
 	log.Debug.Printf("AssistantInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["assistants"]
 	assistant, foundAssistant, assistantsErr := schema.GetAssistantFromDB(uuid, adb)
@@ -202,8 +213,8 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	log.Debug.Println(log.Cyan("-- End NearbyLocationsInfo --"))
 }
 
-// Handler function for the secure route: /api/my/locations
-// Returns a list of locations 
+// Handler function for the secure route: /api/my/locations/location-symbol
+// Returns a locations 
 type LocationInfo struct {
 	Dbs *map[string]rdb.Database
 	World *schema.World
@@ -240,7 +251,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		myLocs[farm.LocationSymbol] = true
 	}
 	// Get symbol from route
-	symbol := GetVarEntries(r, "symbol", UUID)
+	symbol := GetVarEntries(r, "location-symbol", UUID)
 	// finally get specified location if available
 	var resLocation schema.Location
 	found := false
@@ -321,7 +332,7 @@ func (h *MarketInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		myLocs[assistant.LocationSymbol] = true
 	}
 	// Get symbol from route
-	symbol := GetVarEntries(r, "symbol", UUID)
+	symbol := GetVarEntries(r, "location-symbol", UUID)
 	// finally get specified market if available
 	var resMarket schema.Market
 	found := false
@@ -375,8 +386,18 @@ type FarmInfo struct {
 }
 func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- FarmInfo --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	symbol := GetVarEntries(r, "location-symbol", AllCaps)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	uuid := userInfo.Username + "|Farm-" + symbol
 	log.Debug.Printf("FarmInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["farms"]
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(uuid, adb)
@@ -431,8 +452,18 @@ type ContractInfo struct {
 }
 func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- ContractInfo --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	id := GetVarEntries(r, "id", AllCaps)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	uuid := userInfo.Username + "|Contract-" + id
 	log.Debug.Printf("ContractInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["contracts"]
 	contract, foundContract, contractsErr := schema.GetContractFromDB(uuid, adb)
@@ -487,8 +518,18 @@ type WarehouseInfo struct {
 }
 func (h *WarehouseInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- WarehouseInfo --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	symbol := GetVarEntries(r, "location-symbol", AllCaps)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	uuid := userInfo.Username + "|Warehouse-" + symbol
 	log.Debug.Printf("WarehouseInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(uuid, adb)
@@ -551,8 +592,26 @@ type PlotInfo struct {
 }
 func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlotInfo --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	id := GetVarEntries(r, "plot-id", None)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	idSlice := strings.Split(id, "!")
+	if len(idSlice) < 2 {
+		// Fail, malformed plot id
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	uuid := userInfo.Username + "|Farm-" + idSlice[0] + "|" + idSlice[1]
 	log.Debug.Printf("PlotInfo Requested for: %s", uuid)
 	// Get farm
 	symbolSlice := strings.Split(uuid, "|")
@@ -583,8 +642,26 @@ type PlantPlot struct {
 }
 func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantPlot --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	id := GetVarEntries(r, "plot-id", None)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	idSlice := strings.Split(id, "!")
+	if len(idSlice) < 2 {
+		// Fail, malformed plot id
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	uuid := userInfo.Username + "|Farm-" + idSlice[0] + "|" + idSlice[1]
 	symbolSlice := strings.Split(uuid, "|")
 	if len(symbolSlice) < 3 {
 		// Fail, malformed plot id
@@ -711,8 +788,26 @@ type ClearPlot struct {
 }
 func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- ClearPlot --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	id := GetVarEntries(r, "plot-id", None)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	idSlice := strings.Split(id, "!")
+	if len(idSlice) < 2 {
+		// Fail, malformed plot id
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	uuid := userInfo.Username + "|Farm-" + idSlice[0] + "|" + idSlice[1]
 	symbolSlice := strings.Split(uuid, "|")
 	if len(symbolSlice) < 3 {
 		// Fail, malformed plot id
@@ -768,8 +863,26 @@ type InteractPlot struct {
 }
 func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- InteractPlot --"))
-	// Get uuid from route
-	uuid := GetVarEntries(r, "uuid", UUID)
+	// Get symbol from route
+	id := GetVarEntries(r, "plot-id", None)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in AssistantInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	idSlice := strings.Split(id, "!")
+	if len(idSlice) < 2 {
+		// Fail, malformed plot id
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	uuid := userInfo.Username + "|Farm-" + idSlice[0] + "|" + idSlice[1]
 	symbolSlice := strings.Split(uuid, "|")
 	if len(symbolSlice) < 3 {
 		// Fail, malformed plot id
@@ -794,18 +907,18 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Validate Planted
 	if plot.PlantedPlant == nil {
 		// no plant, cannot interact
-		log.Error.Printf("Error in InteractPlot, plot not planted. foundPlot: %v", plot)
+		log.Debug.Printf("in InteractPlot, plot not planted. foundPlot: %v", plot)
 		responses.SendRes(w, responses.Plot_Not_Planted, plot, "")
 		return
 	}
 
 	// // Validate Timestamp
-	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-		// too soon, reject
-		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-		return
-	}
+	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+	// 	// too soon, reject
+	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+	// 	return
+	// }
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody
@@ -838,8 +951,8 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		goodsDict := (*h.MainDictionary).Goods
 		if _, ok := goodsDict[consumableName]; !ok {
 			// Fail, seed is not good
-			errmsg := fmt.Sprintf("Error in InteractPlot, consumable item does not exist in good dictionary. received consumable name: %v", consumableName)
-			log.Error.Printf(errmsg)
+			errmsg := fmt.Sprintf("in InteractPlot, consumable item does not exist in good dictionary. received consumable name: %v", consumableName)
+			log.Debug.Printf(errmsg)
 			responses.SendRes(w, responses.Item_Does_Not_Exist, nil, errmsg)
 			return
 		}
@@ -847,8 +960,8 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		temp, ownedConsumableOk := warehouse.Goods[consumableName]; 
 		if !ownedConsumableOk {
 			// Fail, consumable good not in warehouse
-			errmsg := fmt.Sprintf("Error in InteractPlot, consumable item not found in local warehouse. received good name: %v, warehouse goods: %v", consumableName, warehouse.Goods)
-			log.Error.Printf(errmsg)
+			errmsg := fmt.Sprintf("in InteractPlot, consumable item not found in local warehouse. received good name: %v, warehouse goods: %v", consumableName, warehouse.Goods)
+			log.Debug.Printf(errmsg)
 			responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, nil, errmsg)
 			return
 		}
@@ -863,31 +976,31 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Println(plotDefErrMsg)
 		responses.SendRes(w, responses.Internal_Server_Error, plot, plotDefErrMsg)
 	}
-	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
+	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime, errInfoMsg := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
 	switch plotValidationResponse {
 	case responses.Invalid_Plot_Action:
-		log.Error.Printf("Error in PlotInteract, Invalid_Plot_Action")
-		responses.SendRes(w, responses.Invalid_Plot_Action, plot, "")
+		log.Debug.Printf("in PlotInteract, Invalid_Plot_Action")
+		responses.SendRes(w, responses.Invalid_Plot_Action, plot, errInfoMsg)
 		return
 	case responses.Tool_Not_Found:
-		log.Error.Printf("Error in PlotInteract, Tool_Not_Found")
-		responses.SendRes(w, responses.Tool_Not_Found, plot, "")
+		log.Debug.Printf("in PlotInteract, Tool_Not_Found")
+		responses.SendRes(w, responses.Tool_Not_Found, plot, errInfoMsg)
 		return
 	case responses.Missing_Consumable_Selection:
-		log.Error.Printf("Error in PlotInteract, Missing_Consumable_Selection")
-		responses.SendRes(w, responses.Missing_Consumable_Selection, plot, "")
+		log.Debug.Printf("in PlotInteract, Missing_Consumable_Selection")
+		responses.SendRes(w, responses.Missing_Consumable_Selection, plot, errInfoMsg)
 		return
 	case responses.Internal_Server_Error:
-		log.Error.Printf("Error in PlotInteract, Internal_Server_Error")
-		responses.SendRes(w, responses.Internal_Server_Error, plot, "Could not get scaled growth stage, contact Developer")
+		log.Debug.Printf("in PlotInteract, Internal_Server_Error")
+		responses.SendRes(w, responses.Internal_Server_Error, plot, errInfoMsg)
 		return
 	case responses.Not_Enough_Items_In_Warehouse:
-		log.Error.Printf("Error in PlotInteract, Not_Enough_Items_In_Warehouse")
-		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, plot, "")
+		log.Debug.Printf("in PlotInteract, Not_Enough_Items_In_Warehouse")
+		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, plot, errInfoMsg)
 		return
 	case responses.Consumable_Not_In_Options:
-		log.Error.Printf("Error in PlotInteract, Consumable_Not_In_Options")
-		responses.SendRes(w, responses.Consumable_Not_In_Options, plot, "")
+		log.Debug.Printf("in PlotInteract, Consumable_Not_In_Options")
+		responses.SendRes(w, responses.Consumable_Not_In_Options, plot, errInfoMsg)
 		return
 	case responses.Generic_Success:
 		log.Debug.Printf("Plot growth action validated successfully: %s, action: %s", plot.UUID, body.Action)
@@ -1006,7 +1119,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		myLocs[assistant.LocationSymbol] = true
 	}
 	// Get symbol from route
-	symbol := GetVarEntries(r, "symbol", UUID)
+	symbol := GetVarEntries(r, "location-symbol", UUID)
 	// finally get specified market if available
 	var resMarket schema.Market
 	found := false

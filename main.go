@@ -20,7 +20,7 @@ import (
 var (
 	ListenPort = ":50250"
 	RedisAddr = "localhost:6382"
-	apiVersion = "0.3.0"
+	apiVersion = "0.4.0"
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
@@ -150,6 +150,9 @@ func handle_requests(slur_filter []string) {
 	mxr := mux.NewRouter().StrictSlash(true)
 	// mxr.Use(handlers.GenerateHandlerMiddlewareFunc(userDatabase,worldDatabase))
 	mxr.HandleFunc("/", handlers.Homepage).Methods("GET")
+	mxr.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/YXBpOjQ1NTU3NTc2-apricate-api", http.StatusPermanentRedirect)
+	})
 	// mxr.HandleFunc("/api", handlers.ApiSelection).Methods("GET")
 	// mxr.HandleFunc("/api/leaderboards", handlers.LeaderboardDescriptions).Methods("GET")
 	// mxr.HandleFunc("/api/leaderboards/{board}", handlers.GetLeaderboards).Methods("GET")
@@ -170,24 +173,24 @@ func handle_requests(slur_filter []string) {
 	secure.Use(auth.GenerateTokenValidationMiddlewareFunc(dbs["users"]))
 	secure.Handle("/account", &handlers.AccountInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/assistants", &handlers.AssistantsInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/assistants/{uuid}", &handlers.AssistantInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/assistants/{id}", &handlers.AssistantInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/farms", &handlers.FarmsInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/farms/{uuid}", &handlers.FarmInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/farms/{location-symbol}", &handlers.FarmInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/contracts", &handlers.ContractsInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/contracts/{uuid}", &handlers.ContractInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/contracts/{id}", &handlers.ContractInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/warehouses", &handlers.WarehousesInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/warehouses/{uuid}", &handlers.WarehouseInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/warehouses/{location-symbol}", &handlers.WarehouseInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/nearby-locations", &handlers.NearbyLocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/locations", &handlers.LocationsInfo{Dbs: &dbs, World: &world}).Methods("GET")
-	secure.Handle("/locations/{symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
+	secure.Handle("/locations/{location-symbol}", &handlers.LocationInfo{Dbs: &dbs, World: &world}).Methods("GET")
 	secure.Handle("/markets", &handlers.MarketsInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
-	secure.Handle("/markets/{symbol}", &handlers.MarketInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
-	secure.Handle("/markets/{symbol}/order", &handlers.MarketOrder{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
+	secure.Handle("/markets/{location-symbol}", &handlers.MarketInfo{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("GET")
+	secure.Handle("/markets/{location-symbol}/order", &handlers.MarketOrder{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
 	secure.Handle("/plots", &handlers.PlotsInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/plots/{uuid}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/plots/{uuid}/plant", &handlers.PlantPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
-	secure.Handle("/plots/{uuid}/clear", &handlers.ClearPlot{Dbs: &dbs}).Methods("PUT")
-	secure.Handle("/plots/{uuid}/interact", &handlers.InteractPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
+	secure.Handle("/plots/{plot-id}", &handlers.PlotInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/plots/{plot-id}/plant", &handlers.PlantPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
+	secure.Handle("/plots/{plot-id}/clear", &handlers.ClearPlot{Dbs: &dbs}).Methods("PUT")
+	secure.Handle("/plots/{plot-id}/interact", &handlers.InteractPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)

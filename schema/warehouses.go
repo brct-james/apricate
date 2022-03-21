@@ -75,7 +75,13 @@ func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) {
 		entry.Quantity += quantity
 		w.Produce[produceName] = entry
 	} else {
-		log.Error.Printf("Cannot add produce, !ok for name: %s", name)
+		w.Produce[produceName] = Produce{
+			Good: Good{
+				Name:produceName,
+				Quantity:quantity,
+			},
+			Size: size,
+		}
 	}
 }
 
