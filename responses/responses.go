@@ -52,6 +52,7 @@ const (
 	Tool_Not_Found ResponseCode = 25
 	Could_Not_Parse_URI_Param ResponseCode = 26
 	Market_Order_Failed_Validation ResponseCode = 27
+	Location_Not_Found ResponseCode = 28
 )
 
 // Defines Response structure for output
@@ -189,6 +190,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	Market_Order_Failed_Validation: {
 		Message: "[Market_Order_Failed_Validation] Market Order could not be validated against specified market given user specified conditions",
 		HttpResponse: http.StatusConflict,
+	},
+	Location_Not_Found: {
+		Message: "[Location_Not_Found] Specified location symbol did not map to a known location",
+		HttpResponse: http.StatusNotFound,
 	},
 }
 

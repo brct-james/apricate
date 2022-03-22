@@ -49,9 +49,15 @@ type IslandOverview struct {
 }
 func (h *IslandOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- IslandOverview --"))
-	// Get islandName from route
-	islandName := GetVarEntries(r, "islandName", SpacedName)
-	res := h.World.Islands[islandName]
+	// Get island_symbol from route
+	island_symbol := GetVarEntries(r, "island-symbol", AllCaps)
+	log.Debug.Printf("Island Overview For: %s", island_symbol)
+	res, ok := h.World.Islands[island_symbol]
+	if !ok {
+		responses.SendRes(w, responses.Location_Not_Found, nil, "")
+		log.Debug.Println(log.Cyan("-- End IslandOverview --"))
+		return
+	}
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End IslandOverview --"))
 }

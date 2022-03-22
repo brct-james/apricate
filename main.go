@@ -172,7 +172,7 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/users/{username}", &handlers.UsernameInfo{Dbs: &dbs}).Methods("GET")
 	mxr.Handle("/api/users/{username}/claim", &handlers.UsernameClaim{Dbs: &dbs, SlurFilter: &slur_filter}).Methods("POST")
 	mxr.Handle("/api/islands", &handlers.IslandsOverview{World: &world}).Methods("GET")
-	mxr.Handle("/api/islands/{islandName}", &handlers.IslandOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/islands/{island-symbol}", &handlers.IslandOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/regions/{regionName}", &handlers.RegionOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
