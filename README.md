@@ -82,30 +82,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Complete: **[v0.4]**
-
-- ~~Add `GET` endpoints for regions, `GET` select island endpoint~~
-- - ~~Sectors are regions now~~
-- ~~Helper functions for getting entries from route_vars/mux.Vars(r) so that always returned in correct format (e.g. Title(ToLower), ToUpper, etc.)~~
-- - ~~URI params are case insensitive~~
-- - ~~Usernames are case insensitive, though saved and displayed casefully~~
-- ~~Look through log entries to ensure all going to correct namespace (debug, important, error, etc.)~~
-- ~~Look through responses and ensure all are using correct response code~~
-- ~~Look through response codes and ensure all are using correct http response code~~
-- ~~Update my user auto-creation for Greenitthe with everything in the game for testing~~
-- ~~Add user auto-creation for Viridis (basic setup), so I still lock down the username ;)~~
-- ~~Placeholder market at the farm itself with buy/sell `market` orders and set prices (probably some ledger currency helper funcs necessary)~~
-- - ~~`GET` endpoints~~
-- - ~~multiply good base value by the integer value of the Size to get total value~~
-- - ~~metric tracking number of each item bought and sold~~
-- - ~~Troubleshoot/test buy/sell, figure out produce specifics, maybe remove "Location" from market order request as that should be obvious from the `/my/markets/TS-PR-HF/order` endpoint~~
-- ~~Update `my/.../{selector}` endpoints to not need the Username or type (e.g. Warehouse- or Assistant-) parts in selector (just `/my/markets/TS-PR-HF` for example), if using numeric id, add plain id to struct~~
-- ~~Get for items bought and sold metric~~
-- ~~Add user coins metric~~
-
----
-
-### Started: **[v0.5]** First Public Alpha
+### Complete: **[v0.5]** First Public Alpha
 
 - ~~Update starting user template with appropriate tools, seeds, goods, produce, currencies~~
 - ~~Update documentation~~
@@ -115,7 +92,7 @@ Versioning Convention: `major.minor.hotfix`
 
 ---
 
-### Planned: **[v0.6]**
+### Started: **[v0.6]**
 
 - Respond to feedback from v0.5 alpha
 - Add YAML-defined contract/quest paths from NPCs
