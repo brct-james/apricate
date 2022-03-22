@@ -157,7 +157,6 @@ func handle_requests(slur_filter []string) {
 	// Define Routes
 	//mux router
 	mxr := mux.NewRouter().StrictSlash(true)
-	// mxr.Use(handlers.GenerateHandlerMiddlewareFunc(userDatabase,worldDatabase))
 	mxr.HandleFunc("/", handlers.Homepage).Methods("GET")
 	mxr.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/YXBpOjQ1NTU3NTc2-apricate-api", http.StatusPermanentRedirect)
