@@ -174,10 +174,10 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/islands", &handlers.IslandsOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/islands/{island-symbol}", &handlers.IslandOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/regions", &handlers.RegionsOverview{World: &world}).Methods("GET")
-	mxr.Handle("/api/regions/{regionName}", &handlers.RegionOverview{World: &world}).Methods("GET")
+	mxr.Handle("/api/regions/{region-symbol}", &handlers.RegionOverview{World: &world}).Methods("GET")
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
-	mxr.Handle("/api/plants/{plantName}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
-	mxr.Handle("/api/plants/{plantName}/stage/{stageNum}", &handlers.PlantStageOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.Handle("/api/plants/{plant-name}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.Handle("/api/plants/{plant-name}/stage/{stageNum}", &handlers.PlantStageOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.HandleFunc("/api/metrics", handlers.MetricsOverview).Methods("GET")
 
 	// secure subrouter for account-specific routes

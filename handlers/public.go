@@ -43,7 +43,7 @@ func (h *IslandsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End IslandsOverview --"))
 }
 
-// Handler function for the route: /api/islands/{islandName}
+// Handler function for the route: /api/islands/{island-symbol}
 type IslandOverview struct {
 	World *schema.World
 }
@@ -73,15 +73,21 @@ func (h *RegionsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End RegionsOverview --"))
 }
 
-// Handler function for the route: /api/regions/{regionName}
+// Handler function for the route: /api/regions/{region-symbol}
 type RegionOverview struct {
 	World *schema.World
 }
 func (h *RegionOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- RegionOverview --"))
-	// Get regionName from route
-	regionName := GetVarEntries(r, "regionName", SpacedName)
-	res := h.World.Regions[regionName]
+	// Get region-symbol from route
+	region_symbol := GetVarEntries(r, "region-symbol", AllCaps)
+	log.Debug.Printf("Region Overview For: %s", region_symbol)
+	res, ok := h.World.Regions[region_symbol]
+	if !ok {
+		responses.SendRes(w, responses.Location_Not_Found, nil, "")
+		log.Debug.Println(log.Cyan("-- End RegionOverview --"))
+		return
+	}
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End RegionOverview --"))
 }
@@ -206,14 +212,14 @@ func (h *PlantsOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End PlantsOverview --"))
 }
 
-// Handler function for the route: /api/plants/{plantName}
+// Handler function for the route: /api/plants/{plant-name}
 type PlantOverview struct {
 	MainDictionary *schema.MainDictionary
 }
 func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantOverview --"))
 	// Get username from route
-	plant_name := GetVarEntries(r, "plantName", SpacedName)
+	plant_name := GetVarEntries(r, "plant-name", SpacedName)
 	log.Debug.Printf("PlantOverview Requested for: %s", plant_name)
 	// Get plant
 	if plant, ok := (*h.MainDictionary).Plants[plant_name]; ok {
@@ -225,14 +231,14 @@ func (h *PlantOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End PlantOverview --"))
 }
 
-// Handler function for the route: /api/plants/{plantName}/stage/{stageNum}
+// Handler function for the route: /api/plants/{plant-name}/stage/{stageNum}
 type PlantStageOverview struct {
 	MainDictionary *schema.MainDictionary
 }
 func (h *PlantStageOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- PlantStageOverview --"))
 	// Get plant_name from route
-	plant_name := GetVarEntries(r, "plantName", SpacedName)
+	plant_name := GetVarEntries(r, "plant-name", SpacedName)
 	stageNumRaw := GetVarEntries(r, "stageNum", None)
 	stage_num, err := strconv.Atoi(stageNumRaw)
 	if err != nil {
