@@ -8,6 +8,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 <!-- - `GET: /api/v0/leaderboards` list all available leaderboards and their descriptions
 - `GET: /api/v0/leaderboards/{board}` get the specified leaderboard rankings -->
 - `GET: /api/islands` returns details on every island in the game, including port connections, for navigational purposes
+- `GET: /api/islands/location-symbol}` returns details on specified island
 - `GET: /api/users` returns lists of registered usernames with various filters: unique, active, etc.
 - `GET: /api/users/{username}` returns the public user data
 - `POST: /api/users/{username}/claim` attempts to claim the specified username, returns the user data after creation, including token which users must save to access private routes
@@ -106,9 +107,11 @@ Versioning Convention: `major.minor.hotfix`
 
 ### Started: **[v0.5]** First Public Alpha
 
-- Update starting user template with appropriate tools, seeds, goods, produce, currencies
+- ~~Update starting user template with appropriate tools, seeds, goods, produce, currencies~~
 - Update documentation
 - Deploy alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
+- Uncomment cooldown section for plants
+- ~~Fix server crash when not specifying produce size in item name of market order~~
 
 ---
 
@@ -171,6 +174,7 @@ Versioning Convention: `major.minor.hotfix`
 - Simplified routing (pass a full route, even over oceans, and server will calculate total fare and travel time, rather than requiring manual travel between each intermediate location) - meta progression unlock?
 - Add Gigantic, Colossal, and Titanic planting. Harvesting these don't give Goods, but rather Trophies. Trophies are given unique IDs when harvested, yield contributes to Quality rather than Quantity, and hold Grower Username, Grown Date, Size, numeric Quality, Plant Rarity, and optionally (once sold) Sold Price. These are not taken to any old market, but are transported to special Auctioneer locations where they are auctioned for a set amount of time. Size, Quality, and Rarity are combined, +/- 10% from RNG to give a Sold Price. All trophies are stored in the DB for the season, and there are leaderboards for who can get the highest quality and highest sale price.
 - - Add a type of plant that can be indefinitely yield boosted to allow more active competing over Trophy leaderboards
+- Add a plant that grows tools
 
 ---
 

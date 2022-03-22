@@ -15,7 +15,6 @@ type Plant struct {
 	Size Size `json:"size" binding:"required"`
 	CurrentStage int16 `json:"current_stage" binding:"required"`
 	Yield float64 `json:"yield" binding:"required"`
-	NextStageTimestamp uint64 `json:"next_stage_timestamp" binding:"required"`
 }
 
 func NewPlant(ptype string, size Size) *Plant {
@@ -24,7 +23,6 @@ func NewPlant(ptype string, size Size) *Plant {
 		Size: size,
 		CurrentStage: 0,
 		Yield: 1.0,
-		NextStageTimestamp: 0,
 	}
 }
 
