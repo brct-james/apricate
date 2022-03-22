@@ -247,3 +247,49 @@ The game should follow a consistent terminology. Please report in discord if the
 - **User** A user is the player's primary entity, and resets with the Season.
 - **Season** (planned) Seasons are denoted by periodic game state wipes, with leaderboards and notable achievements catalogued by the server.
 - TODO: more terminology
+
+## Roadmap
+
+### **[v0.6]**
+
+- Contracts/Quests (incl. multi-quest lines) and NPCs (defined in YAML, GET and interact `/talk`?)
+- Rename contracts to Quests
+- Use data field for error responses to convey programmatically what failed validation (similar to some space traders endpoints)
+- - Better request validation functions
+
+### **[v0.7]**
+
+- Ratelimiting
+- Boldor, Yoggoth, Tyldia location YAML defined
+- Assistants can transfer things between warehouses
+- - Ports for moving between islands
+- Market uses 4 types of market order, simulates dynamic NPC supply/demand/pricing that evolves over time and based on all player investment in market
+- Markets initial state defined in YAML
+- At least 10 different plants excluding Wild Seeds, buy and sell at the markets of at least 3 towns, all starting town NPCs have quests
+- Atomize functions, write tests
+
+### **[v0.8]**
+
+- At least 20 plants excluding Wild Seeds, add at least 2 additional tools for growing some of the new plants, add infinite randomized quests from certain NPCs, all towns have markets, all NPCs on starting map have quests
+- Leaderboards (basically top-10 of ranked metrics?)
+
+### **[v0.9]**
+
+- Add buildings
+- Add refining/crafting with at least 8 recipes, add at least 4 new tools to support crafting, add at least 2 new buildings to support crafting
+- Add researching plants (with associated building) to reveal full information
+- Full Fog of War and hide unresearched plant information
+
+### **Public Release [v1.0]**
+
+- Meta account and progression, leaderboards
+- Landing page
+- Live server that is persistent, only wiped on scheduled update day (seasons). Updates are pushed every (other?) week on reset when available
+- Wild Seeds implemented?
+
+### **[Post-1.0]**
+
+- Simplified routing (pass a full route, even over oceans, and server will calculate total fare and travel time, rather than requiring manual travel between each intermediate location) - meta progression unlock?
+- Add Gigantic, Colossal, and Titanic planting. Harvesting these don't give Goods or Produce, but rather Trophies. Trophies are given unique IDs when harvested, yield contributes to Quality rather than Quantity, and hold Grower Username, Grown Date, Size, numeric Quality, Plant Rarity, and optionally (once sold) Sold Price. These are not taken to any old market, but are transported to special Auctioneer locations where they are auctioned for a set amount of time. Size, Quality, and Rarity are combined, +/- 10% from RNG to give a Sold Price. All trophies are stored in the DB for the season, and there are leaderboards for who can get the highest quality and highest sale price.
+- - Add plants that can be indefinitely yield boosted to allow more active competing over Trophy leaderboards
+- Add a plant that grows tools
