@@ -914,13 +914,13 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// // Validate Timestamp
-	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-	// 	// too soon, reject
-	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-	// 	return
-	// }
+	// Validate Timestamp
+	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+		// too soon, reject
+		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+		return
+	}
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody

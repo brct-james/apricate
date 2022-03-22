@@ -20,7 +20,7 @@ import (
 var (
 	ListenPort = ":50250"
 	RedisAddr = "localhost:6382"
-	apiVersion = "0.4.0"
+	apiVersion = "0.5.0"
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 	world schema.World
@@ -174,7 +174,7 @@ func handle_requests(slur_filter []string) {
 	// secure subrouter for account-specific routes
 	secure := mxr.PathPrefix("/api/my").Subrouter()
 	secure.Use(auth.GenerateTokenValidationMiddlewareFunc(dbs["users"]))
-	secure.Handle("/account", &handlers.AccountInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/user", &handlers.AccountInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/assistants", &handlers.AssistantsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/assistants/{id}", &handlers.AssistantInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/farms", &handlers.FarmsInfo{Dbs: &dbs}).Methods("GET")

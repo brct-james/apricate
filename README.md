@@ -17,7 +17,7 @@ Go-based server for a fantasy-themed capitalism simulator game set on a farm.
 - `GET: /api/metrics` returns map of metrics, including global market buy/sell
 
 **Secure Routes**
-- `GET: /api/my/account` returns the private user data (includes token)
+- `GET: /api/my/user` returns the private user data (includes token)
 - `GET: /api/my/assistants` returns a list of the player's assistants
 - `GET: /api/my/assistants/{id}` returns the assistant specified by `id` (use numeric ID, i.e. for the uuid: `Greenitthe|Assistant-0` call this with 0 e.g. `GET: /api/my/assistants/0`)
 - `GET: /api/my/farms` returns a list of the player's farms
@@ -108,9 +108,9 @@ Versioning Convention: `major.minor.hotfix`
 ### Started: **[v0.5]** First Public Alpha
 
 - ~~Update starting user template with appropriate tools, seeds, goods, produce, currencies~~
-- Update documentation
-- Deploy alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)
-- Uncomment cooldown section for plants
+- ~~Update documentation~~
+- ~~Deploy alpha server and separate dev server once complete, host timed pre-alpha test via discord (no point till can sell produce and buy new seeds)~~
+- ~~Uncomment cooldown section for plants~~
 - ~~Fix server crash when not specifying produce size in item name of market order~~
 
 ---
