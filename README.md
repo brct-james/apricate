@@ -146,7 +146,7 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: **[v0.8]**
 
 - Respond to feedback from v0.7 alpha
-- At least 20 plants excluding Wild Seeds, add at least 2 additional tools for growing some of the new plants, add randomized contracts, consider adding additional markets, all NPCs on starting map have quests
+- At least 20 plants excluding Wild Seeds, add at least 2 additional tools for growing some of the new plants, add infinite randomized quests from certain NPCs, all towns have markets, all NPCs on starting map have quests
 - Leaderboards (basically top-10 of ranked metrics?)
 
 ---
@@ -163,8 +163,8 @@ Versioning Convention: `major.minor.hotfix`
 ### Planned: **[v1.0]**
 
 - Respond to feedback from v0.9 alpha
-- Meta account and progression, leaderboards, full documentation, separate dev partition that won't affect live
-- Live server that is persistent, only wiped on update day. Updates are pushed every (other?) week when available
+- Meta account and progression, leaderboards
+- Live server that is persistent, only wiped on scheduled update day (seasons). Updates are pushed every (other?) week on reset when available
 - Wild Seeds implemented?
 
 ---
