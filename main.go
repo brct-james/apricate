@@ -25,7 +25,7 @@ var (
 	dbs = make(map[string]rdb.Database)
 	world schema.World
 	main_dictionary = schema.MainDictionary{}
-	flush_DBs = true
+	flush_DBs = false
 	regenerate_auth_secret = false
 )
 
