@@ -75,7 +75,7 @@ type AssistantInfo struct {
 func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- AssistantInfo --"))
 	// Get symbol from route
-	id := GetVarEntries(r, "id", AllCaps)
+	id := GetVarEntries(r, "assistant-id", AllCaps)
 	// Get userinfoContext from validation middleware
 	userInfo, userInfoErr := GetValidationFromCtx(r)
 	if userInfoErr != nil {
@@ -453,7 +453,7 @@ type ContractInfo struct {
 func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- ContractInfo --"))
 	// Get symbol from route
-	id := GetVarEntries(r, "id", AllCaps)
+	id := GetVarEntries(r, "contract-id", AllCaps)
 	// Get userinfoContext from validation middleware
 	userInfo, userInfoErr := GetValidationFromCtx(r)
 	if userInfoErr != nil {
@@ -689,8 +689,8 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	plantName, plantNameOk := seedsDict[body.SeedName]
 	if !plantNameOk {
 		// Fail, seed name specified does not match a known seed
-		errmsg := fmt.Sprintf("Error in PlantPlot, SeedName does not map to seed in seed dictionary. received seed name: %v", body.SeedName)
-		log.Error.Printf(errmsg)
+		errmsg := fmt.Sprintf("in PlantPlot, SeedName does not map to seed in seed dictionary. received seed name: %v", body.SeedName)
+		log.Debug.Printf(errmsg)
 		responses.SendRes(w, responses.Item_Is_Not_Seed, nil, errmsg)
 		return
 	}
