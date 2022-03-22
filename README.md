@@ -122,7 +122,7 @@ Versioning Convention: `major.minor.hotfix`
 - NPC endpoints for story/lore and contracts
 - - `/talk`
 - Cheat codes, maybe entered by talking to the NPC on your farm
-- Rename Contracts to QuestContracts to fit the theme better (yes, its a capitalist society, but its an oldtimey fantasy world, gotta have quests)
+- Rename Contracts to Quests to fit the theme better
 - NPCs defined in YAML
 - Use data field for request error responses to convey programmatically what failed validation
 - Request validation functions
