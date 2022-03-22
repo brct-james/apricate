@@ -27,7 +27,11 @@ func NewProduce(name string, size Size, quantity uint64) *Produce {
 
 // Load produce list by unmarhsalling given yaml file
 func Produce_load(path_to_produce_yaml string) map[string]string {
-	produceBytes := filemngr.ReadFileToBytes(path_to_produce_yaml)
+	produceBytes, readErr := filemngr.ReadFileToBytes(path_to_produce_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	var rawProduce map[string]string
 	err := yaml.Unmarshal(produceBytes, &rawProduce)
 	if err != nil {

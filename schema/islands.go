@@ -17,7 +17,11 @@ type Island struct {
 
 // Load island struct by unmarhsalling given yaml file
 func Islands_load(path_to_islands_yaml string) map[string]Island {
-	islandsBytes := filemngr.ReadFilesToBytes(path_to_islands_yaml)
+	islandsBytes, readErr := filemngr.ReadFilesToBytes(path_to_islands_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	islands := make(map[string]Island)
 	for _, byte := range islandsBytes {
 		var island map[string]Island

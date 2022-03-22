@@ -51,7 +51,11 @@ func (d *PlantDefinition) GetScaledGrowthStage(gsIndex int16, plantQuantity uint
 
 // Load seed struct by unmarhsalling given yaml file
 func Seeds_load(path_to_seeds_yaml string) map[string]string {
-	seedsBytes := filemngr.ReadFileToBytes(path_to_seeds_yaml)
+	seedsBytes, readErr := filemngr.ReadFileToBytes(path_to_seeds_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	var seeds map[string]string
 	err := yaml.Unmarshal(seedsBytes, &seeds)
 	if err != nil {
@@ -64,7 +68,11 @@ func Seeds_load(path_to_seeds_yaml string) map[string]string {
 
 // Load plant struct by unmarhsalling given yaml file
 func Plants_load(path_to_plants_yaml string) map[string]PlantDefinition {
-	plantsBytes := filemngr.ReadFileToBytes(path_to_plants_yaml)
+	plantsBytes, readErr := filemngr.ReadFileToBytes(path_to_plants_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	var plants map[string]PlantDefinition
 	err := yaml.Unmarshal(plantsBytes, &plants)
 	if err != nil {

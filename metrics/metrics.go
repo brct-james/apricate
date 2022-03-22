@@ -2,6 +2,7 @@
 package metrics
 
 import (
+	"apricate/log"
 	"apricate/schema"
 	"apricate/timecalc"
 	"fmt"
@@ -9,6 +10,32 @@ import (
 )
 
 // Helper Functions
+
+// Write out metrics
+func SaveMetrics() {
+	mYaml := schema.SaveMetricsYaml{
+		UniqueUsers: TrackingUniqueUsers.Usernames, // Handled by TrackUserCall
+		UserActivity: TrackingActiveUsers.UserActivity, // Handled by TrackUserCall
+		Coins: TrackingUserCoins.Coins, // Handled by TrackUserCall and TrackMarketBuySell
+		MarketData: TrackingMarket.MarketData, // Handled by TrackMarketBuySell
+	}
+	schema.Metrics_to_yaml("metrics.yaml", mYaml)
+}
+
+// Read out metrics
+func LoadMetrics() {
+	mYaml, found := schema.Metrics_from_yaml("metrics.yaml")
+	if !found {
+		// Failed to load
+		log.Error.Printf("Failed to load metrics from YAML, saved metrics may not exist, continuing server startup.")
+		return
+	}
+	TrackingUniqueUsers.Usernames = mYaml.UniqueUsers
+	TrackingActiveUsers.UserActivity = mYaml.UserActivity
+	TrackingUserCoins.Coins = mYaml.Coins
+	TrackingMarket.MarketData = mYaml.MarketData
+}
+
 
 // Assemble users metrics for json response
 func AssembleUsersMetrics() (schema.UsersMetricEndpointResponse) {
@@ -53,6 +80,7 @@ func CalculateActiveUsers() ([]string) {
 }
 func TrackUserCall(username string) {
 	TrackingActiveUsers.UserActivity[username] = time.Now().Unix()
+	SaveMetrics()
 }
 
 // User Coins
@@ -89,6 +117,7 @@ func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {
 			TrackingMarket.MarketData[itemName] = existingData
 		}
 	}
+	SaveMetrics()
 }
 
 // // Users by Achievement

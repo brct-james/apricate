@@ -115,6 +115,15 @@ func main() {
 	log.Info.Println("Loading secrets from envfile")
 	auth.LoadSecretsToEnv()
 
+	// Reset or Load Metrics
+	log.Info.Printf("Loading metrics.yaml")
+	if flush_DBs || regenerate_auth_secret {
+		// Need to reset metrics
+		log.Important.Printf("Cleared metrics.yaml")
+		filemngr.DeleteIfExists("metrics.yaml")
+	}
+	metrics.LoadMetrics()
+
 	setup_my_character()
 
 	// Preload 

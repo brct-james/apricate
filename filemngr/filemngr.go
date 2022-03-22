@@ -8,6 +8,11 @@ import (
 	"apricate/log"
 )
 
+// Delete file if it exists, else continue
+func DeleteIfExists(path string) {
+	os.Remove(path)
+}
+
 // Ensure file exists, if not create it
 func Touch(name string) error {
 	log.Debug.Printf("Ensuring %s exists", name)
@@ -59,27 +64,39 @@ func ConvertFileToBytes(file *os.File) []byte {
 	return byteValue
 }
 
+// Writes file with specified bytes
+func WriteBytesToFile(path string, bytes []byte) error {
+	log.Debug.Printf("Writing bytes to file at %s", path)
+	err := ioutil.WriteFile(path, bytes, 0644)
+	log.Debug.Printf("Finished, err?: %v", err)
+	return err
+}
+
 // Reads specified file, returns byte slice
-func ReadFileToBytes(path string) []byte {
+func ReadFileToBytes(path string) ([]byte, error) {
 	readFile, err := os.Open(path)
 	if err != nil {
-		log.Error.Fatalln(err)
+		return []byte{}, err
 	}
 	log.Debug.Println("Successfully opened file for reading to bytes at: " + path)
 	defer readFile.Close()
-	return ConvertFileToBytes(readFile)
+	return ConvertFileToBytes(readFile), nil
 }
 
 // Reads every file in directory, returning slice of bytevalues
-func ReadFilesToBytes(path_to_directory string) [][]byte {
+func ReadFilesToBytes(path_to_directory string) ([][]byte, error) {
 	files, err := ioutil.ReadDir(path_to_directory)
 	if err != nil {
-		log.Error.Fatalln(err)
+		return [][]byte{}, err
 	}
 	bytes := make([][]byte, len(files))
 	for i, file := range files {
 		filename := file.Name()
-		bytes[i] = ReadFileToBytes(path_to_directory + "/" + filename)
+		var readErr error
+		bytes[i], readErr = ReadFileToBytes(path_to_directory + "/" + filename)
+		if readErr != nil {
+			return [][]byte{}, readErr
+		}
 	}
-	return bytes
+	return bytes, nil
 }

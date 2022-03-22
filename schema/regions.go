@@ -18,7 +18,11 @@ type Region struct {
 
 // Load region struct by unmarhsalling given yaml file
 func Regions_load(path_to_regions_yaml string) map[string]Region {
-	regionsBytes := filemngr.ReadFileToBytes(path_to_regions_yaml)
+	regionsBytes, readErr := filemngr.ReadFileToBytes(path_to_regions_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	var regions map[string]Region
 	err := yaml.Unmarshal(regionsBytes, &regions)
 	if err != nil {

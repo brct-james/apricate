@@ -21,7 +21,11 @@ type Location struct {
 
 // Load location struct by unmarhsalling given yaml file
 func Locations_load(path_to_locations_yaml string) map[string]Location {
-	locationsBytes := filemngr.ReadFilesToBytes(path_to_locations_yaml)
+	locationsBytes, readErr := filemngr.ReadFilesToBytes(path_to_locations_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	locations := make(map[string]Location)
 	for _, byte := range locationsBytes {
 		var location map[string]Location

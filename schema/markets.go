@@ -28,7 +28,11 @@ type MarketIOField struct {
 
 // Load market struct by unmarhsalling given yaml file
 func Markets_load(path_to_markets_yaml string) map[string]Market {
-	marketsBytes := filemngr.ReadFileToBytes(path_to_markets_yaml)
+	marketsBytes, readErr := filemngr.ReadFileToBytes(path_to_markets_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	var markets map[string]Market
 	err := yaml.Unmarshal(marketsBytes, &markets)
 	if err != nil {

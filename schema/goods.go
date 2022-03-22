@@ -25,7 +25,11 @@ type RawGoodEntry struct {
 
 // Load good list by unmarhsalling given yaml file
 func GoodListGenerator(path_to_goods_yaml string) map[string]interface{} {
-	goodsBytes := filemngr.ReadFileToBytes(path_to_goods_yaml)
+	goodsBytes, readErr := filemngr.ReadFileToBytes(path_to_goods_yaml)
+	if readErr != nil {
+		// Essential to server start
+		panic(readErr)
+	}
 	var rawGoods []RawGoodEntry
 	err := yaml.Unmarshal(goodsBytes, &rawGoods)
 	if err != nil {

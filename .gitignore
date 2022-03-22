@@ -27,5 +27,8 @@ slur_filter.txt
 # Balance Notes
 balance_notes
 
+# Metrics
+metrics.yaml
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
