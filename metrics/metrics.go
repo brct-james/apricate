@@ -96,6 +96,7 @@ func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {
 	existingData, edOK := TrackingMarket.MarketData[itemName]
 	if !edOK {
 		// New Data
+		TrackingMarket.MarketData = make(map[string]schema.GMBSMarketData)
 		if isBuy {
 			TrackingMarket.MarketData[itemName] = schema.GMBSMarketData{
 				Bought: quantity,
