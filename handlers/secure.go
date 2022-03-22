@@ -750,6 +750,7 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	plot.PlantedPlant = schema.NewPlant(plantName, body.SeedSize)
 	plot.Quantity = body.SeedQuantity
+	plot.GrowthCompleteTimestamp = time.Now().Unix()
 	warehouse.RemoveSeeds(body.SeedName, uint64(body.SeedQuantity))
 	farm.Plots[uuid] = plot
 
@@ -838,6 +839,7 @@ func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	plot.PlantedPlant = nil
 	plot.Quantity = 0
+	plot.GrowthCompleteTimestamp = time.Now().Unix()
 	farm.Plots[uuid] = plot
 
 	// Save to DB
@@ -1176,37 +1178,49 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var itemDict map[string]uint64
 	var warehouseDict map[string]uint64
 	var itemName string
+	var simpleItemName string
 	var sizeMod uint64
-	switch order.ItemType {
+	switch order.ItemCategory {
 	case schema.GOOD:
 		itemDict = ioField.Goods
 		warehouseDict = warehouse.Goods
 		itemName = order.ItemName
+		simpleItemName = order.ItemName
 		sizeMod = 1
 	case schema.SEED:
 		itemDict = ioField.Seeds
 		warehouseDict = warehouse.Seeds
 		itemName = order.ItemName
+		simpleItemName = order.ItemName
 		sizeMod = 1
 	case schema.TOOL:
 		itemDict = ioField.Tools
 		warehouseDict = warehouse.Tools
 		itemName = order.ItemName
+		simpleItemName = order.ItemName
 		sizeMod = 1
 	case schema.PRODUCE:
 		itemDict = ioField.Produce
 		warehouseDict = warehouse.GetSimpleProduceDict()
 		splitSlice := strings.Split(order.ItemName, "|")
-		itemName = splitSlice[0]
+		if len(splitSlice) <= 1 {
+			// fail, no size specified
+			errmsg := "in MarketOrder, order.ItemName for PRODUCE category MUST have size specified e.g. 'Potato|Large', ensure correct ItemCategory specified and item name contains size"
+			log.Debug.Printf("%s, %s: %v", errmsg, itemName, splitSlice)
+			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
+			return
+		}
+		itemName = splitSlice[0] + "|" + strings.Title(strings.ToLower(splitSlice[1]))
+		simpleItemName = splitSlice[0]
 		sizeMod = uint64(schema.SizeToID[splitSlice[1]])
 	}
 
 	// get market value
-	marketValue, mvOk := itemDict[itemName]
+	marketValue, mvOk := itemDict[simpleItemName]
 	if !mvOk {
 		// fail, item not in specified market list
-		errmsg := "in MarketOrder, order.ItemName not in itemDict, ensure correct ItemType specified and item is available for trade in specified market for given transaction type"
-		log.Debug.Printf("%s, %s: %v", errmsg, itemName, itemDict)
+		errmsg := "in MarketOrder, order.ItemName not in itemDict, ensure correct ItemCategory specified and item is available for trade in specified market for given transaction type"
+		log.Debug.Printf("%s, %s: %v", errmsg, simpleItemName, itemDict)
 		responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
 		return
 	}
@@ -1225,16 +1239,16 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Execute buy
 		coins -= orderCost
-		warehouseDict[order.ItemName] += order.Quantity
-		metrics.TrackMarketBuySell(order.ItemName, true, order.Quantity)
+		warehouseDict[itemName] += order.Quantity
+		metrics.TrackMarketBuySell(itemName, true, order.Quantity)
 	} else {
 		orderProfit := order.Quantity * marketValue * sizeMod
 		// Validate in warehouse in sufficient quantity
-		warehouseQuantity, wqOk := warehouseDict[order.ItemName]
+		warehouseQuantity, wqOk := warehouseDict[itemName]
 		if !wqOk {
 			// fail, item not in location's warehouse
-			errmsg := "in MarketOrder, specified item not found in local warehouse, ensure order.ItemType is specified correctly"
-			log.Debug.Printf("%s, %s: %v", errmsg, order.ItemName, warehouseDict)
+			errmsg := "in MarketOrder, specified item not found in local warehouse, ensure order.ItemCategory is specified correctly"
+			log.Debug.Printf("%s, %s: %v", errmsg, itemName, warehouseDict)
 			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
 			return
 		}
@@ -1247,16 +1261,16 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Execute sell
 		coins += orderProfit
-		warehouseDict[order.ItemName] -= order.Quantity
+		warehouseDict[itemName] -= order.Quantity
 		// Handle deleting if necessary
-		if warehouseDict[order.ItemName] <= 0 {
-			delete(warehouseDict, order.ItemName)
+		if warehouseDict[itemName] <= 0 {
+			delete(warehouseDict, itemName)
 		}
-		metrics.TrackMarketBuySell(order.ItemName, false, order.Quantity)
+		metrics.TrackMarketBuySell(itemName, false, order.Quantity)
 	}
 	
 	// Apply results to original objects
-	switch order.ItemType {
+	switch order.ItemCategory {
 	case schema.GOOD:
 		warehouse.Goods = warehouseDict
 	case schema.SEED:

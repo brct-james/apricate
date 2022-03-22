@@ -28,7 +28,7 @@ type Farm struct {
 	Plots map[string]Plot `json:"plots" binding:"required"`
 }
 
-func NewFarm(pdb rdb.Database, totalplotcount uint16, username string, locationSymbol string) *Farm {
+func NewFarm(pdb rdb.Database, totalplotcount uint64, username string, locationSymbol string) *Farm {
 	var bonuses []FarmBonuses
 	var buildings map[BuildingTypes]uint8
 	var plots map[string]Plot

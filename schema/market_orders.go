@@ -12,7 +12,7 @@ import (
 type MarketOrder struct {
 	OrderType OrderType `json:"order_type" binding:"required"`
 	TXType TXType `json:"transaction_type" binding:"required"`
-	ItemType ItemType `json:"item_type" binding:"required"`
+	ItemCategory ItemCategory `json:"item_category" binding:"required"`
 	ItemName string `json:"item_name" binding:"required"`
 	Quantity uint64 `json:"quantity" binding:"required"`
 }
@@ -65,26 +65,26 @@ func (s *OrderType) UnmarshalJSON(b []byte) error {
 }
 
 // enum for assistant types
-type ItemType uint16
+type ItemCategory uint16
 const (
-	GOOD ItemType = 0
-	SEED ItemType = 1
-	PRODUCE ItemType = 2
-	TOOL ItemType = 3
+	GOOD ItemCategory = 0
+	SEED ItemCategory = 1
+	PRODUCE ItemCategory = 2
+	TOOL ItemCategory = 3
 )
 
-func (s ItemType) String() string {
-	return itemTypeToString[s]
+func (s ItemCategory) String() string {
+	return itemCatgoryToString[s]
 }
 
-var itemTypeToString = map[ItemType]string {
+var itemCatgoryToString = map[ItemCategory]string {
 	GOOD: "GOODS",
 	SEED: "SEEDS",
 	PRODUCE: "PRODUCE",
 	TOOL: "TOOLS",
 }
 
-var itemTypeToID = map[string]ItemType {
+var itemCategoryToID = map[string]ItemCategory {
 	"GOODS": GOOD,
 	"SEEDS": SEED,
 	"PRODUCE": PRODUCE,
@@ -92,22 +92,22 @@ var itemTypeToID = map[string]ItemType {
 }
 
 // MarshalJSON marshals the enum as a quoted json string
-func (s ItemType) MarshalJSON() ([]byte, error) {
+func (s ItemCategory) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(itemTypeToString[s])
+	buffer.WriteString(itemCatgoryToString[s])
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
 }
 
 // UnmarshalJSON unmashals a quoted json string to the enum value
-func (s *ItemType) UnmarshalJSON(b []byte) error {
+func (s *ItemCategory) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
 	if err != nil {
 		return err
 	}
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
-	*s = itemTypeToID[j]
+	*s = itemCategoryToID[j]
 	return nil
 }
 

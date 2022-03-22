@@ -16,16 +16,18 @@ import (
 type Plot struct {
 	UUID string `json:"uuid" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
+	ID uint64 `json:"id" binding:"required"`
 	PlotSize Size `json:"size" binding:"required"`
 	Quantity uint16 `json:"plant_quantity" binding:"required"`
-	PlantedPlant *Plant `json:"plant" binding:"required"`
 	GrowthCompleteTimestamp int64 `json:"growth_complete_timestamp" binding:"required"`
+	PlantedPlant *Plant `json:"plant" binding:"required"`
 }
 
-func NewPlot(username string, countOfPlots uint16, locationSymbol string, capacity Size) *Plot {
+func NewPlot(username string, countOfPlots uint64, locationSymbol string, capacity Size) *Plot {
 	return &Plot{
 		UUID: username + "|Farm-" + locationSymbol + "|Plot-" + fmt.Sprintf("%d", countOfPlots),
 		LocationSymbol: locationSymbol,
+		ID: countOfPlots,
 		PlotSize: capacity,
 		Quantity: 0,
 		PlantedPlant: nil,
@@ -33,10 +35,10 @@ func NewPlot(username string, countOfPlots uint16, locationSymbol string, capaci
 	}
 }
 
-func NewPlots(pdb rdb.Database, username string, countOfPlots uint16, locationSymbol string, capacities []Size) map[string]Plot {
+func NewPlots(pdb rdb.Database, username string, countOfPlots uint64, locationSymbol string, capacities []Size) map[string]Plot {
 	res := make(map[string]Plot, len(capacities))
 	for i, size := range capacities {
-		plot := NewPlot(username, countOfPlots + uint16(i), locationSymbol, size)
+		plot := NewPlot(username, countOfPlots + uint64(i), locationSymbol, size)
 		res[plot.UUID] = *plot
 	}
 	return res
