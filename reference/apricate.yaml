@@ -76,7 +76,9 @@ paths:
         description: Case-insensitive username
     get:
       summary: Get Specific User's Public Info
-      tags: []
+      tags:
+        - Public
+        - Users
       responses:
         '200':
           description: OK
@@ -90,7 +92,7 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: '#/components/schemas/Public-User-Info'
+                    $ref: ../models/Public-User-Info.yaml
       operationId: Get Specific User
       description: Gets the public info of a specified user
   '/users/{username}/claim':
@@ -149,156 +151,17 @@ paths:
                     type: string
                     minLength: 1
                   data:
-                    $ref: '#/components/schemas/User-Info'
+                    $ref: ../models/User-Info.yaml
                 required:
                   - code
                   - message
                   - data
       description: Attempt to create new user with the specified username
+      tags:
+        - Public
+        - Users
 components:
-  schemas:
-    Public-User-Info:
-      description: Publicly available user information
-      type: object
-      x-examples:
-        example-1:
-          username: Greenitthe
-          title: Owner
-          ledger:
-            currencies:
-              Coins: 1000
-            favor:
-              Vince Kosuga: 50
-            escrow: {}
-          user-since: 1647895469
-          achievements:
-            - Owner
-            - Contributor
-            - Noob
-      properties:
-        username:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        ledger:
-          type: object
-          required:
-            - currencies
-            - favor
-            - escrow
-          properties:
-            currencies:
-              type: object
-            favor:
-              type: object
-            escrow:
-              type: object
-        user-since:
-          type: number
-          description: Unix Timestamp
-        achievements:
-          type: array
-          items:
-            type: string
-      required:
-        - username
-        - title
-        - ledger
-        - user-since
-        - achievements
-    User-Info:
-      description: 'All user info, public and private'
-      type: object
-      x-examples:
-        example-1:
-          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRyaWFuIn0.KvgNKsC8YXAsMTox6mX5T1UJXuHQNx9LQ574v-c6zKo
-          username: trian
-          title: Noob
-          ledger:
-            currencies:
-              Coins: 100
-            favor:
-              Vince Kosuga: 50
-            escrow: {}
-          user-since: 1647896254
-          achievements:
-            - Noob
-          contracts:
-            - trian|Contract-0
-          assistants:
-            - trian|Assistant-0
-          farms:
-            - trian|Farm-TS-PR-HF
-          plots:
-            - trian|Farm-TS-PR-HF|Plot-0
-            - trian|Farm-TS-PR-HF|Plot-1
-            - trian|Farm-TS-PR-HF|Plot-2
-            - trian|Farm-TS-PR-HF|Plot-3
-          warehouses:
-            - trian|Warehouse-TS-PR-HF
-      properties:
-        token:
-          type: string
-          minLength: 1
-        username:
-          type: string
-          minLength: 1
-        title:
-          type: string
-          minLength: 1
-        ledger:
-          type: object
-          required:
-            - currencies
-            - favor
-            - escrow
-          properties:
-            currencies:
-              type: object
-            favor:
-              type: object
-            escrow:
-              type: object
-        user-since:
-          type: number
-        achievements:
-          type: array
-          items:
-            type: string
-        contracts:
-          type: array
-          items:
-            type: string
-        assistants:
-          type: array
-          items:
-            type: string
-        farms:
-          type: array
-          items:
-            type: string
-        plots:
-          type: array
-          items:
-            type: string
-        warehouses:
-          type: array
-          items:
-            type: string
-      required:
-        - token
-        - username
-        - title
-        - ledger
-        - user-since
-        - achievements
-        - contracts
-        - assistants
-        - farms
-        - plots
-        - warehouses
+  schemas: {}
   securitySchemes:
     bearerAuth:
       type: http

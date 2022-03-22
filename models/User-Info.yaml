@@ -1,0 +1,92 @@
+description: 'User information, public and private'
+type: object
+x-examples:
+  example-1:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRyaWFuIn0.KvgNKsC8YXAsMTox6mX5T1UJXuHQNx9LQ574v-c6zKo
+    username: trian
+    title: Noob
+    ledger:
+      currencies:
+        Coins: 100
+      favor:
+        Vince Kosuga: 50
+      escrow: {}
+    user-since: 1647896254
+    achievements:
+      - Noob
+    contracts:
+      - trian|Contract-0
+    assistants:
+      - trian|Assistant-0
+    farms:
+      - trian|Farm-TS-PR-HF
+    plots:
+      - trian|Farm-TS-PR-HF|Plot-0
+      - trian|Farm-TS-PR-HF|Plot-1
+      - trian|Farm-TS-PR-HF|Plot-2
+      - trian|Farm-TS-PR-HF|Plot-3
+    warehouses:
+      - trian|Warehouse-TS-PR-HF
+properties:
+  token:
+    type: string
+    minLength: 1
+  username:
+    type: string
+    minLength: 1
+  title:
+    type: string
+    minLength: 1
+  ledger:
+    type: object
+    required:
+      - currencies
+      - favor
+      - escrow
+    properties:
+      currencies:
+        type: object
+      favor:
+        type: object
+      escrow:
+        type: object
+  user-since:
+    type: number
+  achievements:
+    type: array
+    items:
+      type: string
+  contracts:
+    type: array
+    items:
+      type: string
+  assistants:
+    type: array
+    items:
+      type: string
+  farms:
+    type: array
+    items:
+      type: string
+  plots:
+    type: array
+    items:
+      type: string
+  warehouses:
+    type: array
+    items:
+      type: string
+required:
+  - token
+  - username
+  - title
+  - ledger
+  - user-since
+  - achievements
+  - contracts
+  - assistants
+  - farms
+  - plots
+  - warehouses
+x-tags:
+  - Users
