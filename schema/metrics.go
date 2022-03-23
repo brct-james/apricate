@@ -13,17 +13,33 @@ type Metric struct {
 	Description string `json:"description" binding:"required"`
 }
 
+type MetricsResponse struct {
+	MarketBuySell GlobalMarketBuySellMetric `json:"Global Market Buy/Sell" binding:"required"`
+	UserCoins UserCoinsMetric `json:"User Coins" binding:"required"`
+	Harvests TrackingHarvestsMetric `json:"Harvests" binding:"required"`
+}
+
 type SaveMetricsYaml struct {
 	UniqueUsers []string `yaml:"UniqueUsers"`
 	UserActivity map[string]int64 `yaml:"UserActivity"`
 	Coins map[string]uint64 `yaml:"UserCoins"`
 	MarketData map[string]GMBSMarketData `yaml:"MarketData"`
+	HarvestData map[string]uint64 `yaml:"HarvestData"`
 }
 
 type UsersMetricEndpointResponse struct {
 	UniqueUsers []string `json:"unique_users" binding:"required"`
 	ActiveUsers []string `json:"active_users" binding:"required"`
 	// UsersByAchievement []AchievementMetric `json:"users-by-achievement" binding:"required"`
+}
+
+// Tracking User Coins for Metrics
+var TrackingUserCoins = UserCoinsMetric {
+	Metric: Metric{Name:"User Coins", Description:"Map of every registered user and their coins",},
+	Coins: make(map[string]uint64),
+}
+func TrackUserCoins(username string, coins uint64) {
+	TrackingUserCoins.Coins[username] = coins
 }
 
 // Unique Users
@@ -52,6 +68,12 @@ type GlobalMarketBuySellMetric struct {
 type GMBSMarketData struct {
 	Bought uint64 `yaml:"Bought" json:"bought" binding:"required"`
 	Sold uint64 `yaml:"Sold" json:"sold" binding:"required"`
+}
+
+// Plants Harvested
+type TrackingHarvestsMetric struct {
+	Metric
+	HarvestData map[string]uint64 `yaml:"TotalHarvests" json:"total_harvests" binding:"required"`
 }
 
 // // Users by Achievement

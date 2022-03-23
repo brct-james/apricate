@@ -33,15 +33,6 @@ type PublicInfo struct {
 	Achievements []Achievement `json:"achievements" binding:"required"`
 }
 
-// Tracking User Coins for Metrics
-var TrackingUserCoins = UserCoinsMetric {
-	Metric: Metric{Name:"User Coins", Description:"Map of every registered user and their coins",},
-	Coins: make(map[string]uint64),
-}
-func TrackUserCoins(username string, coins uint64) {
-	TrackingUserCoins.Coins[username] = coins
-}
-
 func NewUser(token string, username string, dbs map[string]rdb.Database, devUser bool) *User {
 	// starting location
 	startLocation := "TS-PR-HF"

@@ -18,6 +18,7 @@ func SaveMetrics() {
 		UserActivity: TrackingActiveUsers.UserActivity, // Handled by TrackUserCall
 		Coins: TrackingUserCoins.Coins, // Handled by TrackUserCall and TrackMarketBuySell
 		MarketData: TrackingMarket.MarketData, // Handled by TrackMarketBuySell
+		HarvestData: TrackingHarvests.HarvestData, // Handled by TrackHarvest
 	}
 	schema.Metrics_to_yaml("metrics.yaml", mYaml)
 }
@@ -34,8 +35,34 @@ func LoadMetrics() {
 	TrackingActiveUsers.UserActivity = mYaml.UserActivity
 	TrackingUserCoins.Coins = mYaml.Coins
 	TrackingMarket.MarketData = mYaml.MarketData
+	TrackingHarvests.HarvestData = mYaml.HarvestData
+
+	// If was blank, make sure it is still initialized
+	if TrackingHarvests.HarvestData == nil {
+		TrackingHarvests.HarvestData = make(map[string]uint64)
+	}
+	if TrackingMarket.MarketData == nil {
+		TrackingMarket.MarketData = make(map[string]schema.GMBSMarketData)
+	}
+	if TrackingUserCoins.Coins == nil {
+		TrackingUserCoins.Coins = make(map[string]uint64)
+	}
+	if TrackingActiveUsers.UserActivity == nil {
+		TrackingActiveUsers.UserActivity = make(map[string]int64, 0)
+	}
+	if TrackingUniqueUsers.Usernames == nil {
+		TrackingUniqueUsers.Usernames = make([]string, 0)
+	}
 }
 
+// Get metrics response
+func GetMetricsResponse() (schema.MetricsResponse) {
+	return schema.MetricsResponse {
+		MarketBuySell: TrackingMarket,
+		UserCoins: *TrackingUserCoins,
+		Harvests: TrackingHarvests,
+	}
+}
 
 // Assemble users metrics for json response
 func AssembleUsersMetrics() (schema.UsersMetricEndpointResponse) {
@@ -96,7 +123,6 @@ func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {
 	existingData, edOK := TrackingMarket.MarketData[itemName]
 	if !edOK {
 		// New Data
-		TrackingMarket.MarketData = make(map[string]schema.GMBSMarketData)
 		if isBuy {
 			TrackingMarket.MarketData[itemName] = schema.GMBSMarketData{
 				Bought: quantity,
@@ -118,6 +144,16 @@ func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {
 			TrackingMarket.MarketData[itemName] = existingData
 		}
 	}
+	SaveMetrics()
+}
+
+// Plants Harvested
+var TrackingHarvests = schema.TrackingHarvestsMetric {
+	Metric: schema.Metric{Name:"Plants Harvested", Description:"Map of all plants that have been harvested and how many times that has occurred."},
+	HarvestData: make(map[string]uint64),
+}
+func TrackHarvest(plantName string) {
+	TrackingHarvests.HarvestData[plantName] ++
 	SaveMetrics()
 }
 

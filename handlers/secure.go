@@ -1043,6 +1043,8 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Debug.Printf("Add good quantity: %d", goodquantity)
 			warehouse.AddGoods(goodname, goodquantity)
 		}
+
+		metrics.TrackHarvest(plantDef.Name)
 		
 		// check if final harvest
 		if growthHarvest.FinalHarvest {
