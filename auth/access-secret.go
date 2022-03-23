@@ -14,9 +14,9 @@ import (
 // Creates or updates the APRICATE_ACCESS_SECRET value in secrets.env
 func CreateOrUpdateAuthSecretInFile() {
 	// Ensure exists
-	filemngr.Touch("secrets.env")
+	filemngr.Touch("data/secrets.env")
 	// Read file to lines array splitting by newline
-	lines, readErr := filemngr.ReadFileToLineSlice("secrets.env")
+	lines, readErr := filemngr.ReadFileToLineSlice("data/secrets.env")
 	if readErr != nil {
 		// Auth is mission-critical, using Fatal
 		log.Error.Fatalf("Could not read lines from secrets.env. Err: %v", readErr)
@@ -49,9 +49,9 @@ func CreateOrUpdateAuthSecretInFile() {
 	}
 	
 	// Join and write out
-	writeErr := filemngr.WriteLinesToFile("secrets.env", lines)
+	writeErr := filemngr.WriteLinesToFile("data/secrets.env", lines)
 	if writeErr != nil {
-		log.Error.Fatalf("Could not write secrets.net: %v", writeErr)
+		log.Error.Fatalf("Could not write secrets.env: %v", writeErr)
 	}
 	log.Info.Println("Wrote auth secret to secrets.env")
 }
@@ -73,7 +73,7 @@ func GenerateRandomSecureString(n int) (string, error) {
 
 // Load secrets.env file to environment
 func LoadSecretsToEnv() {
-	godotenvErr := godotenv.Load("secrets.env")
+	godotenvErr := godotenv.Load("data/secrets.env")
 	if godotenvErr != nil {
 		// Loading secrets is mission-critical, fatal
 		log.Error.Fatalf("Error loading secrets.env file. %v", godotenvErr)

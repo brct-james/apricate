@@ -39,6 +39,7 @@ var TrackingUserCoins = UserCoinsMetric {
 	Coins: make(map[string]uint64),
 }
 func TrackUserCoins(username string, coins uint64) {
+	log.Debug.Printf("Metrics:TrackUserCoins")
 	TrackingUserCoins.Coins[username] = coins
 }
 
@@ -88,6 +89,7 @@ type TrackingHarvestsMetric struct {
 
 // Load metrics struct by unmarhsalling given yaml file
 func Metrics_from_yaml(path_to_metrics_yaml string) (SaveMetricsYaml, bool) {
+	log.Debug.Printf("Load metrics from %s", path_to_metrics_yaml)
 	metricsBytes, readErr := filemngr.ReadFileToBytes(path_to_metrics_yaml)
 	if readErr != nil {
 		log.Error.Printf("Read Error in metrics_from_yaml: %v", readErr)
@@ -104,6 +106,7 @@ func Metrics_from_yaml(path_to_metrics_yaml string) (SaveMetricsYaml, bool) {
 
 // Save metrics struct by marhsalling given yaml file
 func Metrics_to_yaml(path_to_metrics_yaml string, mYaml SaveMetricsYaml) {
+	log.Debug.Printf("Save metrics to %s", path_to_metrics_yaml)
 	data, err := yaml.Marshal(&mYaml)
 	if err != nil {
 		log.Error.Printf("Error in metrics_to_yaml: %v", err)

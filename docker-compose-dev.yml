@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: live.Dockerfile
+    ports:
+      - "50520:8080"
+    stdin_open: true
+    tty: true
+    links:
+      - "redis:rdb"
+    volumes:
+      - /home/green/apricate.io/data-dev:/apricate/data
+      - /home/green/apricate.io/yaml:/apricate/yaml
+  redis:
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    ports:
+      - "6382:6379"
+    volumes:
+      - /home/green/apricate.io/data-dev/redis:/data

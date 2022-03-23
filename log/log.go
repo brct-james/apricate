@@ -17,9 +17,9 @@ var (
 
 func init() {
 	// Handle logging to file
-	var logpath = "./debug.ansi"
+	var logpath = "./data/debug.ansi"
 	var debugFile, logErr = os.Create(logpath)
-	var rlogpath = "./rdebug.ansi"
+	var rlogpath = "./data/rdebug.ansi"
 	var rdebugFile, rlogErr = os.Create(rlogpath)
 
 	if logErr != nil {

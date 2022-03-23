@@ -11,8 +11,7 @@ type GrowthStage struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	Action *GrowthAction `yaml:"Action" json:"action" binding:"required"`
-	Optional bool `yaml:"Optional" json:"optional,omitempty"` // May send Wait action to skip optional steps (growth time of optional steps is skipped as well). 
-	ActionToSkip *GrowthAction `yaml:"ActionToSkip" json:"action_to_skip,omitempty"`
+	Skippable bool `yaml:"Skippable" json:"skippable" binding:"required"` // send Skip action to skip stage (growth time of optional steps is skipped as well). 
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	AddedYield float64 `yaml:"AddedYield" json:"added_yield,omitempty"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
 	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted

@@ -96,7 +96,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 	consumableName := strings.Title(strings.ToLower(pib.Consumable))
 	pib.Action = strings.Title(strings.ToLower(pib.Action))
 	growthStage := plantDef.GrowthStages[p.PlantedPlant.CurrentStage]
-	invalidActionMsg := fmt.Sprintf("request action: %s vs skip: %v, action: %v", pib.Action, growthStage.ActionToSkip, growthStage.Action)
+	invalidActionMsg := fmt.Sprintf("request action: %s, action: %v, is skippable? %v", pib.Action, growthStage.Action, growthStage.Skippable)
 	log.Debug.Println(invalidActionMsg)
 	// if blank action
 	if pib.Action == string("") {
@@ -104,20 +104,10 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 		return responses.Invalid_Plot_Action, 0, 0, nil, 0, invalidActionMsg
 	}
 	// if has and is skip action
-	if growthStage.ActionToSkip != nil && pib.Action == (*growthStage.ActionToSkip).String() {
-		log.Debug.Printf("ActionToSkip: %s", growthStage.ActionToSkip)
-		if growthStage.ActionToSkip.String() != "Wait" {
-			// Success, no tool needed
-			return responses.Generic_Success, 0, 0, nil, 0, ""
-		}
-		if _, countOk := tools[growthActionsToToolTypes[*growthStage.ActionToSkip].String()]; countOk {
-			// Success, have correct tool
-			return responses.Generic_Success, 0, 0, nil, 0, ""
-		}
-		// Failure, don't have correct tool
-		log.Debug.Printf("Wrong tool for action to skip (%s): %v", growthActionsToToolTypes[*growthStage.ActionToSkip].String(), tools)
-		errInfoMsg := fmt.Sprintf("request action: %s corresponding to tool: %s, which was not found locally", pib.Action, growthActionsToToolTypes[*growthStage.ActionToSkip].String())
-		return responses.Tool_Not_Found, 0, 0, nil, 0, errInfoMsg
+	if growthStage.Skippable && pib.Action == "Skip" {
+		log.Debug.Printf("Skip Action Received for Skippable Stage: %s", growthStage.Name)
+		// Success by default
+		return responses.Generic_Success, 0, 0, nil, 0, ""
 	}
 	// if action action
 	if pib.Action == (*growthStage.Action).String() {

@@ -22,25 +22,21 @@ Json and code should use snake_case (go uses camelCase?)
 
 ## Build & Run
 
-Ensure resjon container is running on the correct port: `docker run -di -p 6382:6379 --name rejson_apricate redislabs/rejson:latest`
+Modify the volumes to your local environment in the docker-compose file you want to use, then run the appropriate `run_dev.sh` / `start_live.sh` script.
 
-For the first run, ensure `refreshAuthSecret` in `main.go` is true. Make sure to set this to false for second run.
+For the first run, ensure `refreshAuthSecret` in `main.go` is true. Make sure to set this to false for second run
 
-Either run once to generate, or manually create `slur_filter.txt` in root directory. Add words to filter, one per line, case-insensitive.
+DEV Listens on port `50520`
+LIVE Listens on port `50250`
 
-Build and start with `go build; ./apricate`. Alternatively, `go run main.go`
-
-Listens on port `50250`
-
-redis-cli via `redis-cli -p 6382`
+redis-cli via `redis-cli -p 6382` for DEV
+redis-cli via `redis-cli -p 6383` for LIVE
 
 `FLUSHDB` for each database (`select #`)
 
 `KEYS *` to get all keys
 
 `JSON.GET <token>` to get particular entry
-
-Recommend running with screen `screen -S apricate`. If get detached, can forcibly detach the old ssh session and reattach with `screen -Dr apricate`
 
 ---
 

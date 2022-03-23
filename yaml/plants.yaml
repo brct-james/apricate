@@ -291,7 +291,7 @@ Potato:
           Potato: 1.0
     - 
       Name: Adult Plant - 3rd Harvest
-      Description: Potatoes must be harvested, and may be harvested one final time after a while
+      Description: Potatoes die after their third harvest
       Action: Dig
       Harvestable: 
         Produce: 
@@ -361,7 +361,7 @@ Gulb:
         FinalHarvest: true
     -
       Name: Adult Plant - Fertilize
-      Description: Wild Flora plants must be fertilized again for additional yield
+      Description: Gul plants must be fertilized again for additional yield
       Action: Fertilize
       Consumables:
         - 
@@ -382,7 +382,7 @@ Gulb:
       GrowthTime: 120
     -
       Name: Mature Plant - Harvest
-      Description: Mature Wild Flora plants must be harvested
+      Description: Mature Gulb plants must be harvested
       Action: Dig
       Harvestable:
         Goods: 

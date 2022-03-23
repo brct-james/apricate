@@ -116,7 +116,7 @@ func PregenerateUser(username string, dbs map[string]rdb.Database) {
 		panic(saveUserErrMsg)
 	}
 	// Write out my token
-	lines, readErr := filemngr.ReadFileToLineSlice("secrets.env")
+	lines, readErr := filemngr.ReadFileToLineSlice("data/secrets.env")
 	if readErr != nil {
 		// Auth is mission-critical, using Fatal
 		log.Error.Fatalf("Could not read lines from secrets.env. Err: %v", readErr)
@@ -142,7 +142,7 @@ func PregenerateUser(username string, dbs map[string]rdb.Database) {
 	}
 	
 	// Join and write out
-	writeErr := filemngr.WriteLinesToFile("secrets.env", lines)
+	writeErr := filemngr.WriteLinesToFile("data/secrets.env", lines)
 	if writeErr != nil {
 		log.Error.Fatalf("Could not write secrets.env: %v", writeErr)
 	}

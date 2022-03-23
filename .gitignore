@@ -17,6 +17,10 @@ secrets.env
 # Ignore built binary
 apricate
 
+# Ignore docker data folders
+data-live/
+data-dev/
+
 # Debug Log (ansi format)
 debug.ansi
 rdebug.ansi

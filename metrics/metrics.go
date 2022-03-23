@@ -2,6 +2,7 @@
 package metrics
 
 import (
+	"apricate/filemngr"
 	"apricate/log"
 	"apricate/schema"
 	"apricate/timecalc"
@@ -13,6 +14,7 @@ import (
 
 // Write out metrics
 func SaveMetrics() {
+	log.Debug.Printf("Save metrics")
 	mYaml := schema.SaveMetricsYaml{
 		UniqueUsers: TrackingUniqueUsers.Usernames, // Handled by TrackUserCall
 		UserActivity: TrackingActiveUsers.UserActivity, // Handled by TrackUserCall
@@ -20,17 +22,20 @@ func SaveMetrics() {
 		MarketData: TrackingMarket.MarketData, // Handled by TrackMarketBuySell
 		HarvestData: TrackingHarvests.HarvestData, // Handled by TrackHarvest
 	}
-	schema.Metrics_to_yaml("metrics.yaml", mYaml)
+	schema.Metrics_to_yaml("data/metrics.yaml", mYaml)
 }
 
 // Read out metrics
 func LoadMetrics() {
-	mYaml, found := schema.Metrics_from_yaml("metrics.yaml")
+	log.Debug.Printf("Load metrics")
+	mYaml, found := schema.Metrics_from_yaml("data/metrics.yaml")
 	if !found {
 		// Failed to load
-		log.Error.Printf("Failed to load metrics from YAML, saved metrics may not exist, continuing server startup.")
+		log.Important.Printf("Failed to load metrics from YAML, saved metrics may not exist, creating and continuing.")
+		filemngr.Touch("data/metrics.yaml")
 		return
 	}
+	log.Debug.Printf("Found: %v", mYaml)
 	TrackingUniqueUsers.Usernames = mYaml.UniqueUsers
 	TrackingActiveUsers.UserActivity = mYaml.UserActivity
 	TrackingUserCoins.Coins = mYaml.Coins
@@ -84,6 +89,7 @@ func CalculateUniqueUsers() ([]string) {
 	return TrackingUniqueUsers.Usernames
 }
 func TrackNewUser(username string) {
+	log.Debug.Printf("Metrics:TrackNewUser")
 	TrackingUniqueUsers.Usernames = append(TrackingUniqueUsers.Usernames, username)
 	TrackUserCall(username)
 }
@@ -106,6 +112,7 @@ func CalculateActiveUsers() ([]string) {
 	return res
 }
 func TrackUserCall(username string) {
+	log.Debug.Printf("Metrics:TrackUserCall")
 	TrackingActiveUsers.UserActivity[username] = time.Now().Unix()
 	SaveMetrics()
 }
@@ -120,6 +127,7 @@ var TrackingMarket = schema.GlobalMarketBuySellMetric {
 	MarketData: make(map[string]schema.GMBSMarketData),
 }
 func TrackMarketBuySell(itemName string, isBuy bool, quantity uint64) {
+	log.Debug.Printf("Metrics:TrackMarketBuySell")
 	existingData, edOK := TrackingMarket.MarketData[itemName]
 	if !edOK {
 		// New Data
@@ -153,6 +161,7 @@ var TrackingHarvests = schema.TrackingHarvestsMetric {
 	HarvestData: make(map[string]uint64),
 }
 func TrackHarvest(plantName string) {
+	log.Debug.Printf("Metrics:TrackHarvest")
 	TrackingHarvests.HarvestData[plantName] ++
 	SaveMetrics()
 }

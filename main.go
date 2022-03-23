@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -18,8 +19,8 @@ import (
 
 // Global Vars
 var (
-	ListenPort = ":50250"
-	RedisAddr = "localhost:6382"
+	ListenPort = ":8080"
+	RedisAddr = "rdb:6379"
 	apiVersion = "0.5.0"
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
@@ -30,12 +31,20 @@ var (
 )
 
 func initialize_dbs() {
+	log.Info.Printf("Connecting to Redis server at %s", RedisAddr)
+
 	dbs["users"] = rdb.NewDatabase(RedisAddr, 0)
 	dbs["assistants"] = rdb.NewDatabase(RedisAddr, 1)
 	dbs["farms"] = rdb.NewDatabase(RedisAddr, 2)
 	dbs["contracts"] = rdb.NewDatabase(RedisAddr, 3)
 	dbs["warehouses"] = rdb.NewDatabase(RedisAddr, 4)
 	dbs["clearinghouse"] = rdb.NewDatabase(RedisAddr, 5)
+
+	// Ping server
+	_, err := dbs["users"].Goredis.Ping(context.Background()).Result()
+	if err != nil {
+		log.Error.Fatalf("Could not ping redis server at %s", RedisAddr)
+	}
 
 	if flush_DBs || regenerate_auth_secret {
 		for _, db := range dbs {
@@ -119,8 +128,8 @@ func main() {
 	log.Info.Printf("Loading metrics.yaml")
 	if flush_DBs || regenerate_auth_secret {
 		// Need to reset metrics
-		log.Important.Printf("Cleared metrics.yaml")
-		filemngr.DeleteIfExists("metrics.yaml")
+		log.Important.Printf("Cleared data/metrics.yaml")
+		filemngr.DeleteIfExists("data/metrics.yaml")
 	}
 	metrics.LoadMetrics()
 
@@ -128,9 +137,9 @@ func main() {
 
 	// Preload 
 	// Ensure exists
-	filemngr.Touch("slur_filter.txt")
+	filemngr.Touch("data/slur_filter.txt")
 	// Read file to lines array splitting by newline
-	read_slur_filter, readErr := filemngr.ReadFileToLineSlice("slur_filter.txt")
+	read_slur_filter, readErr := filemngr.ReadFileToLineSlice("data/slur_filter.txt")
 	if readErr != nil {
 		// Auth is mission-critical, using Fatal
 		log.Error.Fatalf("Could not read lines from slur_filter.txt. Err: %v", readErr)
