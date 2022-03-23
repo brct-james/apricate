@@ -1210,9 +1210,17 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
 			return
 		}
+		size, ok := schema.SizeToID[strings.Title(strings.ToLower(splitSlice[1]))]
+		if !ok {
+			// fail nonsensical size
+			errmsg := fmt.Sprintf("in MarketOrder, order.ItemName for PRODUCE category MUST have valid size specified e.g. 'Potato|Large', ensure correct ItemCategory specified and item name contains a valid size (received: %s)", splitSlice[1])
+			log.Debug.Printf("%s, %s: %v", errmsg, itemName, splitSlice)
+			responses.SendRes(w, responses.Market_Order_Failed_Validation, nil, errmsg)
+			return
+		}
 		itemName = splitSlice[0] + "|" + strings.Title(strings.ToLower(splitSlice[1]))
 		simpleItemName = splitSlice[0]
-		sizeMod = uint64(schema.SizeToID[splitSlice[1]])
+		sizeMod = uint64(size)
 	}
 
 	// get market value
@@ -1226,6 +1234,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// execute buy or sell is have enough in warehouse/ledger
+	log.Debug.Printf("Execute Market Order: %s %s x%d for %d each * %d sizeMod", order.OrderType, itemName, order.Quantity, itemDict[simpleItemName], sizeMod)
 	coins := userData.Ledger.Currencies["Coins"]
 	if order.TXType == schema.BUY {
 		orderCost := order.Quantity * marketValue * sizeMod
