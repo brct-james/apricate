@@ -1245,7 +1245,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// execute buy or sell is have enough in warehouse/ledger
-	log.Debug.Printf("Execute Market Order: %s %s x%d for %d each * %d sizeMod", order.OrderType, itemName, order.Quantity, itemDict[simpleItemName], sizeMod)
+	log.Debug.Printf("Execute Market Order: %s %s %s x%d for %d each * %d sizeMod", order.OrderType, order.TXType, itemName, order.Quantity, itemDict[simpleItemName], sizeMod)
 	coins := userData.Ledger.Currencies["Coins"]
 	if order.TXType == schema.BUY {
 		orderCost := order.Quantity * marketValue * sizeMod
@@ -1294,9 +1294,9 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case schema.GOOD:
 		warehouse.Goods = warehouseDict
 	case schema.SEED:
-		warehouse.Goods = warehouseDict
+		warehouse.Seeds = warehouseDict
 	case schema.TOOL:
-		warehouse.Goods = warehouseDict
+		warehouse.Tools = warehouseDict
 	case schema.PRODUCE:
 		warehouse.SetSimpleProduceDict(warehouseDict)
 	}
