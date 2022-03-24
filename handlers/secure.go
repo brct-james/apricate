@@ -1013,6 +1013,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Update objects with results of interaction
 
 	plot.PlantedPlant.Yield += addedYield
+	log.Debug.Printf("Interact Plot, Growth Time: %d", growthTime)
 	plot.GrowthCompleteTimestamp = time.Now().Unix() + growthTime
 	farm.Plots[uuid] = plot
 

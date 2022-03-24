@@ -125,6 +125,10 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 		if len(growthStage.ConsumableOptions) == 0 {
 			// if harvest step, return harvest data, else just return added yield
 			if growthStage.Harvestable != nil {
+				if growthStage.GrowthTime != nil {
+					// for multi-harvest plants
+					return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, *growthStage.GrowthTime, ""
+				}
 				return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, 0, ""
 			}
 			return responses.Generic_Success, growthStage.AddedYield, 0, nil, *growthStage.GrowthTime, ""
