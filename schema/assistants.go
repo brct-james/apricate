@@ -15,16 +15,39 @@ const (
 	Hireling AssistantTypes = 0
 	Familiar AssistantTypes = 1
 	Golem AssistantTypes = 2
+	Oni AssistantTypes = 3
+	Sprite AssistantTypes = 4
 )
+
+// define map of assistantType to base speed
+// note: largest land distance is 283, more typical travel between 40-90 so travel time will be Math.Ceil(distance_factor * distance) in seconds
+// distance factor = (1800 / Math.Sqrt(80000)) so max is 30 minutes from -100,-100 to 100,100 with speed 1
+var aTypeToBaseSpeed = map[AssistantTypes]uint64 {
+	Hireling: 5,
+	Familiar: 8,
+	Golem: 3,
+	Oni: 1, // slowest base cap
+	Sprite: 10, // fastest base cap
+}
+
+// define map of assistantType to base carry cap
+var aTypeToBaseCarryCap = map[AssistantTypes]uint64 {
+	Hireling: 16,
+	Familiar: 4,
+	Golem: 64,
+	Oni: 256, // largest base cap
+	Sprite: 1, // smallest base cap - enough to carry a letter and not much else
+}
 
 // Defines an assistant
 type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
 	ID uint64 `json:"id" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
+	BaseSpeed uint64 `json:"base_speed" binding:"required"`
+	BaseCarryCap uint64 `json:"base_carry_capacity" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
-	LocationSymbol string `json:"location_symbol" binding:"required"`
-	Route string `json:"route" binding:"required"`
+	Location string `json:"location" binding:"required"` // EITHER the location symbol OR the caravan UUID
 }
 
 func NewAssistant(username string, countOfUserAssistants uint64, archetype AssistantTypes, locationSymbol string) *Assistant {
@@ -32,9 +55,10 @@ func NewAssistant(username string, countOfUserAssistants uint64, archetype Assis
 		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
 		ID: countOfUserAssistants,
 		Archetype: archetype,
+		BaseSpeed: aTypeToBaseSpeed[archetype],
+		BaseCarryCap: aTypeToBaseCarryCap[archetype],
 		Improvements: make(map[string]uint8),
-		LocationSymbol: locationSymbol,
-		Route: "",
+		Location: locationSymbol,
 	}
 }
 
@@ -148,12 +172,16 @@ var assistantTypesToString = map[AssistantTypes]string {
 	Hireling: "Hireling",
 	Familiar: "Familiar",
 	Golem: "Golem",
+	Oni: "Oni",
+	Sprite: "Sprite",
 }
 
 var assistantTypesToID = map[string]AssistantTypes {
 	"Hireling": Hireling,
 	"Familiar": Familiar,
 	"Golem": Golem,
+	"Oni": Oni,
+	"Sprite": Sprite,
 }
 
 // MarshalJSON marshals the enum as a quoted json string

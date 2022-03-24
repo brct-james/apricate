@@ -137,7 +137,7 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myLocs as a set to get all unique locations visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	for _, farm := range farms {
 		myLocs[farm.LocationSymbol] = true
@@ -183,7 +183,7 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// use myLocs as a set
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	for _, farm := range farms {
 		myLocs[farm.LocationSymbol] = true
@@ -245,7 +245,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myLocs as a set to get all unique locations visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	for _, farm := range farms {
 		myLocs[farm.LocationSymbol] = true
@@ -294,7 +294,7 @@ func (h *MarketsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myLocs as a set to get all unique markets visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	// finally get all markets in each region
 	resMarkets := make([]schema.Market, 0)
@@ -329,7 +329,7 @@ func (h *MarketInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myLocs as a set to get all unique markets visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	// Get symbol from route
 	symbol := GetVarEntries(r, "location-symbol", UUID)
@@ -1129,7 +1129,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// use myLocs as a set to get all unique markets visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	// Get symbol from route
 	symbol := GetVarEntries(r, "location-symbol", UUID)

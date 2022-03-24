@@ -26,7 +26,7 @@ var (
 	dbs = make(map[string]rdb.Database)
 	world schema.World
 	main_dictionary = schema.MainDictionary{}
-	flush_DBs = false
+	flush_DBs = true
 	regenerate_auth_secret = false
 )
 
@@ -38,6 +38,7 @@ func initialize_dbs() {
 	dbs["farms"] = rdb.NewDatabase(RedisAddr, 2)
 	dbs["contracts"] = rdb.NewDatabase(RedisAddr, 3)
 	dbs["warehouses"] = rdb.NewDatabase(RedisAddr, 4)
+	dbs["caravans"] = rdb.NewDatabase(RedisAddr, 5)
 	dbs["clearinghouse"] = rdb.NewDatabase(RedisAddr, 5)
 
 	// Ping server
@@ -162,6 +163,7 @@ func main() {
 	handle_requests(slur_filter)
 }
 
+// Add headers to all responses
 func commonMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")

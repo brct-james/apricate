@@ -13,8 +13,8 @@ type Location struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Symbol string `yaml:"Symbol" json:"symbol" binding:"required"`
 	RegionName string `yaml:"RegionName" json:"region_name" binding:"required"`
-	X int8 `yaml:"X" json:"x" binding:"required"`
-	Y int8 `yaml:"Y" json:"y" binding:"required"`
+	X int8 `yaml:"X" json:"x" binding:"required"` //-100:100
+	Y int8 `yaml:"Y" json:"y" binding:"required"` //-100:100
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	NPCs []string `yaml:"NPCs" json:"npcs" binding:"required"`
 }

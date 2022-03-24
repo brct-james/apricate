@@ -19,6 +19,7 @@ type User struct {
 	PublicInfo
 	Contracts []string `json:"contracts" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
+	Caravans []string `json:"caravans" binding:"required"`
 	Farms []string `json:"farms" binding:"required"`
 	Plots []string `json:"plots" binding:"required"`
 	Warehouses []string `json:"warehouses" binding:"required"`
@@ -92,6 +93,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 		Plots: plotIds,
 		Warehouses: []string{starting_farm_warehouse_id},
 		Assistants: []string{starting_assistant_id},
+		Caravans: make([]string, 0),
 	}
 }
 
