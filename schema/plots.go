@@ -135,13 +135,13 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 			return responses.Missing_Consumable_Selection, 0, 0, nil, 0, "Consumables required for this action"
 		}
 		// Check all consumables for option matching request, return in loop if passes, else fail after
-		scaledGrowthStage, sGSErr := plantDef.GetScaledGrowthStage(p.PlantedPlant.CurrentStage, uint64(p.Quantity), p.PlantedPlant.Size)
+		scaledConsumableOptions, sGSErr := plantDef.GetScaledGrowthConsumables(p.PlantedPlant.CurrentStage, uint64(p.Quantity), p.PlantedPlant.Size)
 		if sGSErr != nil {
 			// internal server error, could not get scaled growth stage
 			return responses.Internal_Server_Error, 0, 0, nil, 0, "Could not get scaled growth stage, contact Developer"
 		}
-		errInfoMsgSlice := make([]string, len(scaledGrowthStage.ConsumableOptions))
-		for i, consumableOption := range scaledGrowthStage.ConsumableOptions {
+		errInfoMsgSlice := make([]string, len(scaledConsumableOptions))
+		for i, consumableOption := range scaledConsumableOptions {
 			if consumableOption.Name == consumableName {
 				// found matching consumable option
 				if consumableOption.Quantity <= consumableQuantityAvailable {

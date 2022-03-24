@@ -44,16 +44,14 @@ Spinosus Vas:
       Name: Young Plant - Shade
       Description: The Spinosus Vas may be shaded while it grows to improve yield
       Action: Shade
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       AddedYield: 1.0
       GrowthTime: 45
     -
       Name: Young Plant - Weed
       Description: The Spinosus Vas may be weeded to improve yield
       Action: Weed
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       AddedYield: 0.25
       GrowthTime: 15
     -
@@ -80,8 +78,7 @@ Cabbage:
       Name: Seed
       Description: You may fertilize cabbage as a seed to increase yields. Any fertilizer will do, cabbage doesn't respond to higher quality fertilizers
       Action: Fertilize
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       Consumables:
         - 
           Name: Fertilizer
@@ -189,8 +186,7 @@ Shelvis Fig:
       Name: Adolescent Plant
       Description: Shelvis Figs may be trimmed before harvest to increase yield
       Action: Trim
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       AddedYield: 0.5
       GrowthTime: 240
     -
@@ -245,8 +241,7 @@ Potato:
       Name: Seedling
       Description: Potatoes may be fertilized to increase yield
       Action: Fertilize
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       Consumables:
         - 
           Name: Fertilizer
@@ -269,8 +264,7 @@ Potato:
       Name: Young Plant
       Description: Potatoes may be hilled to increase yield
       Action: Hill
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       AddedYield: 1.0
       GrowthTime: 60
     -
@@ -303,7 +297,7 @@ Gulb:
   GrowthStages:
     - 
       Name: Bulb
-      Description: Gulb Bulbs required enchanted water to sprout
+      Description: Gulb Bulbs requires enchanted water to sprout
       Action: Water
       Consumables: 
         - 
@@ -314,8 +308,7 @@ Gulb:
       Name: Seedling
       Description: Gulb seedlings may be fertilized for additional yield
       Action: Fertilize
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       Consumables:
         - 
           Name: Fertilizer
@@ -338,8 +331,7 @@ Gulb:
       Name: Young Plant
       Description: Gulb plants may be hilled for additional yield
       Action: Hill
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       AddedYield: 1.0
       GrowthTime: 600
     -
@@ -351,8 +343,7 @@ Gulb:
       Name: Adult Plant - Harvest
       Description: Gulb plants may be harvested early as adults or fertilized again for additional yield
       Action: Dig
-      Optional: True
-      ActionToSkip: Skip
+      Skippable: True
       Harvestable:
         Goods: 
           Gulb Nut: 0.75

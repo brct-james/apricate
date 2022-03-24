@@ -33,20 +33,27 @@ type PlantDefinition struct {
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
 }
 
-func (d *PlantDefinition) GetScaledGrowthStage(gsIndex int16, plantQuantity uint64, plantSize Size) (*GrowthStage, error) {
+func (d *PlantDefinition) GetScaledGrowthConsumables(gsIndex int16, plantQuantity uint64, plantSize Size) ([]GrowthConsumable, error) {
 	if int(gsIndex) >= len(d.GrowthStages) {
-		return nil, fmt.Errorf("growth stage index out of bounds: %d of %d", gsIndex, len(d.GrowthStages))
+		return []GrowthConsumable{}, fmt.Errorf("growth stage index out of bounds: %d of %d", gsIndex, len(d.GrowthStages))
 	}
-	res := d.GrowthStages[gsIndex]
-	if len(res.ConsumableOptions) == 0 {
+	stage := d.GrowthStages[gsIndex]
+	if len(stage.ConsumableOptions) == 0 {
 		// No consumables to scale
-		return &res, nil
+		return []GrowthConsumable{}, nil
 	}
-	for index, option := range res.ConsumableOptions {
-		option.Quantity *= plantQuantity * uint64(plantSize)
-		res.ConsumableOptions[index] = option
+	options := make([]GrowthConsumable, len(stage.ConsumableOptions))
+	for i, option := range stage.ConsumableOptions {
+		// deep copy
+		options[i] = GrowthConsumable{
+			Good: Good {
+				Name: option.Name,
+				Quantity: option.Quantity * plantQuantity * uint64(plantSize),
+			},
+			AddedYield: option.AddedYield,
+		}
 	}
-	return &res, nil
+	return options, nil
 }
 
 // Load seed struct by unmarhsalling given yaml file

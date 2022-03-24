@@ -606,7 +606,7 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	idSlice := strings.Split(id, "!")
 	if len(idSlice) < 2 {
 		// Fail, malformed plot id
-		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]!Plot-[id-number]' received: %v", id)
 		log.Debug.Printf(errmsg)
 		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
 		return
@@ -656,7 +656,7 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	idSlice := strings.Split(id, "!")
 	if len(idSlice) < 2 {
 		// Fail, malformed plot id
-		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]!Plot-[id-number]' received: %v", id)
 		log.Debug.Printf(errmsg)
 		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
 		return
@@ -803,7 +803,7 @@ func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	idSlice := strings.Split(id, "!")
 	if len(idSlice) < 2 {
 		// Fail, malformed plot id
-		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]!Plot-[id-number]' received: %v", id)
 		log.Debug.Printf(errmsg)
 		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
 		return
@@ -879,7 +879,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	idSlice := strings.Split(id, "!")
 	if len(idSlice) < 2 {
 		// Fail, malformed plot id
-		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]~Plot-[id-number]' received: %v", id)
+		errmsg := fmt.Sprintf("Malformed plot id, format must be '[farm-location-symbol]!Plot-[id-number]' received: %v", id)
 		log.Debug.Printf(errmsg)
 		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
 		return
