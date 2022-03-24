@@ -684,6 +684,14 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
 		return
 	}
+	// Validate specified quantity is above 0
+	if body.SeedQuantity <= 0 {
+		// Fail, quantity must be > 0
+		errmsg := fmt.Sprintf("in PlantPlot, SeedQuantity MUST be greater than 0. received seed quantity: %v", body.SeedQuantity)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
 	// Validate specified seed is a seed
 	seedsDict := (*h.MainDictionary).Seeds
 	plantName, plantNameOk := seedsDict[body.SeedName]
