@@ -125,8 +125,16 @@ func (h *CaravansInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if !foundCaravans {
 		log.Debug.Printf("in CaravansInfo, could not get caravans from DB. foundCaravans: %v, error: %v, probably just none exist", foundCaravans, caravansErr)
-		responses.SendRes(w, responses.Generic_Success, caravans, " None Found")
+		responses.SendRes(w, responses.Generic_Success, caravans, "None Found")
 		return
+	}
+	// Modify Caravan SecondsTillArrival
+	for i, caravan := range caravans {
+		caravan.SecondsTillArrival = caravan.ArrivalTime - time.Now().Unix() 
+		if caravan.SecondsTillArrival < 0 {
+			caravan.SecondsTillArrival = 0
+		}
+		caravans[i] = caravan
 	}
 	getCaravanJsonString, getCaravanJsonStringErr := responses.JSON(caravans)
 	if getCaravanJsonStringErr != nil {
@@ -165,6 +173,11 @@ func (h *CaravanInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.DB_Get_Failure, caravan, caravansErr.Error())
 		return
 	}
+	// Modify Caravan SecondsTillArrival
+	caravan.SecondsTillArrival = caravan.ArrivalTime - time.Now().Unix() 
+	if caravan.SecondsTillArrival < 0 {
+		caravan.SecondsTillArrival = 0
+	}
 	getCaravanJsonString, getCaravanJsonStringErr := responses.JSON(caravan)
 	if getCaravanJsonStringErr != nil {
 		log.Error.Printf("Error in CaravanInfo, could not format caravans as JSON. caravans: %v, error: %v", caravan, getCaravanJsonStringErr)
@@ -179,18 +192,15 @@ func (h *CaravanInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Handler function for the secure route: /api/my/plots/{uuid}/interact
 type CharterCaravan struct {
 	Dbs *map[string]rdb.Database
-	MainDictionary *schema.MainDictionary
+	World *schema.World
 }
 func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- CharterCaravan --"))
-	// Get userinfoContext from validation middleware
-	userInfo, userInfoErr := GetValidationFromCtx(r)
-	if userInfoErr != nil {
-		// Fail state getting context
-		log.Error.Printf("Could not get validationpair in AssistantInfo")
-		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
-		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
-		return
+	// Get user info
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
 	}
 
 	// unmarshall request body to get charter including wares if applicable
@@ -204,169 +214,148 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate Caravan Charter Request Body
+	validationMap := schema.ValidateCaravanCharter(body)
+	if len(validationMap) > 0 {
+		// Failed basic validation
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", validationMap)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, validationMap, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+
 	// Get Assistants
-
-
-	// Get warehouse
-	wdb := (*h.Dbs)["warehouses"]
-	locationSymbol := strings.Split(symbolSlice[1], "-")
-	warehouseLocationSymbol := symbolSlice[0] + "|Warehouse-" + strings.Join(locationSymbol[1:],"-")
-	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
-	if warehousesErr != nil || !foundWarehouse {
-		errmsg := fmt.Sprintf("Error in CharterCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+	adb := (*h.Dbs)["assistants"]
+	assistantLocationSymbols := make([]string, len(body.Assistants))
+	for i, assistantID := range body.Assistants {
+		assistantLocationSymbols[i] = userData.Username + "|Assistant-" + assistantID
+	}
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(assistantLocationSymbols, adb)
+	if assistantsErr != nil || !foundAssistants {
+		errmsg := fmt.Sprintf("Error in CharterCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundAssistants, assistantsErr)
 		log.Error.Printf(errmsg)
 		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
 		return
 	}
 
-	consumableQuantityAvailable := uint64(0)
-	consumableName := strings.Title(strings.ToLower(body.Consumable))
-	// If consumables included, validate them
-	if consumableName != string("") {
-		// Validate specified consumable is a good
-		goodsDict := (*h.MainDictionary).Goods
-		if _, ok := goodsDict[consumableName]; !ok {
-			// Fail, seed is not good
-			errmsg := fmt.Sprintf("in CharterCaravan, consumable item does not exist in good dictionary. received consumable name: %v", consumableName)
-			log.Debug.Printf(errmsg)
-			responses.SendRes(w, responses.Item_Does_Not_Exist, nil, errmsg)
+	// Generate a timestamp for caravan id. Get slowest assistant speeds, total carry cap, set their location to caravan UUID
+	caravanTimestamp := time.Now()
+	caravanUUID := userData.Username + "|Caravan-" + fmt.Sprintf("%d", caravanTimestamp.UnixNano())
+	slowestSpeed := uint64(1000000)
+	carryCap := uint64(0)
+	assistantOriginValidation := make(map[string]string)
+	for i, assistant := range assistants {
+		if assistant.Location != body.Origin {
+			// Fail, assistant not at origin, prepare validation response will error later
+			assistantOriginValidation[fmt.Sprintf("Assistant-%d", i)] = fmt.Sprintf("Assistant not at origin (%s) specified in request", body.Origin)
+		}
+		if assistant.Speed < slowestSpeed {
+			slowestSpeed = assistant.Speed
+		}
+		carryCap += assistant.CarryCap
+		assistant.Location = caravanUUID
+		assistants[i] = assistant
+	}
+
+	if len(assistantOriginValidation) > 0 {
+		// Fail, found assitant not at origin
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", assistantOriginValidation)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, assistantOriginValidation, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+
+	// Calculate travel time and construct caravan
+	travelTimeValidationMap, caravanTravelTime := schema.CalculateTravelTime((*h.World), body.Origin, body.Destination, slowestSpeed)
+	if len(travelTimeValidationMap) > 0 {
+		// Fail, origin and destination could not be routed
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", assistantOriginValidation)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, assistantOriginValidation, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+	caravan := schema.NewCaravan(caravanUUID, caravanTimestamp, body.Origin, body.Destination, body.Assistants, body.Wares, caravanTravelTime)
+	log.Debug.Printf("Prepared caravan, now to validate wares. Caravan: %v", caravan)
+
+	// Validate wares if present
+	wareCategories := make(map[string]int)
+	if len(body.Wares.Goods) > 0 {
+		wareCategories["Goods"] = len(body.Wares.Goods)
+	}
+	if len(body.Wares.Produce) > 0 {
+		wareCategories["Produce"] = len(body.Wares.Produce)
+	}
+	if len(body.Wares.Seeds) > 0 {
+		wareCategories["Seeds"] = len(body.Wares.Seeds)
+	}
+	if len(body.Wares.Tools) > 0 {
+		wareCategories["Tools"] = len(body.Wares.Tools)
+	}
+	if len(wareCategories) >= 1 {
+		// Wares found
+
+		// Validate assistant capacity after multiplying by team_factor can hold all of the specified goods (after multiplying produce quantity by size)
+		//TODO
+
+		// Get warehouse
+		wdb := (*h.Dbs)["warehouses"]
+		warehouseLocationSymbol := userData.Username + "|Warehouse-" + body.Origin
+		warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+		if warehousesErr != nil || !foundWarehouse {
+			errmsg := fmt.Sprintf("Error in CharterCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+			log.Error.Printf(errmsg)
+			responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
 			return
 		}
-		// Validate consumable specified in given warehouse
-		temp, ownedConsumableOk := warehouse.Goods[consumableName]; 
-		if !ownedConsumableOk {
-			// Fail, consumable good not in warehouse
-			errmsg := fmt.Sprintf("in CharterCaravan, consumable item not found in local warehouse. received good name: %v, warehouse goods: %v", consumableName, warehouse.Goods)
-			log.Debug.Printf(errmsg)
-			responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, nil, errmsg)
+
+		// Validate warehouse contains wares in specified quantities
+		//TODO
+
+		// If found all, remove from local warehouse & save (dont need to add anywhere cause charter already specifies wares)
+		//TODO
+		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+		if saveWarehouseErr != nil {
+			log.Error.Printf("Error in CharterCaravan, could not save warehouse. error: %v", saveWarehouseErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
 			return
 		}
-		consumableQuantityAvailable = temp
 	}
 
-	// Validate plot available for interaction and body meets internal plot validation
-	plantDef, plantDefOk := h.MainDictionary.Plants[plot.PlantedPlant.PlantType]
-
-	if !plantDefOk {
-		plotDefErrMsg := fmt.Sprintf("Error in CharterCaravan, Plot [%s] has PlantedPlant type [%s] not found in main dictionary!", plot.UUID, plot.PlantedPlant.PlantType)
-		log.Error.Println(plotDefErrMsg)
-		responses.SendRes(w, responses.Internal_Server_Error, plot, plotDefErrMsg)
-	}
-	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime, errInfoMsg := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
-	switch plotValidationResponse {
-	case responses.Invalid_Plot_Action:
-		log.Debug.Printf("in PlotInteract, Invalid_Plot_Action")
-		responses.SendRes(w, responses.Invalid_Plot_Action, plot, errInfoMsg)
+	// Caravan valid and prepared, save assistants, user, and save caravan
+	cdb := (*h.Dbs)["caravans"]
+	saveCaravanErr := schema.SaveCaravanToDB(cdb, caravan)
+	if saveCaravanErr != nil {
+		log.Error.Printf("Error in PlotInteract, could not save caravan. error: %v", saveCaravanErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveCaravanErr.Error())
 		return
-	case responses.Tool_Not_Found:
-		log.Debug.Printf("in PlotInteract, Tool_Not_Found")
-		responses.SendRes(w, responses.Tool_Not_Found, plot, errInfoMsg)
-		return
-	case responses.Missing_Consumable_Selection:
-		log.Debug.Printf("in PlotInteract, Missing_Consumable_Selection")
-		responses.SendRes(w, responses.Missing_Consumable_Selection, plot, errInfoMsg)
-		return
-	case responses.Internal_Server_Error:
-		log.Debug.Printf("in PlotInteract, Internal_Server_Error")
-		responses.SendRes(w, responses.Internal_Server_Error, plot, errInfoMsg)
-		return
-	case responses.Not_Enough_Items_In_Warehouse:
-		log.Debug.Printf("in PlotInteract, Not_Enough_Items_In_Warehouse")
-		responses.SendRes(w, responses.Not_Enough_Items_In_Warehouse, plot, errInfoMsg)
-		return
-	case responses.Consumable_Not_In_Options:
-		log.Debug.Printf("in PlotInteract, Consumable_Not_In_Options")
-		responses.SendRes(w, responses.Consumable_Not_In_Options, plot, errInfoMsg)
-		return
-	case responses.Generic_Success:
-		log.Debug.Printf("Plot growth action validated successfully: %s, action: %s", plot.UUID, body.Action)
-	default:
-		log.Error.Fatalf("Received unexpected response type from plot.IsPlantable. plot: %v body: %v", plot, body)
 	}
 
-	// Update objects with results of interaction
-
-	plot.PlantedPlant.Yield += addedYield
-	log.Debug.Printf("Interact Plot, Growth Time: %d", growthTime)
-	plot.GrowthCompleteTimestamp = time.Now().Unix() + growthTime
-	farm.Plots[uuid] = plot
-
-	if consumableName != string("") {
-		// if consumables used
-		warehouse.RemoveGoods(consumableName, usedConsumableQuantity)
+	caravanList := append(userData.Caravans, caravanUUID)
+	saveUserErr := schema.SaveUserDataAtPathToDB(udb, userData.Token, "caravans", caravanList)
+	if saveUserErr != nil {
+		log.Error.Printf("Error in PlotInteract, could not save user. error: %v", saveUserErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
+		return
 	}
 
-
-	// Handle updating stage and potential harvesting
-	var nextStage *schema.GrowthStage
-
-	if growthHarvest != nil {
-		// if was a harvest action
-		harvest := plot.CalculateProduce(growthHarvest)
-		log.Debug.Println("Harvest Calculated:")
-		log.Debug.Println(harvest)
-		for _, produce := range harvest.Produce {
-			log.Debug.Printf("Add produce quantity: %d", produce.Quantity)
-			warehouse.AddProduce(produce.Name, produce.Size, produce.Quantity)
-			log.Debug.Println(warehouse.Produce)
+	for _, assistant := range assistants {
+		saveAssistantErr := schema.SaveAssistantDataAtPathToDB(adb, assistant.UUID, "location", assistant.Location)
+		if saveAssistantErr != nil {
+				log.Error.Printf("Error in CharterCaravan, could not save assistant. error: %v", saveAssistantErr)
+				responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+				return
 		}
-		for seedname, seedquantity := range harvest.Seeds {
-			log.Debug.Printf("Add seed quantity: %d", seedquantity)
-			warehouse.AddSeeds(seedname, seedquantity)
-		}
-		for goodname, goodquantity := range harvest.Goods {
-			log.Debug.Printf("Add good quantity: %d", goodquantity)
-			warehouse.AddGoods(goodname, goodquantity)
-		}
-
-		metrics.TrackHarvest(plantDef.Name)
-		
-		// check if final harvest
-		if growthHarvest.FinalHarvest {
-			// is final harvest
-			// clear
-			plot.PlantedPlant = nil
-			plot.Quantity = 0
-			farm.Plots[uuid] = plot
-		} else {
-			// not final harvest
-			// move up current stage, initialize nextStage for response
-			plot.PlantedPlant.CurrentStage++
-			nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
-		}
-	} else {
-		// if not harvest
-		// move up current stage, initialize nextStage for response
-		plot.PlantedPlant.CurrentStage++
-		nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
-	}
-
-	// Save to DBs
-		
-	saveFarmErr := schema.SaveFarmDataAtPathToDB(fdb, farmLocationSymbol, "plots", farm.Plots)
-	if saveFarmErr != nil {
-		log.Error.Printf("Error in PlotInteract, could not save farm. error: %v", saveFarmErr)
-		responses.SendRes(w, responses.DB_Save_Failure, nil, saveFarmErr.Error())
-		return
-	}
-
-	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
-	if saveWarehouseErr != nil {
-		log.Error.Printf("Error in PlotInteract, could not save warehouse. error: %v", saveWarehouseErr)
-		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
-		return
 	}
 
 	// Construct and Send response
-	response := schema.PlotActionResponse{Warehouse: &warehouse, Plot: &plot, NextStage: nextStage}
-	getPlotPlantResponseJsonString, getPlotPlantResponseJsonStringErr := responses.JSON(response)
-	if getPlotPlantResponseJsonStringErr != nil {
-		log.Error.Printf("Error in PlotInfo, could not format interact response as JSON. response: %v, error: %v", response, getPlotPlantResponseJsonStringErr)
-		responses.SendRes(w, responses.JSON_Marshal_Error, response, getPlotPlantResponseJsonStringErr.Error())
+	getCaravanJsonString, getCaravanJsonStringErr := responses.JSON(caravan)
+	if getCaravanJsonStringErr != nil {
+		log.Error.Printf("Error in CharterCaravan, could not format caravan response as JSON. response: %v, error: %v", caravan, getCaravanJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, caravan, getCaravanJsonStringErr.Error())
 		return
 	}
-	log.Debug.Printf("Sending response for CharterCaravan:\n%v", getPlotPlantResponseJsonString)
-	responses.SendRes(w, responses.Generic_Success, response, "")
+	log.Debug.Printf("Sending response for CharterCaravan:\n%v", getCaravanJsonString)
+	responses.SendRes(w, responses.Generic_Success, caravan, "")
 	
 	log.Debug.Println(log.Cyan("-- End CharterCaravan --"))
 }

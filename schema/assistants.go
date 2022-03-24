@@ -44,8 +44,8 @@ type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
 	ID uint64 `json:"id" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
-	BaseSpeed uint64 `json:"base_speed" binding:"required"`
-	BaseCarryCap uint64 `json:"base_carry_capacity" binding:"required"`
+	Speed uint64 `json:"speed" binding:"required"`
+	CarryCap uint64 `json:"carry_capacity" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
 	Location string `json:"location" binding:"required"` // EITHER the location symbol OR the caravan UUID
 }
@@ -55,8 +55,8 @@ func NewAssistant(username string, countOfUserAssistants uint64, archetype Assis
 		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
 		ID: countOfUserAssistants,
 		Archetype: archetype,
-		BaseSpeed: aTypeToBaseSpeed[archetype],
-		BaseCarryCap: aTypeToBaseCarryCap[archetype],
+		Speed: aTypeToBaseSpeed[archetype],
+		CarryCap: aTypeToBaseCarryCap[archetype],
 		Improvements: make(map[string]uint8),
 		Location: locationSymbol,
 	}

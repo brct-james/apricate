@@ -205,7 +205,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/assistants", &handlers.AssistantsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/assistants/{assistant-id}", &handlers.AssistantInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/caravans", &handlers.CaravansInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/caravans", &handlers.CharterCaravan{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
+	secure.Handle("/caravans", &handlers.CharterCaravan{Dbs: &dbs, World: &world}).Methods("PATCH")
 	secure.Handle("/caravans/{caravan-id}", &handlers.CaravanInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/farms", &handlers.FarmsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/farms/{location-symbol}", &handlers.FarmInfo{Dbs: &dbs}).Methods("GET")

@@ -10,12 +10,35 @@ import (
 	"time"
 )
 
+// Define CaravanWares
+type CaravanWares struct {
+	Tools map[string]uint64 `json:"tools,omitempty"`
+	Produce map[string]uint64 `json:"produce,omitempty"`
+	Seeds map[string]uint64 `json:"seeds,omitempty"`
+	Goods map[string]uint64 `json:"goods,omitempty"`
+}
+
 // Defines a caravan charter
 type CaravanCharter struct {
 	Origin string `json:"origin" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
-	Wares map[string]uint64 `json:"wares,omitempty"`
+	Wares CaravanWares `json:"wares,omitempty"`
+}
+
+// Validate caravan charter, return validation map
+func ValidateCaravanCharter(charter CaravanCharter) map[string]string {
+	res := make(map[string]string)
+	if len(charter.Origin) < 8 {
+		res["origin"] = "Too Short, expect minimum 8 characters based on example TS-PR-HF"
+	}
+	if len(charter.Destination) < 8 {
+		res["destination"] = "Too Short, expect minimum 8 characters based on example TS-PR-HF"
+	}
+	if len(charter.Assistants) < 1 {
+		res["assistants"] = "Must specify at least one assistant ID to include in caravan"
+	}
+	return res
 }
 
 // Defines a caravan
@@ -27,19 +50,18 @@ type Caravan struct {
 	SecondsTillArrival int64 `json:"seconds_till_arrival" binding:"required"` // SHOULD BE STORED AS 0, ONLY FOR FORMATTING RESPONSE
 }
 
-func NewCaravan(username string, origin string, destination string, assistants []string, wares map[string]uint64, travelTimeSeconds int) *Caravan {
-	now := time.Now()
+func NewCaravan(UUID string, timestamp time.Time, origin string, destination string, assistants []string, wares CaravanWares, travelTimeSeconds int) *Caravan {
 	return &Caravan{
-		UUID: username + "|Caravan-" + fmt.Sprintf("%d", now.Unix()),
-		ID: now.Unix(),
+		UUID: UUID,
+		ID: timestamp.UnixNano(),
 		CaravanCharter: CaravanCharter{
 			Origin: origin,
 			Destination: destination,
 			Assistants: assistants,
 			Wares: wares,
 		},
-		ArrivalTime: timecalc.AddSecondsToTimestamp(now, travelTimeSeconds).Unix(),
-		SecondsTillArrival: 0,
+		ArrivalTime: timecalc.AddSecondsToTimestamp(timestamp, travelTimeSeconds).Unix(),
+		SecondsTillArrival: int64(travelTimeSeconds),
 	}
 }
 
