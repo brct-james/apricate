@@ -98,11 +98,11 @@ func initialize_dictionaries() {
 
 func setup_my_character() {
 	if flush_DBs || regenerate_auth_secret {
-		schema.PregenerateUser("Greenitthe", dbs)
+		schema.PregenerateUser("Greenitthe", dbs, true)
 		metrics.TrackNewUser("Greenitthe")
-		schema.PregenerateUser("Viridis", dbs)
+		schema.PregenerateUser("Viridis", dbs, false)
 		metrics.TrackNewUser("Viridis")
-		schema.PregenerateUser("Green", dbs)
+		schema.PregenerateUser("Green", dbs, true)
 		metrics.TrackNewUser("Green")
 	}
 	log.Info.Println("Neither flushing DBs, nor regenerating auth secret. Token for user: Greenitthe should already exist in secrets.env. Skipping creation")

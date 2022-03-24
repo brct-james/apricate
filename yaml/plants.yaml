@@ -83,16 +83,19 @@ Cabbage:
         - 
           Name: Fertilizer
           Quantity: 1
+          AddedYield: 0.5
         -
           Name: Enchanted Fertilizer
           Quantity: 1
+          AddedYield: 0.5
         - 
           Name: Dragon Fertilizer
           Quantity: 1
+          AddedYield: 0.5
         -
           Name: Enchanted Dragon Fertilizer
           Quantity: 1
-      AddedYield: 0.5
+          AddedYield: 0.5
       GrowthTime: 30
     -
       Name: Young Plant
@@ -358,18 +361,19 @@ Gulb:
         - 
           Name: Fertilizer
           Quantity: 2
+          AddedYield: 0.25
         -
           Name: Enchanted Fertilizer
           Quantity: 2
+          AddedYield: 0.25
         - 
           Name: Dragon Fertilizer
           Quantity: 2
-          AddedYield: 0.25
+          AddedYield: 0.5
         -
           Name: Enchanted Dragon Fertilizer
           Quantity: 2
-          AddedYield: 0.75
-      AddedYield: 0.25
+          AddedYield: 1.0
       GrowthTime: 120
     -
       Name: Mature Plant - Harvest

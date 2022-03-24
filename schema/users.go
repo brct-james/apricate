@@ -95,7 +95,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	}
 }
 
-func PregenerateUser(username string, dbs map[string]rdb.Database) {
+func PregenerateUser(username string, dbs map[string]rdb.Database, devuser bool) {
 	// generate token
 	token, genTokenErr := tokengen.GenerateToken(username)
 	if genTokenErr != nil {
@@ -105,7 +105,7 @@ func PregenerateUser(username string, dbs map[string]rdb.Database) {
 		panic(genErrorMsg)
 	}
 	// create new user in DB
-	newUser := NewUser(token, username, dbs, true)
+	newUser := NewUser(token, username, dbs, devuser)
 	newUser.Title = Achievement_Owner
 	newUser.Achievements = []Achievement{Achievement_Owner, Achievement_Contributor, Achievement_Noob}
 	saveUserErr := SaveUserToDB(dbs["users"], newUser)
