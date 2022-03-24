@@ -10,6 +10,7 @@ import (
 	"apricate/schema"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -293,9 +294,13 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(wareCategories) >= 1 {
 		// Wares found
+		log.Debug.Printf("Wares found: %v", wareCategories)
 
-		// Validate assistant capacity after multiplying by team_factor can hold all of the specified goods (after multiplying produce quantity by size)
-		//TODO
+		// Get carry cap
+		log.Debug.Printf("carryCap before team_factor: %d", carryCap)
+		teamFactor := 1 + (float64(0.1) * float64(len(assistants) - 1))
+		carryCap := uint64(math.Ceil(float64(carryCap) * teamFactor))
+		log.Debug.Printf("carryCap after team_factor (%f): %d", teamFactor, carryCap)
 
 		// Get warehouse
 		wdb := (*h.Dbs)["warehouses"]
@@ -308,11 +313,113 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Validate warehouse contains wares in specified quantities
-		//TODO
+		// Validate warehouse contains wares in specified quantities and that there is enough carry capacity for specified goods (after multiplying produce quantity by size)
+		waresValidationMap := make(map[string]map[string]string)
+		for category := range wareCategories {
+			switch category {
+			case "Goods":
+				for item, quantity := range body.Wares.Goods {
+					if _, ok := warehouse.Goods[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["goods"]) < 1 {
+							waresValidationMap["goods"] = make(map[string]string)
+						}
+						waresValidationMap["goods"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Goods[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["goods"]) < 1 {
+							waresValidationMap["goods"] = make(map[string]string)
+						}
+						waresValidationMap["goods"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Goods[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Goods: %s %d", item, quantity)
+					warehouse.RemoveGoods(item, quantity)
+				}
+			case "Produce":
+				for item, quantity := range body.Wares.Produce {
+					pWarehouse := warehouse.GetSimpleProduceDict()
+					if _, ok := pWarehouse[item]; !ok {
+						// FAIL item not in pWarehouse
+						if len(waresValidationMap["produce"]) < 1 {
+							waresValidationMap["produce"] = make(map[string]string)
+						}
+						waresValidationMap["produce"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if pWarehouse[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["produce"]) < 1 {
+							waresValidationMap["produce"] = make(map[string]string)
+						}
+						waresValidationMap["produce"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, pWarehouse[item])
+						continue
+					}
+					splitItemName := strings.Split(item, "|")
+					log.Debug.Printf("Passed Validation, Remove Produce: %s %d", item, quantity)
+					warehouse.RemoveProduce(splitItemName[0], schema.SizeToID[splitItemName[1]], quantity)
+				}
+			case "Seeds":
+				for item, quantity := range body.Wares.Seeds {
+					if _, ok := warehouse.Seeds[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["seeds"]) < 1 {
+							waresValidationMap["seeds"] = make(map[string]string)
+						}
+						waresValidationMap["seeds"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Seeds[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["seeds"]) < 1 {
+							waresValidationMap["seeds"] = make(map[string]string)
+						}
+						waresValidationMap["seeds"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Seeds[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Seeds: %s %d", item, quantity)
+					warehouse.RemoveSeeds(item, quantity)
+				}
+			case "Tools":
+				for item, quantity := range body.Wares.Tools {
+					if _, ok := warehouse.Tools[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["tools"]) < 1 {
+							waresValidationMap["tools"] = make(map[string]string)
+						}
+						waresValidationMap["tools"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Tools[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["tools"]) < 1 {
+							waresValidationMap["tools"] = make(map[string]string)
+						}
+						waresValidationMap["tools"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Tools[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Tools: %s %d", item, quantity)
+					warehouse.RemoveTools(item, quantity)
+				}
+			default:
+				errmsg := fmt.Sprintf("Error in CharterCaravan, unexpected ware category after validating wares: %s", category)
+				log.Error.Printf(errmsg)
+				responses.SendRes(w, responses.Internal_Server_Error, nil, errmsg)
+				return
+			}
+		}
+		if len(waresValidationMap) > 0 {
+			// Wares failed validation
+			resWareVMap := map[string]map[string]map[string]string{"wares": waresValidationMap}
+			errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", resWareVMap)
+			log.Debug.Printf(errmsg)
+			responses.SendRes(w, responses.Bad_Request, resWareVMap, "Request body did not pass validation, see data for specifics.")
+			return
+		}
 
 		// If found all, remove from local warehouse & save (dont need to add anywhere cause charter already specifies wares)
-		//TODO
 		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
 		if saveWarehouseErr != nil {
 			log.Error.Printf("Error in CharterCaravan, could not save warehouse. error: %v", saveWarehouseErr)
