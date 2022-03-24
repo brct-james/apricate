@@ -30,6 +30,8 @@ func ValidateUsername (username string, slurs *[]string) string {
 		return "CANT_BE_BLANK"
 	} else if len(username) <= 0 {
 		return "TOO_SHORT"
+	} else if len(username) > 32 {
+		return "TOO_LONG"
 	} else if !isAlphaNumeric(username) {
 		return "INVALID_CHARS"
 	} else {

@@ -11,10 +11,10 @@ import (
 
 // Defines a plant object to be stored on plots
 type Plant struct {
-	PlantType string `json:"type" binding:"required"`
+	PlantType string `json:"name" binding:"required"`
 	Size Size `json:"size" binding:"required"`
 	CurrentStage int16 `json:"current_stage" binding:"required"`
-	Yield float64 `json:"yield" binding:"required"`
+	Yield float64 `json:"yield_modifier" binding:"required"`
 }
 
 func NewPlant(ptype string, size Size) *Plant {

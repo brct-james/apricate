@@ -162,10 +162,18 @@ func main() {
 	handle_requests(slur_filter)
 }
 
+func commonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func handle_requests(slur_filter []string) {
 	// Define Routes
 	//mux router
 	mxr := mux.NewRouter().StrictSlash(true)
+	mxr.Use(commonMiddleware)
 	mxr.HandleFunc("/", handlers.Homepage).Methods("GET")
 	mxr.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/YXBpOjQ1NTU3NTc2-apricate-api", http.StatusPermanentRedirect)
