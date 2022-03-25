@@ -30,6 +30,8 @@ func NewPlant(ptype string, size Size) *Plant {
 type PlantDefinition struct {
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"`
+	MinSize string `yaml:"MinSize" json:"min_size" binding:"required"`
+	MaxSize string `yaml:"MaxSize" json:"max_size" binding:"required"`
 	GrowthStages []GrowthStage `yaml:"GrowthStages" json:"growth_stages" binding:"required"`
 }
 

@@ -36,8 +36,9 @@ func NewFarm(pdb rdb.Database, totalplotcount uint64, username string, locationS
 	case "TS-PR-HF":
 		bonuses = make([]FarmBonuses, 0)
 		buildings = map[BuildingTypes]uint8{Building_Home: 1, Building_Field: 1, Building_SummoningCircle: 1}
-		plots = NewPlots(pdb, username, totalplotcount, "TS-PR-HF", []Size{Average, Average, Modest, Modest})
+		plots = NewPlots(pdb, username, totalplotcount, "TS-PR-HF", []Size{Large, Large, Average, Average, Modest, Modest})
 	default:
+		log.Error.Printf("Hit NewFarm with unknown LocationSymbol username: %s, locationSymbol: %s", username, locationSymbol)
 		bonuses = make([]FarmBonuses, 0)
 		buildings = make(map[BuildingTypes]uint8)
 		plots = make(map[string]Plot)

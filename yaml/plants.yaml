@@ -2,6 +2,8 @@
 Wagyu Fungus:
   Name: Wagyu Fungus
   Description: The Wagyu Fungus is a type of fungus that only grows in the hollow interior of the Uona Tree. The tree is worthless as a building material, as it is extremely brittle when dry. The Wagyu Fungus has a symbiotic relationship as it hydrates the tree, while the tree's hardness protects the fungus. Its flavor and texture resemble that of fine steak, and is revered in several religions as the 'Food of the Gods'. Once the tree is grown, the fungus may be harvested indefinitely.
+  MinSize: Large
+  MaxSize: Huge
   GrowthStages:
     -
       Name: Seed - Fertilize
@@ -11,19 +13,19 @@ Wagyu Fungus:
       Consumables:
         - 
           Name: Fertilizer
-          Quantity: 50
+          Quantity: 2
           AddedYield: 0.25
         -
           Name: Enchanted Fertilizer
-          Quantity: 50
+          Quantity: 2
           AddedYield: 0.5
         - 
           Name: Dragon Fertilizer
-          Quantity: 50
+          Quantity: 2
           AddedYield: 0.75
         -
           Name: Enchanted Dragon Fertilizer
-          Quantity: 50
+          Quantity: 2
           AddedYield: 1.0
       GrowthTime: 0
     -
@@ -33,10 +35,10 @@ Wagyu Fungus:
       Consumables:
         -
           Name: Water
-          Quantity: 100
+          Quantity: 5
         -
           Name: Enchanted Water
-          Quantity: 100
+          Quantity: 5
           AddedYield: 0.5
       GrowthTime: 3600
     -
@@ -76,12 +78,14 @@ Wagyu Fungus:
       GrowthTime: 21600
       Harvestable:
         Seeds: 
-          Uona Spore: 0.1
+          Uona Spore: 0.425
         Goods:
-          Wagyu Fungus Steak: 1.0
+          Wagyu Fungus Steak: 0.25
 Vocatus Zahra:
   Name: Vocatus Zahra
   Description: The Vocatus Zahra is a magical flower that is used to attune a spirit to the physical world, most commonly for summoning rituals. Though its ethereal beauty is legendary, most have never seen it in all its glory, as it is rare for the flower to fully bloom even in the most perfect conditions.
+  MinSize: Average
+  MaxSize: Average
   GrowthStages:
     -
       Name: Bulb
@@ -149,6 +153,8 @@ Vocatus Zahra:
 Spectral Grass:
   Name: Spectral Grass
   Description: Spectral Grass is the most basic plant you can grow, and is commonly used to create lightweight clothing ideal for travelling in most climates
+  MinSize: Miniature
+  MaxSize: Huge
   GrowthStages:
     -
       Name: Seed
@@ -173,6 +179,8 @@ Spectral Grass:
 Spinosus Vas:
   Name: Spinosus Vas
   Description: The Spinosus Vas is a bulbous plant with sharp spikes protruding at all angles. It is able to draw water from the air itself, allowing it to accumulate large amounts of water in its body even in arid climates
+  MinSize: Miniature
+  MaxSize: Huge
   GrowthStages:
     -
       Name: Seed
@@ -220,6 +228,8 @@ Spinosus Vas:
 Cabbage:
   Name: Cabbage
   Description: The Cabbage is a mundane plant that grows above ground. It is relatively fast growing and easy to care for, not requiring any additional watering in most climates
+  MinSize: Miniature
+  MaxSize: Huge
   GrowthStages:
     - 
       Name: Seed
@@ -262,6 +272,8 @@ Cabbage:
 Shelvis Fig:
   Name: Shelvis Fig
   Description: The Shelvis Fig is a mundane plant with fruit that grows on a shrub above ground. It requires a lot of water to grow, grow with moderate speed, may be harvested twice, and as a specialty of Skellig, its seeds are not available for public sale
+  MinSize: Miniature
+  MaxSize: Huge
   GrowthStages:
     - Name: Seed
       Description: Shelvis Figs must be sprouted before transplanting to dirt
@@ -373,6 +385,8 @@ Shelvis Fig:
 Potato:
   Name: Potato
   Description: The hardy Potato plant is a mundane plant that grows underground. It is an extremely common staple food that grows quickly and can be harvested multiple times. Rather than using seeds is planted as the Potatoes themselves
+  MinSize: Miniature
+  MaxSize: Huge
   GrowthStages:
     -
       Name: Seed
@@ -444,6 +458,8 @@ Potato:
 Gulb:
   Name: Gulb
   Description: The Gulb plant grows from a Gulb Bulb, and may be harvested for Gulb Nuts
+  MinSize: Miniature
+  MaxSize: Huge
   GrowthStages:
     - 
       Name: Bulb

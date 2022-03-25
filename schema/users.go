@@ -57,7 +57,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	// generate starting warehouse
 	var warehouse *Warehouse
 	if devUser {
-		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Spade": 1, "Hoe": 1, "Rake": 1, "Pitchfork": 1, "Shears": 1, "Water Wand": 1, "Knife": 1, "Pestle and Mortar": 1, "Drying Rack": 1, "Sprouting Pot": 1, "Scroll of Hyperspecific Cloud Cover": 1, "Sickle": 1}, map[string]uint64{"Potato|Tiny": uint64(1000)}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Spade": 1, "Hoe": 1, "Rake": 1, "Pitchfork": 1, "Shears": 1, "Water Wand": 1, "Knife": 1, "Pestle and Mortar": 1, "Drying Rack": 1, "Sprouting Pot": 1, "Scroll of Hyperspecific Cloud Cover": 1, "Sickle": 1}, map[string]uint64{"Potato|Tiny": uint64(1000)}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000,"Convocare Bulb":1000,"Uona Spore":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
 	} else {
 		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Shears": 1, "Sickle": 1}, map[string]uint64{}, map[string]uint64{"Cabbage Seeds":8,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{})
 	}

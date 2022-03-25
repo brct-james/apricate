@@ -91,8 +91,8 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 	return responses.Generic_Success
 }
 
-// returns ResponseCode, AddedYield, ConsumableQuantityUsed, GrowthHarvest, Cooldown/GrowthTime, msg
-func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[string]uint64) (responses.ResponseCode, float64, uint64, *GrowthHarvest, int64, string) {
+// returns ResponseCode, AddedYield, ConsumableQuantityUsed, GrowthHarvest, Cooldown/GrowthTime, repeat, msg
+func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, consumableQuantityAvailable uint64, tools map[string]uint64) (responses.ResponseCode, float64, uint64, *GrowthHarvest, int64, bool, string) {
 	consumableName := strings.Title(strings.ToLower(pib.Consumable))
 	pib.Action = strings.Title(strings.ToLower(pib.Action))
 	growthStage := plantDef.GrowthStages[p.PlantedPlant.CurrentStage]
@@ -101,13 +101,13 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 	// if blank action
 	if pib.Action == string("") {
 		// action sent is missing or invalid
-		return responses.Invalid_Plot_Action, 0, 0, nil, 0, invalidActionMsg
+		return responses.Invalid_Plot_Action, 0, 0, nil, 0, false, invalidActionMsg
 	}
 	// if has and is skip action
 	if growthStage.Skippable && pib.Action == "Skip" {
 		log.Debug.Printf("Skip Action Received for Skippable Stage: %s", growthStage.Name)
 		// Success by default
-		return responses.Generic_Success, 0, 0, nil, 0, ""
+		return responses.Generic_Success, 0, 0, nil, 0, false, ""
 	}
 	// if action action
 	if pib.Action == (*growthStage.Action).String() {
@@ -118,7 +118,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 				// Failure, don't have correct tool
 				log.Debug.Printf("Wrong tool for action (%s): %v", growthActionsToToolTypes[*growthStage.Action].String(), tools)
 				errInfoMsg := fmt.Sprintf("request action: %s corresponding to tool: %s, which was not found locally", pib.Action, growthActionsToToolTypes[*growthStage.Action].String())
-				return responses.Tool_Not_Found, 0, 0, nil, 0, errInfoMsg
+				return responses.Tool_Not_Found, 0, 0, nil, 0, false, errInfoMsg
 			}
 		}
 		// Growth stage contains no consumables, return success
@@ -127,22 +127,22 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 			if growthStage.Harvestable != nil {
 				if growthStage.GrowthTime != nil {
 					// for multi-harvest plants
-					return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, *growthStage.GrowthTime, ""
+					return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, *growthStage.GrowthTime, growthStage.Repeatable, ""
 				}
-				return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, 0, ""
+				return responses.Generic_Success, growthStage.AddedYield, 0, growthStage.Harvestable, 0, growthStage.Repeatable, ""
 			}
-			return responses.Generic_Success, growthStage.AddedYield, 0, nil, *growthStage.GrowthTime, ""
+			return responses.Generic_Success, growthStage.AddedYield, 0, nil, *growthStage.GrowthTime, growthStage.Repeatable, ""
 		}
 		// Check consumables
 		if consumableName == string("") {
 			// No consumables included in request body, fail
-			return responses.Missing_Consumable_Selection, 0, 0, nil, 0, "Consumables required for this action"
+			return responses.Missing_Consumable_Selection, 0, 0, nil, 0, false, "Consumables required for this action"
 		}
 		// Check all consumables for option matching request, return in loop if passes, else fail after
 		scaledConsumableOptions, sGSErr := plantDef.GetScaledGrowthConsumables(p.PlantedPlant.CurrentStage, uint64(p.Quantity), p.PlantedPlant.Size)
 		if sGSErr != nil {
 			// internal server error, could not get scaled growth stage
-			return responses.Internal_Server_Error, 0, 0, nil, 0, "Could not get scaled growth stage, contact Developer"
+			return responses.Internal_Server_Error, 0, 0, nil, 0, false, "Could not get scaled growth stage, contact Developer"
 		}
 		errInfoMsgSlice := make([]string, len(scaledConsumableOptions))
 		for i, consumableOption := range scaledConsumableOptions {
@@ -152,19 +152,19 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 					// have enough, return success
 					if growthStage.Harvestable != nil {
 						// if harvest step, return harvest data, else just return added yield
-						return responses.Generic_Success, growthStage.AddedYield + consumableOption.AddedYield, consumableOption.Quantity, growthStage.Harvestable, *growthStage.GrowthTime, ""
+						return responses.Generic_Success, growthStage.AddedYield + consumableOption.AddedYield, consumableOption.Quantity, growthStage.Harvestable, *growthStage.GrowthTime, growthStage.Repeatable, ""
 					}
-					return responses.Generic_Success, growthStage.AddedYield + consumableOption.AddedYield, consumableOption.Quantity, nil, *growthStage.GrowthTime, ""
+					return responses.Generic_Success, growthStage.AddedYield + consumableOption.AddedYield, consumableOption.Quantity, nil, *growthStage.GrowthTime, growthStage.Repeatable, ""
 				}
 				// insufficient quantity in local warehouse
-				return responses.Not_Enough_Items_In_Warehouse, 0, 0, nil, 0, fmt.Sprintf("request consumable: %s, quantity available: %d, quantity required by stage: %d", consumableName, consumableQuantityAvailable, consumableOption.Quantity)
+				return responses.Not_Enough_Items_In_Warehouse, 0, 0, nil, 0, false, fmt.Sprintf("request consumable: %s, quantity available: %d, quantity required by stage: %d", consumableName, consumableQuantityAvailable, consumableOption.Quantity)
 			}
 			errInfoMsgSlice[i] = consumableOption.Name
 		}
-		return responses.Consumable_Not_In_Options, 0, 0, nil, 0, fmt.Sprintf("request consumable: %s, not found in consumable options, valid options: %v", consumableName, errInfoMsgSlice)
+		return responses.Consumable_Not_In_Options, 0, 0, nil, 0, false, fmt.Sprintf("request consumable: %s, not found in consumable options, valid options: %v", consumableName, errInfoMsgSlice)
 	}
 	// else, invalid action specified
-	return responses.Invalid_Plot_Action, 0, 0, nil, 0, invalidActionMsg
+	return responses.Invalid_Plot_Action, 0, 0, nil, 0, false, invalidActionMsg
 }
 
 func (p *Plot) CalculateProduce(growthHarvest *GrowthHarvest) HarvestProduce {
