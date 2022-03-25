@@ -4,6 +4,7 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -23,6 +24,7 @@ type User struct {
 	Farms []string `json:"farms" binding:"required"`
 	Plots []string `json:"plots" binding:"required"`
 	Warehouses []string `json:"warehouses" binding:"required"`
+	LatticeRejectionEnd int64 `json:"lattice_rejection_end" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -30,15 +32,21 @@ type PublicInfo struct {
 	Username string `json:"username" binding:"required"`
 	Title Achievement `json:"title" binding:"required"`
 	Ledger Ledger `json:"ledger" binding:"required"`
+	ArcaneFlux float64 `json:"arcane_flux" binding:"required"`
+	DistortionTier float64 `json:"distortion_tier" binding:"required"`
 	UserSince int64 `json:"user-since" binding:"required"`
 	Achievements []Achievement `json:"achievements" binding:"required"`
+}
+
+func ConvertFluxToDistortion(flux float64) float64 {
+	return math.Round(math.Log10(flux) * 100) / 100
 }
 
 func NewUser(token string, username string, dbs map[string]rdb.Database, devUser bool) *User {
 	// starting location
 	startLocation := "TS-PR-HF"
 	// generate starting assistant
-	assistant := NewAssistant(username, 0, Hireling, startLocation)
+	assistant := NewAssistant(username, 0, Imp, startLocation)
 	SaveAssistantToDB(dbs["assistants"], assistant)
 	// generate starting farm
 	farm := NewFarm(dbs["plots"], 0, username, startLocation)
@@ -62,10 +70,14 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 
 	var starting_currencies map[string]uint64
 	var starting_favor map[string]int8
+
+	var startingFlux float64
 	if devUser {
+		startingFlux = 5555
 		starting_currencies = map[string]uint64{"Coins": 1000}
 		starting_favor = map[string]int8{"Vince Kosuga": 50}
 	} else {
+		startingFlux = 1
 		starting_currencies = map[string]uint64{"Coins": 100}
 		starting_favor = map[string]int8{"Vince Kosuga": 50}
 	}
@@ -85,9 +97,12 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 				Favor: starting_favor,
 				Escrow: make(map[string]uint64),
 			},
+			ArcaneFlux: startingFlux,
+			DistortionTier: ConvertFluxToDistortion(startingFlux),
 			Achievements: []Achievement{Achievement_Noob},
 			UserSince: time.Now().Unix(),
 		},
+		LatticeRejectionEnd: 0,
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
 		Plots: plotIds,

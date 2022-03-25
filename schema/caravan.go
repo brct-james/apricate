@@ -10,20 +10,12 @@ import (
 	"time"
 )
 
-// Define CaravanWares
-type CaravanWares struct {
-	Tools map[string]uint64 `json:"tools,omitempty"`
-	Produce map[string]uint64 `json:"produce,omitempty"`
-	Seeds map[string]uint64 `json:"seeds,omitempty"`
-	Goods map[string]uint64 `json:"goods,omitempty"`
-}
-
 // Defines a caravan charter
 type CaravanCharter struct {
 	Origin string `json:"origin" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
-	Wares CaravanWares `json:"wares,omitempty"`
+	Wares Wareset `json:"wares,omitempty"`
 }
 
 // Validate caravan charter, return validation map
@@ -50,7 +42,7 @@ type Caravan struct {
 	SecondsTillArrival int64 `json:"seconds_till_arrival" binding:"required"` // SHOULD BE STORED AS 0, ONLY FOR FORMATTING RESPONSE
 }
 
-func NewCaravan(UUID string, timestamp time.Time, origin string, destination string, assistants []string, wares CaravanWares, travelTimeSeconds int) *Caravan {
+func NewCaravan(UUID string, timestamp time.Time, origin string, destination string, assistants []string, wares Wareset, travelTimeSeconds int) *Caravan {
 	return &Caravan{
 		UUID: UUID,
 		ID: timestamp.UnixNano(),

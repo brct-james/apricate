@@ -9,14 +9,19 @@ import (
 	"strings"
 )
 
+// Define Wareset
+type Wareset struct {
+	Tools map[string]uint64 `yaml:"Tools" json:"tools,omitempty"`
+	Produce map[string]uint64 `yaml:"Produce" json:"produce,omitempty"`
+	Seeds map[string]uint64 `yaml:"Seeds" json:"seeds,omitempty"`
+	Goods map[string]uint64 `yaml:"Goods" json:"goods,omitempty"`
+}
+
 // Defines a warehouse
 type Warehouse struct {
 	UUID string `json:"uuid" binding:"required"`
 	LocationSymbol string `json:"location_symbol" binding:"required"`
-	Tools map[string]uint64 `json:"tools" binding:"required"`
-	Produce map[string]uint64 `json:"produce" binding:"required"`
-	Seeds map[string]uint64 `json:"seeds" binding:"required"`
-	Goods map[string]uint64 `json:"goods" binding:"required"`
+	Wareset
 }
 
 func NewEmptyWarehouse(username string, locationSymbol string) *Warehouse {
@@ -27,10 +32,12 @@ func NewWarehouse(username string, locationSymbol string, starting_tools map[str
 	return &Warehouse{
 		UUID: username + "|Warehouse-" + locationSymbol,
 		LocationSymbol: locationSymbol,
-		Tools: starting_tools,
-		Produce: starting_produce,
-		Seeds: starting_seeds,
-		Goods: starting_goods,
+		Wareset: Wareset{
+			Tools: starting_tools,
+			Produce: starting_produce,
+			Seeds: starting_seeds,
+			Goods: starting_goods,
+		},
 	}
 }
 

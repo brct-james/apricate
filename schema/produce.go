@@ -8,23 +8,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Define produce
-type Produce struct {
-	Good `yaml:",inline"`
-	Size Size `yaml:"Size" json:"size" binding:"required"`
-}
-
-// New produce
-func NewProduce(name string, size Size, quantity uint64) *Produce {
-	return &Produce{
-		Good: Good{
-			Name: name,
-			Quantity: quantity,
-		},
-		Size: size,
-	}
-}
-
 // Load produce list by unmarhsalling given yaml file
 func Produce_load(path_to_produce_yaml string) map[string]string {
 	produceBytes, readErr := filemngr.ReadFileToBytes(path_to_produce_yaml)

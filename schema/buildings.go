@@ -17,6 +17,7 @@ const (
 	Building_Barn BuildingTypes = 5
 	Building_Kitchen BuildingTypes = 6
 	Building_Silo BuildingTypes = 7
+	Building_SummoningCircle BuildingTypes = 8
 )
 
 func (s BuildingTypes) String() string {
@@ -32,6 +33,7 @@ var buildingsToString = map[BuildingTypes]string {
 	Building_Barn: "Barn",
 	Building_Kitchen: "Kitchen",
 	Building_Silo: "Silo",
+	Building_SummoningCircle: "Summoning Circle",
 }
 
 var buildingsToID = map[string]BuildingTypes {
@@ -43,6 +45,7 @@ var buildingsToID = map[string]BuildingTypes {
 	"Barn": Building_Barn,
 	"Kitchen": Building_Kitchen,
 	"Silo": Building_Silo,
+	"Summoning Circle": Building_SummoningCircle,
 }
 
 // MarshalJSON marshals the enum as a text string

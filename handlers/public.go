@@ -130,6 +130,8 @@ func (h *UsernameInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Username: userData.Username,
 		Title: userData.Title,
 		Ledger: userData.Ledger,
+		ArcaneFlux: userData.ArcaneFlux,
+		DistortionTier: userData.DistortionTier,
 		Achievements: userData.Achievements,
 		UserSince: userData.UserSince,
 	}

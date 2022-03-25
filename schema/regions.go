@@ -11,7 +11,7 @@ import (
 // Defines a region
 type Region struct {
 	Identifier `yaml:",inline"`
-	RegionGroup string `yaml:"RegionGroup" json:"region_group" binding:"required"`
+	Shattere string `yaml:"WheelSegment" json:"region_group" binding:"required"` // groups of regions
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	Islands []Identifier `yaml:"Islands" json:"islands" binding:"required"`
 }

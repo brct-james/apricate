@@ -2,8 +2,8 @@
 TS:
   Name: Tyldian Spur
   Symbol: TS
-  RegionGroup: Northern Extremities
-  Description: The starting region, a small leg separated from the Central Wheel region-group by Tyldia
+  Shattere: Northern Extremities
+  Description: The starting region, a small leg separated from the Central Wheel shattere by Tyldia
   Islands:
     - 
       Name: Pria

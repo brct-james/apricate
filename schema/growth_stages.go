@@ -12,6 +12,7 @@ type GrowthStage struct {
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	Action *GrowthAction `yaml:"Action" json:"action" binding:"required"`
 	Skippable bool `yaml:"Skippable" json:"skippable" binding:"required"` // send Skip action to skip stage (growth time of optional steps is skipped as well). 
+	Repeatable bool `yaml:"Repeatable" json:"repeatable,omitempty"` // If true, growth stage remains the same unless skipped (if not skippable, must CLEAR plot to escape the loop). Allows infinite harvests and infinite yield boosts
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	AddedYield float64 `yaml:"AddedYield" json:"added_yield" binding:"required"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
 	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted

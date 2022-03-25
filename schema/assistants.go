@@ -12,31 +12,34 @@ import (
 // enum for assistant types
 type AssistantTypes uint8
 const (
-	Hireling AssistantTypes = 0
+	Imp AssistantTypes = 0
 	Familiar AssistantTypes = 1
 	Golem AssistantTypes = 2
 	Oni AssistantTypes = 3
 	Sprite AssistantTypes = 4
+	Dragon AssistantTypes = 5
 )
 
 // define map of assistantType to base speed
 // note: largest land distance is 283, more typical travel between 40-90 so travel time will be Math.Ceil(distance_factor * distance) in seconds
 // distance factor = (1800 / Math.Sqrt(80000)) so max is 30 minutes from -100,-100 to 100,100 with speed 1
 var aTypeToBaseSpeed = map[AssistantTypes]int {
-	Hireling: 5,
-	Familiar: 8,
+	Imp: 5,
+	Familiar: 7,
 	Golem: 3,
 	Oni: 1, // slowest base cap
 	Sprite: 10, // fastest base cap
+	Dragon: 6,
 }
 
 // define map of assistantType to base carry cap
 var aTypeToBaseCarryCap = map[AssistantTypes]int {
-	Hireling: 16,
-	Familiar: 4,
+	Imp: 16,
+	Familiar: 8,
 	Golem: 64,
 	Oni: 256, // largest base cap
 	Sprite: 1, // smallest base cap - enough to carry a letter and not much else
+	Dragon: 128,
 }
 
 // Defines an assistant
@@ -169,19 +172,21 @@ func (s AssistantTypes) String() string {
 }
 
 var assistantTypesToString = map[AssistantTypes]string {
-	Hireling: "Hireling",
+	Imp: "Imp",
 	Familiar: "Familiar",
 	Golem: "Golem",
 	Oni: "Oni",
 	Sprite: "Sprite",
+	Dragon: "Dragon",
 }
 
 var assistantTypesToID = map[string]AssistantTypes {
-	"Hireling": Hireling,
+	"Imp": Imp,
 	"Familiar": Familiar,
 	"Golem": Golem,
 	"Oni": Oni,
 	"Sprite": Sprite,
+	"Dragon": Dragon,
 }
 
 // MarshalJSON marshals the enum as a quoted json string

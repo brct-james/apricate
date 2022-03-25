@@ -95,6 +95,12 @@ func initialize_dictionaries() {
 	main_dictionary.Markets = schema.Markets_load("./yaml/world/markets.yaml")
 	log.Debug.Println(responses.JSON(main_dictionary.Markets))
 	log.Info.Printf("Loaded Markets list")
+
+	// Load Rites from YAML
+	log.Debug.Println("Loading Rites list")
+	main_dictionary.Rites = schema.Rites_load("./yaml/rites.yaml")
+	log.Debug.Println(responses.JSON(main_dictionary.Rites))
+	log.Info.Printf("Loaded Rites list")
 }
 
 func setup_my_character() {
@@ -210,6 +216,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/caravans/{caravan-id}", &handlers.UnpackCaravan{Dbs: &dbs}).Methods("DELETE")
 	secure.Handle("/farms", &handlers.FarmsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/farms/{location-symbol}", &handlers.FarmInfo{Dbs: &dbs}).Methods("GET")
+	secure.Handle("/farms/{location-symbol}/rituals/{rite-runes}", &handlers.ConductRitual{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
 	secure.Handle("/contracts", &handlers.ContractsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/contracts/{contract-id}", &handlers.ContractInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/warehouses", &handlers.WarehousesInfo{Dbs: &dbs}).Methods("GET")

@@ -950,6 +950,46 @@ func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End FarmInfo --"))
 }
 
+// Handler function for the secure route: POST: /api/my/farms/{location-symbol}/ritual
+type ConductRitual struct {
+	Dbs *map[string]rdb.Database
+	MainDictionary *schema.MainDictionary
+}
+func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- ConductRitual --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	// unmarshall request body to get ritual
+	var body schema.CaravanCharter
+	decoder := json.NewDecoder(r.Body)
+	if decodeErr := decoder.Decode(&body); decodeErr != nil {
+		// Fail case, could not decode
+		errmsg := fmt.Sprintf("Decode Error in CharterCaravan: %v", decodeErr)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+		return
+	}
+	adb := (*h.Dbs)["assistants"]
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
+	if assistantsErr != nil || !foundAssistants {
+		log.Error.Printf("Error in ConductRitual, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		return
+	}
+	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistants)
+	if getAssistantJsonStringErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not format assistants as JSON. assistants: %v, error: %v", assistants, getAssistantJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, assistants, getAssistantJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for ConductRitual:\n%v", getAssistantJsonString)
+	responses.SendRes(w, responses.Generic_Success, assistants, "")
+	log.Debug.Println(log.Cyan("-- End ConductRitual --"))
+}
+
 // Handler function for the secure route: /api/my/contracts
 type ContractsInfo struct {
 	Dbs *map[string]rdb.Database

@@ -1,0 +1,60 @@
+---
+FRVRNG:
+  RunicSymbol: FRVRNG
+  Name: The Pentament of Forvrenge
+  Description: Increase Distortion Slightly by converting water directly into Arcane Flux
+  MinimumDistortion: 0
+  MaximumDistortion: 3
+  ArcaneFlux: 10
+  RejectionTime: 10
+  Materials:
+    Goods:
+      Water: 50
+FRGJR:
+  RunicSymbol: FRGJR
+  Name: The Greater Release of Frigjore
+  Description: Decrease Distortion Slightly by relaxing your grip on the Lattice
+  MinimumDistortion: 0
+  MaximumDistortion: 3
+  ArcaneFlux: -10
+  RejectionTime: 10
+FLGJ:
+  RunicSymbol: FLGJA
+  Name: The Accompaniment of Fylgja
+  Description: Summon a Familiar Assistant using the irresistable Vocatus Blossom, and bind them by playing The Accompaniment of Fylgja on a spirit flute.
+  MinimumDistortion: 0
+  MaximumDistortion: 4
+  ArcaneFlux: -50
+  RejectionTime: 30
+  Materials:
+    Goods:
+      Vocatus Blossom: 1
+    Tools:
+      Spirit Flute: 1
+HRTKTSK:
+  RunicSymbol: HRTKTSK
+  Name: The Appeasement of Hiroto Ketsueki
+  Description: Blood from the Blood God, don't ask where he gets it
+  MinimumDistortion: 3
+  MaximumDistortion: 6
+  ArcaneFlux: 1000
+  RejectionTime: 300
+  Materials:
+    Goods:
+      Wagyu Fungus Steak: 50
+      Empty Vial: 1
+DWLTJ:
+  RunicSymbol: DWLTJ
+  Name: In Defense of The Duiweltjie
+  Description: Summon an Imp Assistant by boiling a Vocatus Blossom in a Cauldron of Water, and bind them by casting a scroll of bind evil 
+  MinimumDistortion: 3
+  MaximumDistortion: 5
+  ArcaneFlux: -500
+  RejectionTime: 60
+  Materials:
+    Goods:
+      Vocatus Blossom: 1
+      Water: 20
+      Vial of Blood: 1
+    Tools:
+      Scroll of Bind Evil: 1
