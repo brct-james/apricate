@@ -53,6 +53,7 @@ const (
 	Could_Not_Parse_URI_Param ResponseCode = 26
 	Market_Order_Failed_Validation ResponseCode = 27
 	Location_Not_Found ResponseCode = 28
+	Caravan_Not_Arrived ResponseCode = 29
 )
 
 // Defines Response structure for output
@@ -194,6 +195,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	Location_Not_Found: {
 		Message: "[Location_Not_Found] Specified location symbol did not map to a known location",
 		HttpResponse: http.StatusNotFound,
+	},
+	Caravan_Not_Arrived: {
+		Message: "[Caravan_Not_Arrived] The specified caravan is still traveling, cannot unpack yet",
+		HttpResponse: http.StatusConflict,
 	},
 }
 

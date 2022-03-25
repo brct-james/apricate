@@ -77,7 +77,7 @@ func (w *Warehouse) AddProduce(name string, size Size, quantity uint64) {
 	} else {
 		w.Produce[produceName] = Produce{
 			Good: Good{
-				Name:produceName,
+				Name:name,
 				Quantity:quantity,
 			},
 			Size: size,
@@ -142,7 +142,7 @@ func GetWarehouseFromDB (uuid string, tdb rdb.Database) (Warehouse, bool, error)
 	// Get warehouse json
 	someJson, getError := tdb.GetJsonData(uuid, ".")
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// warehouse not found
 			return Warehouse{}, false, nil
 		}
@@ -164,7 +164,7 @@ func GetWarehousesFromDB (uuids []string, tdb rdb.Database) ([]Warehouse, bool, 
 	// Get warehouse json
 	someJson, getError := tdb.MGetJsonData(".", uuids)
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// warehouse not found
 			return []Warehouse{}, false, nil
 		}
@@ -191,7 +191,7 @@ func GetWarehouseDataAtPathFromDB (uuid string, path string, tdb rdb.Database) (
 	// Get warehouse json
 	someJson, getError := tdb.GetJsonData(uuid, path)
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// warehouse not found
 			return nil, false, nil
 		}

@@ -101,27 +101,27 @@ func GetAssistantFromDB (uuid string, tdb rdb.Database) (Assistant, bool, error)
 }
 
 // Get assistant from DB, bool is assistant found
-func GetAssistantsFromDB (uuids []string, tdb rdb.Database) ([]Assistant, bool, error) {
+func GetAssistantsFromDB (uuids []string, tdb rdb.Database) (map[string]Assistant, bool, error) {
 	// Get assistant json
 	someJson, getError := tdb.MGetJsonData(".", uuids)
 	if getError != nil {
 		if fmt.Sprint(getError) != "redis: nil" {
 			// assistant not found
-			return []Assistant{}, false, nil
+			return map[string]Assistant{}, false, nil
 		}
 		// error
-		return []Assistant{}, false, getError
+		return map[string]Assistant{}, false, getError
 	}
 	// Got successfully, unmarshal
-	someData := make([]Assistant, len(someJson))
-	for i, tempjson := range someJson {
+	someData := make(map[string]Assistant, len(someJson))
+	for _, tempjson := range someJson {
 		data := Assistant{}
 		unmarshalErr := json.Unmarshal(tempjson, &data)
 		if unmarshalErr != nil {
 			log.Error.Fatalf("Could not unmarshal assistant json from DB: %v", unmarshalErr)
-			return []Assistant{}, false, unmarshalErr
+			return map[string]Assistant{}, false, unmarshalErr
 		}
-		someData[i] = data
+		someData[data.UUID] = data
 	}
 	
 	return someData, true, nil

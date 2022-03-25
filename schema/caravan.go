@@ -86,7 +86,7 @@ func GetCaravanFromDB (uuid string, tdb rdb.Database) (Caravan, bool, error) {
 	// Get caravan json
 	someJson, getError := tdb.GetJsonData(uuid, ".")
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// caravan not found
 			return Caravan{}, false, nil
 		}
@@ -108,7 +108,7 @@ func GetCaravansFromDB (uuids []string, tdb rdb.Database) ([]Caravan, bool, erro
 	// Get caravan json
 	someJson, getError := tdb.MGetJsonData(".", uuids)
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// caravan not found
 			return []Caravan{}, false, nil
 		}
@@ -135,7 +135,7 @@ func GetCaravanDataAtPathFromDB (uuid string, path string, tdb rdb.Database) (in
 	// Get caravan json
 	someJson, getError := tdb.GetJsonData(uuid, path)
 	if getError != nil {
-		if fmt.Sprint(getError) != "redis: nil" {
+		if fmt.Sprint(getError) == "redis: nil" {
 			// caravan not found
 			return nil, false, nil
 		}
@@ -164,5 +164,13 @@ func SaveCaravanToDB(tdb rdb.Database, caravanData *Caravan) error {
 func SaveCaravanDataAtPathToDB(tdb rdb.Database, uuid string, path string, newValue interface{}) error {
 	log.Debug.Printf("Saving caravan data at path %s to DB for uuid %s", path, uuid)
 	err := tdb.SetJsonData(uuid, path, newValue)
+	return err
+}
+
+// Attempt to delete caravan, returns error or nil if successful
+func DeleteCaravanFromDB(tdb rdb.Database, uuid string) error {
+	log.Debug.Printf("Saving caravan %s to DB", uuid)
+	_, err := tdb.DelJsonData(uuid, ".")
+	// creationSuccess := rdb.CreateCaravan(tdb, caravanname, uuid, 0)
 	return err
 }
