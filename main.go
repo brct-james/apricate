@@ -202,6 +202,8 @@ func handle_requests(slur_filter []string) {
 	mxr.Handle("/api/plants", &handlers.PlantsOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plant-name}", &handlers.PlantOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.Handle("/api/plants/{plant-name}/stage/{stageNum}", &handlers.PlantStageOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.Handle("/api/rites", &handlers.RitesOverview{MainDictionary: &main_dictionary}).Methods("GET")
+	mxr.Handle("/api/rites/{runic-symbol}", &handlers.RiteOverview{MainDictionary: &main_dictionary}).Methods("GET")
 	mxr.HandleFunc("/api/metrics", handlers.MetricsOverview).Methods("GET")
 
 	// secure subrouter for account-specific routes

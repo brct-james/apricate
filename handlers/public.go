@@ -267,3 +267,33 @@ func MetricsOverview(w http.ResponseWriter, r *http.Request) {
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End MetricsOverview --"))
 }
+
+// Handler function for the route: /api/rites
+type RitesOverview struct {
+	MainDictionary *schema.MainDictionary
+}
+func (h *RitesOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RitesOverview --"))
+	res := h.MainDictionary.Rites
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End RitesOverview --"))
+}
+
+// Handler function for the route: /api/rites/{runic-symbol}
+type RiteOverview struct {
+	MainDictionary *schema.MainDictionary
+}
+func (h *RiteOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RiteOverview --"))
+	// Get username from route
+	rite_name := GetVarEntries(r, "runic-symbol", AllCaps)
+	log.Debug.Printf("RiteOverview Requested for: %s", rite_name)
+	// Get rite
+	if rite, ok := (*h.MainDictionary).Rites[rite_name]; ok {
+		res := rite
+		responses.SendRes(w, responses.Generic_Success, res, "")
+	} else {
+		responses.SendRes(w, responses.Specified_Rite_Not_Found, nil, "")
+	}
+	log.Debug.Println(log.Cyan("-- End RiteOverview --"))
+}

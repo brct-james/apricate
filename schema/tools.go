@@ -21,6 +21,7 @@ const (
 	Tool_SproutingPot ToolTypes = 9
 	Tool_ShadeScroll ToolTypes = 10
 	Tool_Sickle ToolTypes = 11
+	Tool_SpiritFlute ToolTypes = 12
 )
 
 func (s ToolTypes) String() string {
@@ -44,6 +45,7 @@ var toolTypesToString = map[ToolTypes]string {
 	Tool_SproutingPot: "Sprouting Pot",
 	Tool_ShadeScroll: "Scroll of Hyperspecific Cloud Cover",
 	Tool_Sickle: "Sickle",
+	Tool_SpiritFlute: "Spirit Flute",
 }
 
 var toolTypesToID = map[string]ToolTypes {
@@ -59,6 +61,7 @@ var toolTypesToID = map[string]ToolTypes {
 	"Sprouting Pot": Tool_SproutingPot,
 	"Scroll of Hyperspecific Cloud Cover": Tool_ShadeScroll,
 	"Sickle": Tool_Sickle,
+	"Spirit Flute": Tool_SpiritFlute,
 }
 
 // MarshalJSON marshals the enum as a text string

@@ -54,6 +54,7 @@ const (
 	Market_Order_Failed_Validation ResponseCode = 27
 	Location_Not_Found ResponseCode = 28
 	Caravan_Not_Arrived ResponseCode = 29
+	Specified_Rite_Not_Found ResponseCode = 30
 )
 
 // Defines Response structure for output
@@ -122,7 +123,7 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Specified_Plant_Not_Found: {
 		Message: "[Specified_Plant_Not_Found] Could not get specified plant from dictionary",
-		HttpResponse: http.StatusNotAcceptable,
+		HttpResponse: http.StatusNotFound,
 	},
 	No_AuthPair_Context: {
 		Message: "[No_AuthPair_Context] Failed to get AuthPair context from middleware",
@@ -134,7 +135,7 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Item_Does_Not_Exist: {
 		Message: "[Item_Does_Not_Exist] Specified item does not exist in the master goods dictionary.",
-		HttpResponse: http.StatusNotAcceptable,
+		HttpResponse: http.StatusNotFound,
 	},
 	Not_Enough_Items_In_Warehouse: {
 		Message: "[Not_Enough_Items_In_Warehouse] The local warehouse does not have enough items for specified action.",
@@ -199,6 +200,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	Caravan_Not_Arrived: {
 		Message: "[Caravan_Not_Arrived] The specified caravan is still traveling, cannot unpack yet",
 		HttpResponse: http.StatusConflict,
+	},
+	Specified_Rite_Not_Found: {
+		Message: "[Specified_Rite_Not_Found] The specified rite was not found in the master dictionary",
+		HttpResponse: http.StatusNotFound,
 	},
 }
 

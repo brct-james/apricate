@@ -21,7 +21,7 @@ FRGJR:
 FLGJ:
   RunicSymbol: FLGJA
   Name: The Accompaniment of Fylgja
-  Description: Summon a Familiar Assistant using the irresistable Vocatus Blossom, and bind them by playing The Accompaniment of Fylgja on a spirit flute.
+  Description: Summon a Familiar archetype Assistant using the irresistable Vocatus Blossom, and bind them by playing The Accompaniment of Fylgja on a spirit flute.
   MinimumDistortion: 0
   MaximumDistortion: 4
   ArcaneFlux: -50
@@ -46,7 +46,7 @@ HRTKTSK:
 DWLTJ:
   RunicSymbol: DWLTJ
   Name: In Defense of The Duiweltjie
-  Description: Summon an Imp Assistant by boiling a Vocatus Blossom in a Cauldron of Water, and bind them by casting a scroll of bind evil 
+  Description: Summon an Imp archetype Assistant by boiling a Vocatus Blossom in a Cauldron of Water, and bind them by casting a scroll of bind evil (which requires a vial of blood to cast)
   MinimumDistortion: 3
   MaximumDistortion: 5
   ArcaneFlux: -500
