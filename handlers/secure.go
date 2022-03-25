@@ -1275,6 +1275,37 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.Item_Is_Not_Seed, nil, errmsg)
 		return
 	}
+	// Validate specified seed meets min/max size requirements
+	plantDict := (*h.MainDictionary).Plants
+	plantDef, plantDefOk := plantDict[plantName]
+	if !plantDefOk {
+		// Fail, could not lookup plant with matching seed name, internal error
+		errmsg := fmt.Sprintf("Error in PlantPlot, found seed but not plant in master dictionary... received seed name: %v", body.SeedName)
+		log.Error.Printf(errmsg)
+		responses.SendRes(w, responses.Internal_Server_Error, nil, errmsg)
+		return
+	}
+	if body.SeedSize.String() == "" {
+		// FAIL invalid size
+		errmsg := fmt.Sprintf("in PlantPlot, invalid size")
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	if uint16(body.SeedSize) < uint16(schema.SizeToID[plantDef.MinSize]) {
+		// FAIL, this plant won't grow that small
+		errmsg := fmt.Sprintf("in PlantPlot, this plant won't grow that small (%s), minsize: %v", body.SeedSize, plantDef.MinSize)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	if uint16(body.SeedSize) > uint16(schema.SizeToID[plantDef.MaxSize]) {
+		// FAIL, this plant won't grow that large
+		errmsg := fmt.Sprintf("in PlantPlot, this plant won't grow that large (%s), maxsize: %v", body.SeedSize, plantDef.MaxSize)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
 	// Get warehouses
 	wdb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
@@ -1496,12 +1527,12 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Timestamp
-	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-		// too soon, reject
-		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-		return
-	}
+	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+	// 	// too soon, reject
+	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+	// 	return
+	// }
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody
@@ -1559,7 +1590,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Println(plotDefErrMsg)
 		responses.SendRes(w, responses.Internal_Server_Error, plot, plotDefErrMsg)
 	}
-	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime, errInfoMsg := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
+	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime, repeatStage, errInfoMsg := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
 	switch plotValidationResponse {
 	case responses.Invalid_Plot_Action:
 		log.Debug.Printf("in PlotInteract, Invalid_Plot_Action")
@@ -1637,14 +1668,18 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			farm.Plots[uuid] = plot
 		} else {
 			// not final harvest
-			// move up current stage, initialize nextStage for response
-			plot.PlantedPlant.CurrentStage++
+			// move up current stage if not repeat, initialize nextStage for response
+			if !repeatStage {
+				plot.PlantedPlant.CurrentStage++
+			}
 			nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
 		}
 	} else {
 		// if not harvest
-		// move up current stage, initialize nextStage for response
-		plot.PlantedPlant.CurrentStage++
+		// move up current stage if not repeat, initialize nextStage for response
+		if !repeatStage {
+			plot.PlantedPlant.CurrentStage++
+		}
 		nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
 	}
 
