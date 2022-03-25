@@ -22,7 +22,8 @@ type Location struct {
 
 // Calculate travel time for a caravan between two locations
 // Return validation map incase not same island and not ports, and travel time in seconds
-func CalculateTravelTime(world World, a string, b string, slowestSpeed uint64) (map[string]string, int) {
+func CalculateTravelTime(world World, a string, b string, slowestSpeed int) (map[string]string, int) {
+	log.Debug.Printf("CalculateTravelTime a: %s b: %s, slowestSpeed: %d", a, b, slowestSpeed)
 	validationMap := make(map[string]string)
 	aLoc, aOk := world.Locations[a]
 	bLoc, bOk := world.Locations[b]
@@ -38,7 +39,7 @@ func CalculateTravelTime(world World, a string, b string, slowestSpeed uint64) (
 		travelTime = 0
 		validationMap["destination"] = "Cannot travel between islands yet"
 	} else {
-		travelTime = int(math.Ceil(math.Sqrt(math.Pow(float64(bLoc.X - aLoc.X), 2) + math.Pow(float64(bLoc.Y - aLoc.Y), 2))))
+		travelTime = int(math.Ceil(math.Sqrt(math.Pow(float64(bLoc.X - aLoc.X), 2) + math.Pow(float64(bLoc.Y - aLoc.Y), 2)))) * 10 / slowestSpeed
 	}
 	return validationMap, travelTime
 }

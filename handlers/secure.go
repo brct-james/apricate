@@ -242,8 +242,8 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Generate a timestamp for caravan id. Get slowest assistant speeds, total carry cap, set their location to caravan UUID
 	caravanTimestamp := time.Now()
 	caravanUUID := userData.Username + "|Caravan-" + fmt.Sprintf("%d", caravanTimestamp.UnixNano())
-	slowestSpeed := uint64(1000000)
-	carryCap := uint64(0)
+	slowestSpeed := int(1000000)
+	carryCap := int(0)
 	assistantOriginValidation := make(map[string]string)
 	for i, assistant := range assistants {
 		if assistant.Location != body.Origin {
@@ -252,6 +252,7 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if assistant.Speed < slowestSpeed {
 			slowestSpeed = assistant.Speed
+			log.Debug.Printf("Setting slowest speed to %d based on %d: %s", assistant.Speed, assistant.ID, assistant.Archetype.String())
 		}
 		carryCap += assistant.CarryCap
 		assistant.Location = caravanUUID
@@ -315,6 +316,7 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Validate warehouse contains wares in specified quantities and that there is enough carry capacity for specified goods (after multiplying produce quantity by size)
 		waresValidationMap := make(map[string]map[string]string)
+		carryCapNeeded := uint64(0)
 		for category := range wareCategories {
 			switch category {
 			case "Goods":
@@ -336,11 +338,13 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					log.Debug.Printf("Passed Validation, Remove Goods: %s %d", item, quantity)
+					carryCapNeeded += quantity
 					warehouse.RemoveGoods(item, quantity)
 				}
 			case "Produce":
 				for item, quantity := range body.Wares.Produce {
 					pWarehouse := warehouse.GetSimpleProduceDict()
+					splitItemName := strings.Split(item, "|")
 					if _, ok := pWarehouse[item]; !ok {
 						// FAIL item not in pWarehouse
 						if len(waresValidationMap["produce"]) < 1 {
@@ -357,8 +361,8 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						waresValidationMap["produce"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, pWarehouse[item])
 						continue
 					}
-					splitItemName := strings.Split(item, "|")
 					log.Debug.Printf("Passed Validation, Remove Produce: %s %d", item, quantity)
+					carryCapNeeded += quantity * uint64(schema.SizeToID[splitItemName[1]])
 					warehouse.RemoveProduce(splitItemName[0], schema.SizeToID[splitItemName[1]], quantity)
 				}
 			case "Seeds":
@@ -380,6 +384,7 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					log.Debug.Printf("Passed Validation, Remove Seeds: %s %d", item, quantity)
+					carryCapNeeded += quantity
 					warehouse.RemoveSeeds(item, quantity)
 				}
 			case "Tools":
@@ -401,6 +406,7 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						continue
 					}
 					log.Debug.Printf("Passed Validation, Remove Tools: %s %d", item, quantity)
+					carryCapNeeded += quantity
 					warehouse.RemoveTools(item, quantity)
 				}
 			default:
@@ -409,6 +415,13 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				responses.SendRes(w, responses.Internal_Server_Error, nil, errmsg)
 				return
 			}
+		}
+		if carryCapNeeded > carryCap {
+			// Too many wares or not enough assistants
+			if len(waresValidationMap["meta"]) < 1 {
+				waresValidationMap["meta"] = make(map[string]string)
+			}
+			waresValidationMap["meta"]["carrying_capacity"] = fmt.Sprintf("Not enough carrying capacity, have: %d, need: %d. Add more assistants or split into smaller loads", carryCap, carryCapNeeded)
 		}
 		if len(waresValidationMap) > 0 {
 			// Wares failed validation

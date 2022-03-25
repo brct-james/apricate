@@ -22,7 +22,7 @@ const (
 // define map of assistantType to base speed
 // note: largest land distance is 283, more typical travel between 40-90 so travel time will be Math.Ceil(distance_factor * distance) in seconds
 // distance factor = (1800 / Math.Sqrt(80000)) so max is 30 minutes from -100,-100 to 100,100 with speed 1
-var aTypeToBaseSpeed = map[AssistantTypes]uint64 {
+var aTypeToBaseSpeed = map[AssistantTypes]int {
 	Hireling: 5,
 	Familiar: 8,
 	Golem: 3,
@@ -31,7 +31,7 @@ var aTypeToBaseSpeed = map[AssistantTypes]uint64 {
 }
 
 // define map of assistantType to base carry cap
-var aTypeToBaseCarryCap = map[AssistantTypes]uint64 {
+var aTypeToBaseCarryCap = map[AssistantTypes]int {
 	Hireling: 16,
 	Familiar: 4,
 	Golem: 64,
@@ -44,8 +44,8 @@ type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
 	ID uint64 `json:"id" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
-	Speed uint64 `json:"speed" binding:"required"`
-	CarryCap uint64 `json:"carry_capacity" binding:"required"`
+	Speed int `json:"speed" binding:"required"`
+	CarryCap int `json:"carrying_capacity" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
 	Location string `json:"location" binding:"required"` // EITHER the location symbol OR the caravan UUID
 }
