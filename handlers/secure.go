@@ -343,27 +343,35 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			case "Produce":
 				for item, quantity := range body.Wares.Produce {
-					pWarehouse := warehouse.GetSimpleProduceDict()
-					splitItemName := strings.Split(item, "|")
-					if _, ok := pWarehouse[item]; !ok {
-						// FAIL item not in pWarehouse
+					_, psize, splittable := warehouse.GetProduceNameSizeSlice(item)
+					if !splittable {
+						// FAIL produce must have size component
+						if len(waresValidationMap["produce"]) < 1 {
+							waresValidationMap["produce"] = make(map[string]string)
+						}
+						waresValidationMap["produce"][item] = fmt.Sprintf("Could not split to find produce size, ensure follows example format 'Potato|Tiny' (received name: %s)", item)
+						continue
+					}
+					if _, ok := warehouse.Produce[item]; !ok {
+						// FAIL item not in warehouse
 						if len(waresValidationMap["produce"]) < 1 {
 							waresValidationMap["produce"] = make(map[string]string)
 						}
 						waresValidationMap["produce"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
 						continue
 					}
-					if pWarehouse[item] < quantity {
+					if warehouse.Produce[item] < quantity {
 						// FAIL not enough item
 						if len(waresValidationMap["produce"]) < 1 {
 							waresValidationMap["produce"] = make(map[string]string)
 						}
-						waresValidationMap["produce"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, pWarehouse[item])
+						waresValidationMap["produce"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Produce[item])
 						continue
 					}
 					log.Debug.Printf("Passed Validation, Remove Produce: %s %d", item, quantity)
-					carryCapNeeded += quantity * uint64(schema.SizeToID[splitItemName[1]])
-					warehouse.RemoveProduce(splitItemName[0], schema.SizeToID[splitItemName[1]], quantity)
+					
+					carryCapNeeded += quantity * uint64(schema.SizeToID[psize])
+					warehouse.RemoveProduce(item, quantity)
 				}
 			case "Seeds":
 				for item, quantity := range body.Wares.Seeds {
@@ -578,8 +586,7 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(caravan.Wares.Produce) > 0 {
 		for p, q := range caravan.Wares.Produce {
-			sp := strings.Split(p, "|")
-			warehouse.AddProduce(sp[0], schema.SizeToID[sp[1]], q)
+			warehouse.AddProduce(p, q)
 		}
 	}
 	// Update and Save Assistants
@@ -1265,15 +1272,15 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	plot := farm.Plots[uuid]
 	switch plot.IsPlantable(body) {
 	case responses.Plot_Already_Planted:
-		log.Error.Printf("Error in PlantPlot, plot already planted")
+		log.Debug.Printf("in PlantPlot, plot already planted")
 		responses.SendRes(w, responses.Plot_Already_Planted, plot, "")
 		return
 	case responses.Bad_Request:
-		log.Error.Printf("Error in PlantPlot, seed size invalid")
+		log.Debug.Printf("in PlantPlot, seed size invalid")
 		responses.SendRes(w, responses.Bad_Request, plot, "Seed Size specified in request body was invalid")
 		return
 	case responses.Plot_Too_Small:
-		log.Error.Printf("Error in PlantPlot, plot too small")
+		log.Debug.Printf("in PlantPlot, plot too small")
 		responses.SendRes(w, responses.Plot_Too_Small, plot, "")
 		return
 	case responses.Generic_Success:
@@ -1565,9 +1572,9 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		harvest := plot.CalculateProduce(growthHarvest)
 		log.Debug.Println("Harvest Calculated:")
 		log.Debug.Println(harvest)
-		for _, produce := range harvest.Produce {
-			log.Debug.Printf("Add produce quantity: %d", produce.Quantity)
-			warehouse.AddProduce(produce.Name, produce.Size, produce.Quantity)
+		for producename, producequantity := range harvest.Produce {
+			log.Debug.Printf("Add produce quantity: %d", producequantity)
+			warehouse.AddProduce(producename, producequantity)
 			log.Debug.Println(warehouse.Produce)
 		}
 		for seedname, seedquantity := range harvest.Seeds {
@@ -1738,7 +1745,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sizeMod = 1
 	case schema.PRODUCE:
 		itemDict = ioField.Produce
-		warehouseDict = warehouse.GetSimpleProduceDict()
+		warehouseDict = warehouse.Produce
 		splitSlice := strings.Split(order.ItemName, "|")
 		if len(splitSlice) <= 1 {
 			// fail, no size specified
@@ -1824,7 +1831,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case schema.TOOL:
 		warehouse.Goods = warehouseDict
 	case schema.PRODUCE:
-		warehouse.SetSimpleProduceDict(warehouseDict)
+		warehouse.Produce = warehouseDict
 	}
 	userData.Ledger.Currencies["Coins"] = coins
 

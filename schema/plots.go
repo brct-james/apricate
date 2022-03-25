@@ -46,7 +46,7 @@ func NewPlots(pdb rdb.Database, username string, countOfPlots uint64, locationSy
 
 // Defines HarvestProduce data
 type HarvestProduce struct {
-	Produce []Produce `json:"produce" binding:"required"`
+	Produce map[string]uint64 `json:"produce" binding:"required"`
 	Seeds map[string]uint64 `json:"seeds" binding:"required"`
 	Goods map[string]uint64 `json:"goods" binding:"required"`
 }
@@ -169,7 +169,7 @@ func (p *Plot) IsInteractable(pib PlotInteractBody, plantDef PlantDefinition, co
 
 func (p *Plot) CalculateProduce(growthHarvest *GrowthHarvest) HarvestProduce {
 	harvest := HarvestProduce{
-		Produce: make([]Produce, 0),
+		Produce: make(map[string]uint64),
 		Seeds: make(map[string]uint64),
 		Goods: make(map[string]uint64),
 	}
@@ -182,7 +182,8 @@ func (p *Plot) CalculateProduce(growthHarvest *GrowthHarvest) HarvestProduce {
 	log.Debug.Println(growthHarvest)
 	// Calculate Produce - Quantity Affected By AddedYield NOT Size
 	for produceName, yieldModifier := range growthHarvest.Produce {
-		harvest.Produce = append(harvest.Produce, *NewProduce(produceName, size, uint64(math.Round(float64(p.Quantity) * yieldRNG * totalYield * yieldModifier))))
+		sizedProduceName := produceName + "|" + size.String()
+		harvest.Produce[sizedProduceName] = uint64(math.Round(float64(p.Quantity) * yieldRNG * totalYield * yieldModifier))
 	}
 	// Calculate Seeds - NOT Affected By AddedYield OR Size (Affected by Seed Yield Modifier and Yield RNG, however)
 	for seedName, yieldModifier := range growthHarvest.Seeds {
