@@ -13,9 +13,11 @@ type Rite struct {
 	RunicSymbol string `yaml:"RunicSymbol" json:"runic_symbol" binding:"required"`
 	Name string `yaml:"Name" json:"name" binding:"required"`
 	Description string `yaml:"Description" json:"description" binding:"required"` // describe effects
-	MinimumDistortion int `yaml:"MinimumDistortion" json:"minimum_distortion_tier" binding:"required"`
-	MaximumDistortion int `yaml:"MaximumDistortion" json:"maximum_distortion_tier" binding:"required"`
-	ArcaneFlux int `yaml:"ArcaneFlux" json:"arcane_flux" binding:"required"`
+	RequiredBuildings map[string]uint8 `yaml:"RequiredBuildings" json:"required_buildings" binding:"required"`
+	MinimumDistortion float64 `yaml:"MinimumDistortion" json:"minimum_distortion_tier" binding:"required"`
+	MaximumDistortion float64 `yaml:"MaximumDistortion" json:"maximum_distortion_tier" binding:"required"`
+	ArcaneFlux float64 `yaml:"ArcaneFlux" json:"arcane_flux" binding:"required"`
+	RejectionTime int `yaml:"RejectionTime" json:"lattice_rejection_time" binding:"required"`
 	Currencies map[string]uint64 `yaml:"Currencies" json:"currencies" binding:"required"`
 	Materials Wareset `yaml:"Materials" json:"materials" binding:"required"`
 }

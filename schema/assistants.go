@@ -34,18 +34,18 @@ var aTypeToBaseSpeed = map[AssistantTypes]int {
 
 // define map of assistantType to base carry cap
 var aTypeToBaseCarryCap = map[AssistantTypes]int {
-	Imp: 16,
-	Familiar: 8,
-	Golem: 64,
-	Oni: 256, // largest base cap
-	Sprite: 1, // smallest base cap - enough to carry a letter and not much else
-	Dragon: 128,
+	Imp: 32,
+	Familiar: 16,
+	Golem: 128,
+	Oni: 512, // largest base cap
+	Sprite: 2, // smallest base cap - enough to carry a couple letters and not much else
+	Dragon: 256,
 }
 
 // Defines an assistant
 type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
-	ID uint64 `json:"id" binding:"required"`
+	ID int `json:"id" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
 	Speed int `json:"speed" binding:"required"`
 	CarryCap int `json:"carrying_capacity" binding:"required"`
@@ -53,7 +53,7 @@ type Assistant struct {
 	Location string `json:"location" binding:"required"` // EITHER the location symbol OR the caravan UUID
 }
 
-func NewAssistant(username string, countOfUserAssistants uint64, archetype AssistantTypes, locationSymbol string) *Assistant {
+func NewAssistant(username string, countOfUserAssistants int, archetype AssistantTypes, locationSymbol string) *Assistant {
 	return &Assistant{
 		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
 		ID: countOfUserAssistants,

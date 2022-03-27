@@ -35,6 +35,9 @@
   Name: Vial of Blood
   Enchantable: true
 -
+  Name: Vial of Fairy Dust
+  Enchantable: true
+-
   Name: Empty Vial # 1 Unit of Liquid
 -
   Name: Empty Flask # 5 Units of Liquid

@@ -3,11 +3,8 @@ TS-PR-HF:
   Name: Homestead Farm Outlet
   Location: TS-PR-HF
   Imports:
-    Tools:
-      Spade: 1
     Produce:
       Cabbage: 1
-      Shelvis Fig: 10
       Potato: 1
     Seeds:
       Cabbage Seeds: 2
@@ -16,14 +13,15 @@ TS-PR-HF:
       Spectral Grass Seeds: 1
       Gulb Bulb: 25
       Spinosus Vas Seeds: 2
+      Convocare Bulb: 10
+      Uona Spore: 250
+      Grape Seeds: 5
     Goods:
       Water: 1
       Enchanted Water: 5
       Spectral Fiber: 3
       Gulb Nut: 4
   Exports:
-    Produce:
-      Potato: 2
     Seeds:
       Cabbage Seeds: 4
       Potato Chunk: 2
@@ -31,6 +29,50 @@ TS-PR-HF:
       Spectral Grass Seeds: 2
       Gulb Bulb: 50
       Spinosus Vas Seeds: 5
+      Convocare Bulb: 25
+      Uona Spore: 500
+      Grape Seeds: 10
+    Goods:
+      Water: 2
+      Fertilizer: 5
+    Tools:
+      Spade: 100
+      Hoe: 250
+      Rake: 150
+      Pitchfork: 500
+      Water Wand: 250
+      Shears: 100
+      Sickle: 100
+      Spirit Flute: 300
+TS-PR-YD:
+  Name: Yudoa General Store
+  Location: TS-PR-YD
+  Imports:
+    Tools:
+      Spade: 105
+    Produce:
+      Shelvis Fig: 10
+      Grapes: 5
+    Goods:
+      Spectral Fiber: 5
+      Gulb Nut: 5
+      Vocatus Blossom: 50
+      Vocatus Blossom In Perfect Bloom: 5000
+      Wagyu Fungus Steak: 250
+  Exports:
+    Produce:
+      Potato: 3
+      Cabbage: 3
+    Seeds:
+      Cabbage Seeds: 4
+      Potato Chunk: 2
+      Shelvis Fig Seeds: 100
+      Spectral Grass Seeds: 2
+      Gulb Bulb: 50
+      Spinosus Vas Seeds: 5
+      Convocare Bulb: 25
+      Uona Spore: 500
+      Grape Seeds: 10
     Goods:
       Water: 2
       Enchanted Water: 10
@@ -38,6 +80,8 @@ TS-PR-HF:
       Enchanted Fertilizer: 10
       Dragon Fertilizer: 15
       Enchanted Dragon Fertilizer: 20
+      Vocatus Blossom: 750
+      Empty Vial: 5
     Tools:
       Spade: 100
       Hoe: 250
@@ -48,3 +92,4 @@ TS-PR-HF:
       Scroll of Hyperspecific Cloud Cover: 250
       Shears: 100
       Sickle: 100
+      Spirit Flute: 300

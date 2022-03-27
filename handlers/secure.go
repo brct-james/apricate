@@ -8,6 +8,7 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
+	"apricate/timecalc"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -832,7 +833,12 @@ func (h *MarketsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// finally get all markets in each region
 	resMarkets := make([]schema.Market, 0)
 	for market := range myLocs {
-		resMarkets = append(resMarkets, h.MainDictionary.Markets[market])
+		marketEntry, meOk := h.MainDictionary.Markets[market]
+		if !meOk {
+			// location doesn't have market, skip
+			continue
+		}
+		resMarkets = append(resMarkets, marketEntry)
 	}
 	responses.SendRes(w, responses.Generic_Success, resMarkets, "")
 	log.Debug.Println(log.Cyan("-- End MarketsInfo --"))
@@ -950,7 +956,7 @@ func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End FarmInfo --"))
 }
 
-// Handler function for the secure route: POST: /api/my/farms/{location-symbol}/ritual
+// Handler function for the secure route: POST: /api/my/farms/{location-symbol}/ritual/{runic-symbol}
 type ConductRitual struct {
 	Dbs *map[string]rdb.Database
 	MainDictionary *schema.MainDictionary
@@ -962,31 +968,300 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !OK {
 		return // Failure states handled by secureGetUser, simply return
 	}
-	// unmarshall request body to get ritual
-	var body schema.CaravanCharter
-	decoder := json.NewDecoder(r.Body)
-	if decodeErr := decoder.Decode(&body); decodeErr != nil {
-		// Fail case, could not decode
-		errmsg := fmt.Sprintf("Decode Error in CharterCaravan: %v", decodeErr)
-		log.Debug.Printf(errmsg)
-		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+
+	// Validate timestamp
+	now := time.Now()
+	if userData.LatticeRejectionEnd > now.Unix() {
+		// FAIL, rejection still in place
+		latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeRejectionEnd - now.Unix())
+		log.Debug.Printf(latticeRejectionMsg)
+		responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
 		return
 	}
-	adb := (*h.Dbs)["assistants"]
-	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
-	if assistantsErr != nil || !foundAssistants {
-		log.Error.Printf("Error in ConductRitual, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+
+	// Get farm symbol from route
+	farmSymbol := GetVarEntries(r, "location-symbol", AllCaps)
+	// Validate farm is user's
+	fuuid := userData.Username + "|Farm-" + farmSymbol
+	log.Debug.Printf("FarmInfo Requested for: %s", fuuid)
+	fdb := (*h.Dbs)["farms"]
+	farm, foundFarm, farmsErr := schema.GetFarmFromDB(fuuid, fdb)
+	if farmsErr != nil || !foundFarm {
+		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
 		return
 	}
-	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistants)
-	if getAssistantJsonStringErr != nil {
-		log.Error.Printf("Error in ConductRitual, could not format assistants as JSON. assistants: %v, error: %v", assistants, getAssistantJsonStringErr)
-		responses.SendRes(w, responses.JSON_Marshal_Error, assistants, getAssistantJsonStringErr.Error())
+
+	// Get symbol from route
+	symbol := GetVarEntries(r, "runic-symbol", AllCaps)
+	// Get rite specified by symbol
+	ritesDict := (*h.MainDictionary).Rites
+	rite, riteOk := ritesDict[symbol]
+	if !riteOk {
+		// FAIL runic symbol could not be mapped to known rite
+		log.Debug.Printf("in ConductRitual, runic symbol could not be mapped to known rite")
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, runic symbol could not be mapped to known rite")
 		return
 	}
-	log.Debug.Printf("Sending response for ConductRitual:\n%v", getAssistantJsonString)
-	responses.SendRes(w, responses.Generic_Success, assistants, "")
+
+	// Validate that farm contains buildings required by ritual
+	for building, level := range rite.RequiredBuildings {
+		fbLevel, fbOk := farm.Buildings[schema.BuildingsToID[building]]
+		if !fbOk {
+			// FAIL building not on farm
+			log.Debug.Printf("in ConductRitual, farm doesn't have building %s required for rite", building)
+			responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, farm doesn't have building required for rite")
+			return
+		}
+		if fbLevel < level {
+			// FAIL building too low level
+			log.Debug.Printf("in ConductRitual, farm doesn't have building %s of sufficient level (%v of %v) for rite", building, fbLevel, level)
+			responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, farm doesn't have building of sufficient level for rite")
+			return
+		}
+	}
+	
+	// Validate rite magic
+	if rite.MinimumDistortion > userData.DistortionTier {
+		// FAIL distortion too low
+		log.Debug.Printf("in ConductRitual, distortion too low for rite (%v of %v)", userData.DistortionTier, rite.MinimumDistortion)
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, distortion too low for rite")
+		return
+	}
+	if rite.MaximumDistortion < userData.DistortionTier {
+		// FAIL distortion too high
+		log.Debug.Printf("in ConductRitual, distortion too high for rite (%v of %v)", userData.DistortionTier, rite.MaximumDistortion)
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, distortion too high for rite")
+		return
+	}
+	if rite.ArcaneFlux > 0 && rite.ArcaneFlux > userData.ArcaneFlux {
+		// FAIL not enough arcane flux to power ritual
+		log.Debug.Printf("in ConductRitual, not enough arcane flux for rite (%v of %v)", userData.ArcaneFlux, rite.ArcaneFlux)
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, not enough arcane flux for rite")
+		return
+	}
+
+	// Update user magic stuff
+	userData.ArcaneFlux += rite.ArcaneFlux
+	if userData.ArcaneFlux <= 0 {
+		userData.ArcaneFlux = 1
+	}
+	userData.DistortionTier = schema.ConvertFluxToDistortion(userData.ArcaneFlux)
+	userData.LatticeRejectionEnd = timecalc.AddSecondsToTimestamp(now, rite.RejectionTime).Unix()
+
+	// Validate rite currencies
+	if len(rite.Currencies) > 0 {
+		// has currencies, validate
+		for currencyName, currencyQuantity := range rite.Currencies {
+			ledgerQuantity, lOk := userData.Ledger.Currencies[currencyName]
+			if !lOk {
+				// FAIL currency not in ledger
+				log.Debug.Printf("in ConductRitual, currency %s required for rite not found in ledger", currencyName)
+				responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, currency required for rite not found in ledger")
+				return
+			}
+			if currencyQuantity > ledgerQuantity {
+				// FAIL too little currency in ledger
+				log.Debug.Printf("in ConductRitual, not enough currency %s required for rite found in ledger (%v of %v)", currencyName, ledgerQuantity, currencyQuantity)
+				responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, not enough currency required for rite not found in ledger")
+				return
+			}
+			// update ledger with new value
+			userData.Ledger.AddCurrency(currencyName, currencyQuantity)
+		}
+	}
+
+	// Get local warehouse
+	wuuid := userData.Username + "|Warehouse-" + farmSymbol
+	wdb := (*h.Dbs)["warehouses"]
+	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(wuuid, wdb)
+	if warehousesErr != nil || !foundWarehouse {
+		log.Error.Printf("Error in WarehouseInfo, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+		return
+	}
+
+	// Validate rite goods
+	if len(rite.Materials.Goods) > 0 {
+		// has goods, validate
+		for goodName, goodQuantity := range rite.Materials.Goods {
+			warehouseQuantity, wOk := warehouse.Goods[goodName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, good %s required for rite not found in warehouse", goodName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if goodQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough good %s required for rite not found in warehouse", goodName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// update warehouse with new value
+			warehouse.RemoveGoods(goodName, goodQuantity)
+		}
+	}
+
+	// Validate rite seeds
+	if len(rite.Materials.Seeds) > 0 {
+		// has seeds, validate
+		for seedName, seedQuantity := range rite.Materials.Seeds {
+			warehouseQuantity, wOk := warehouse.Seeds[seedName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, seed %s required for rite not found in warehouse", seedName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if seedQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough seed %s required for rite not found in warehouse", seedName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// update warehouse with new value
+			warehouse.RemoveSeeds(seedName, seedQuantity)
+		}
+	}
+
+	// Validate rite produce
+	if len(rite.Materials.Produce) > 0 {
+		// has produce, validate
+		for produceName, produceQuantity := range rite.Materials.Produce {
+			warehouseQuantity, wOk := warehouse.Produce[produceName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, produce %s required for rite not found in warehouse", produceName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if produceQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough produce %s required for rite not found in warehouse", produceName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// update warehouse with new value
+			warehouse.RemoveProduce(produceName, produceQuantity)
+		}
+	}
+
+	// Validate rite tools
+	if len(rite.Materials.Tools) > 0 {
+		// has tools, validate
+		for toolsName, toolsQuantity := range rite.Materials.Tools {
+			warehouseQuantity, wOk := warehouse.Tools[toolsName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, tools %s required for rite not found in warehouse", toolsName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if toolsQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough tools %s required for rite not found in warehouse", toolsName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// tools not removed, don't update warehouse with new value
+			// warehouse.RemoveTools(toolsName, toolsQuantity)
+		}
+	}
+
+	// Rite Validated and updated currencies/etc. NOW do other effects as applicable
+	switch rite.RunicSymbol {
+	case "FLGJ": // Summon Familiar
+		log.Debug.Printf("Rite %s cast, summoning Familiar", rite.RunicSymbol)
+		newAssistant := schema.NewAssistant(userData.Username, len(userData.Assistants), schema.Familiar, farmSymbol)
+		// Save newAssistant
+		adb := (*h.Dbs)["assistants"]
+		saveAssistantErr := schema.SaveAssistantToDB(adb, newAssistant)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in ConductRitual, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+		// Add UUID to userdata
+		userData.Assistants = append(userData.Assistants, newAssistant.UUID)
+		// UserData saved later
+	case "HRTKTSK": // Get Vial of Blood
+		log.Debug.Printf("Rite %s cast, giving blood", rite.RunicSymbol)
+		warehouse.AddGoods("Vial of Blood", 1)
+		// Warehouse saved later
+	case "DWLTJ": // Summon Imp
+		log.Debug.Printf("Rite %s cast, summoning Imp", rite.RunicSymbol)
+		newAssistant := schema.NewAssistant(userData.Username, len(userData.Assistants), schema.Imp, farmSymbol)
+		// Save newAssistant
+		adb := (*h.Dbs)["assistants"]
+		saveAssistantErr := schema.SaveAssistantToDB(adb, newAssistant)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in ConductRitual, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+		// Add UUID to userdata
+		userData.Assistants = append(userData.Assistants, newAssistant.UUID)
+		// UserData saved later
+	case "ASTRVNRPRV": // Get Vial of Fairy Dust
+		log.Debug.Printf("Rite %s cast, giving Fairy Dust", rite.RunicSymbol)
+		warehouse.AddGoods("Vial of Fairy Dust", 1)
+		// Warehouse saved later
+	case "APCRPHNSPRGGNCRGNS": // Summon Sprite
+		log.Debug.Printf("Rite %s cast, summoning Sprite", rite.RunicSymbol)
+		newAssistant := schema.NewAssistant(userData.Username, len(userData.Assistants), schema.Sprite, farmSymbol)
+		// Save newAssistant
+		adb := (*h.Dbs)["assistants"]
+		saveAssistantErr := schema.SaveAssistantToDB(adb, newAssistant)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in ConductRitual, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+		// Add UUID to userdata
+		userData.Assistants = append(userData.Assistants, newAssistant.UUID)
+		// UserData saved later
+	default:
+		log.Debug.Printf("Rite %s doesn't appear to have any special effects. Skipping", rite.RunicSymbol)
+	}
+
+	// Send warehouse and user data
+	res := make(map[string]interface{})
+	res["user"] = userData
+	res["warehouse"] = warehouse
+
+	// Save userdata
+	saveUserErr := schema.SaveUserToDB(udb, &userData)
+	if saveUserErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not save user. error: %v", saveUserErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
+		return
+	}
+
+	// Save warehouse
+	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+	if saveWarehouseErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not save warehouse. error: %v", saveWarehouseErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+		return
+	}
+
+	getResJsonString, getResJsonStringErr := responses.JSON(res)
+	if getResJsonStringErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not format res as JSON. res: %v, error: %v", res, getResJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, res, getResJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for ConductRitual:\n%v", getResJsonString)
+	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End ConductRitual --"))
 }
 
@@ -1527,12 +1802,12 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Timestamp
-	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-	// 	// too soon, reject
-	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-	// 	return
-	// }
+	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+		// too soon, reject
+		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+		return
+	}
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody
@@ -1867,6 +2142,10 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Execute buy
 		coins -= orderCost
+		if len(warehouseDict) == 0 {
+			// empty warehouseDict, create
+			warehouseDict = make(map[string]uint64)
+		}
 		warehouseDict[itemName] += order.Quantity
 		metrics.TrackMarketBuySell(itemName, true, order.Quantity)
 	} else {

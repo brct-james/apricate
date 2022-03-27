@@ -218,7 +218,7 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/caravans/{caravan-id}", &handlers.UnpackCaravan{Dbs: &dbs}).Methods("DELETE")
 	secure.Handle("/farms", &handlers.FarmsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/farms/{location-symbol}", &handlers.FarmInfo{Dbs: &dbs}).Methods("GET")
-	secure.Handle("/farms/{location-symbol}/rituals/{rite-runes}", &handlers.ConductRitual{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
+	secure.Handle("/farms/{location-symbol}/ritual/{runic-symbol}", &handlers.ConductRitual{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("POST")
 	secure.Handle("/contracts", &handlers.ContractsInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/contracts/{contract-id}", &handlers.ContractInfo{Dbs: &dbs}).Methods("GET")
 	secure.Handle("/warehouses", &handlers.WarehousesInfo{Dbs: &dbs}).Methods("GET")
