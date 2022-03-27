@@ -1,4 +1,6 @@
 ---
+# Notes:
+# Trees/Orchard-type plants should generally take 12 hours to fully mature and begin bearing fruit. Fruit should generally take no more than 6 hours to regrow
 Grapevine:
   Name: Grapevine
   Description: Grapes grow on vines, and may be harvested periodically after the plants mature
@@ -38,21 +40,21 @@ Grapevine:
           Name: Enchanted Water
           Quantity: 1
           AddedYield: 0.25
-      GrowthTime: 900
+      GrowthTime: 300
     -
       Name: Seedling
       Description: You may hill the Grape seedling to protect it from nibbling creatures
       Action: Hill
       Skippable: True
       AddedYield: 0.25
-      GrowthTime: 1800
-    -
-      Name: Young Vine - Prune
-      Description: Pruning the Grape plant as it grows will encourage it to bear fruit
-      Action: Trim
       GrowthTime: 900
     -
-      Name: Adult Vine - Prune
+      Name: Young Vine
+      Description: Pruning the Grape plant as it grows will encourage it to bear fruit
+      Action: Trim
+      GrowthTime: 600
+    -
+      Name: Adult Vine
       Description: Continue to prune the Grape vine as it matures
       Action: Trim
       GrowthTime: 1800
@@ -61,7 +63,7 @@ Grapevine:
       Description: Continue to prune the Grape vine as needed and it will continue to produce fruit
       Action: Trim
       Repeatable: True
-      GrowthTime: 1800
+      GrowthTime: 900
       Harvestable:
         Seeds:
           Grape Seeds: 1.0
@@ -115,7 +117,7 @@ Wagyu Fungus:
       Action: Shade
       Skippable: True
       AddedYield: 0.5
-      GrowthTime: 7200
+      GrowthTime: 3600
     -
       Name: Seedling - Weed
       Description: Weeds often attack seedling Uona Trees before the roots harden, and must be removed
@@ -127,12 +129,12 @@ Wagyu Fungus:
       Action: Hill
       Skippable: True
       AddedYield: 1.0
-      GrowthTime: 21600
+      GrowthTime: 10800
     -
       Name: Young Tree - Trim
       Description: The early branches of the Uona Tree can grow too large, shattering the tree as it grows, and must be removed
       Action: Trim
-      GrowthTime: 43200
+      GrowthTime: 7200
     -
       Name: Mature Tree
       Description: The Uona Tree is mature, but it will take a while for the fungus to grow
