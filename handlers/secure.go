@@ -1000,9 +1000,9 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Validate timestamp
 	now := time.Now()
-	if userData.LatticeRejectionEnd > now.Unix() {
+	if userData.LatticeInterferenceRejectionEnd > now.Unix() {
 		// FAIL, rejection still in place
-		latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeRejectionEnd - now.Unix())
+		latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeInterferenceRejectionEnd - now.Unix())
 		log.Debug.Printf(latticeRejectionMsg)
 		responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
 		return
@@ -1076,7 +1076,7 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		userData.ArcaneFlux = 1
 	}
 	userData.DistortionTier = schema.ConvertFluxToDistortion(userData.ArcaneFlux)
-	userData.LatticeRejectionEnd = timecalc.AddSecondsToTimestamp(now, rite.RejectionTime).Unix()
+	userData.LatticeInterferenceRejectionEnd = timecalc.AddSecondsToTimestamp(now, rite.RejectionTime).Unix()
 
 	// Validate rite currencies
 	if len(rite.Currencies) > 0 {

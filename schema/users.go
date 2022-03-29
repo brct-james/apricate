@@ -24,7 +24,7 @@ type User struct {
 	Farms []string `json:"farms" binding:"required"`
 	Plots []string `json:"plots" binding:"required"`
 	Warehouses []string `json:"warehouses" binding:"required"`
-	LatticeRejectionEnd int64 `json:"lattice_rejection_end" binding:"required"`
+	LatticeInterferenceRejectionEnd int64 `json:"lattice_interference_rejection_end" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -105,7 +105,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 			Achievements: []Achievement{Achievement_Noob},
 			UserSince: time.Now().Unix(),
 		},
-		LatticeRejectionEnd: 0,
+		LatticeInterferenceRejectionEnd: 0,
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
 		Plots: plotIds,
