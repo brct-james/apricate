@@ -212,7 +212,7 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Fail case, could not decode
 		errmsg := fmt.Sprintf("Decode Error in CharterCaravan: %v", decodeErr)
 		log.Debug.Printf(errmsg)
-		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected format.")
+		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected json format.")
 		return
 	}
 
@@ -269,12 +269,32 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate travel time and construct caravan
-	travelTimeValidationMap, caravanTravelTime := schema.CalculateTravelTime((*h.World), body.Origin, body.Destination, slowestSpeed)
+	travelTimeValidationMap, caravanTravelTime, caravanFareCost := schema.CalculateTravelTime((*h.World), body.Origin, body.Destination, slowestSpeed)
 	if len(travelTimeValidationMap) > 0 {
 		// Fail, origin and destination could not be routed
-		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", assistantOriginValidation)
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", travelTimeValidationMap)
 		log.Debug.Printf(errmsg)
-		responses.SendRes(w, responses.Bad_Request, assistantOriginValidation, "Request body did not pass validation, see data for specifics.")
+		responses.SendRes(w, responses.Bad_Request, travelTimeValidationMap, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+	// Update userdata with caravanFareCost deducted from ledger if enough (if not enough in wallet, fail validation)
+	coinsValidationMap := make(map[string]string)
+	if coins, coinsOk := userData.Ledger.Currencies["Coins"]; coinsOk {
+		if coins < caravanFareCost {
+			// Coins not enough, fail validation
+			coinsValidationMap["port_fare"] = fmt.Sprintf("Not enough coins in ledger to pay fare. Have %d need %d", coins, caravanFareCost)
+			log.Debug.Printf(coinsValidationMap["port_fare"])
+			responses.SendRes(w, responses.Bad_Request, travelTimeValidationMap, "Request body did not pass validation, see data for specifics.")
+			return
+		} else {
+			// Enough coins, deduct fare
+			userData.Ledger.Currencies["Coins"] = coins - caravanFareCost
+		}
+	} else {
+		// Coins not found in ledger for some reason, fail validation
+		coinsValidationMap["port_fare"] = fmt.Sprintf("'Coins' currency not found in ledger. This is atypical, as currencies are not usually removed once added and coins is added by default. Contact Developer.")
+		log.Error.Printf(coinsValidationMap["port_fare"])
+		responses.SendRes(w, responses.Bad_Request, travelTimeValidationMap, "Request body did not pass validation, see data for specifics.")
 		return
 	}
 	caravan := schema.NewCaravan(caravanUUID, caravanTimestamp, body.Origin, body.Destination, body.Assistants, body.Wares, caravanTravelTime)
@@ -454,15 +474,17 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cdb := (*h.Dbs)["caravans"]
 	saveCaravanErr := schema.SaveCaravanToDB(cdb, caravan)
 	if saveCaravanErr != nil {
-		log.Error.Printf("Error in PlotInteract, could not save caravan. error: %v", saveCaravanErr)
+		log.Error.Printf("Error in CharterCaravan, could not save caravan. error: %v", saveCaravanErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveCaravanErr.Error())
 		return
 	}
 
+	// Save user data including caravans and potentially updated currencies
 	caravanList := append(userData.Caravans, caravanUUID)
-	saveUserErr := schema.SaveUserDataAtPathToDB(udb, userData.Token, "caravans", caravanList)
+	userData.Caravans = caravanList
+	saveUserErr := schema.SaveUserToDB(udb, &userData)
 	if saveUserErr != nil {
-		log.Error.Printf("Error in PlotInteract, could not save user. error: %v", saveUserErr)
+		log.Error.Printf("Error in CharterCaravan, could not save user. error: %v", saveUserErr)
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
 		return
 	}
@@ -535,33 +557,66 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Timestamp
-	now := time.Now()
-	if caravan.ArrivalTime > now.Unix() {
-		// Too early
-		caravan.SecondsTillArrival = caravan.ArrivalTime - now.Unix()
-		errmsg := fmt.Sprintf("caravan has not arrived yet, arrives in %d seconds", caravan.SecondsTillArrival)
-		log.Debug.Printf(errmsg)
-		responses.SendRes(w, responses.Caravan_Not_Arrived, caravan, errmsg)
-		return
-	}
+	// now := time.Now()
+	// if caravan.ArrivalTime > now.Unix() {
+	// 	// Too early
+	// 	caravan.SecondsTillArrival = caravan.ArrivalTime - now.Unix()
+	// 	errmsg := fmt.Sprintf("caravan has not arrived yet, arrives in %d seconds", caravan.SecondsTillArrival)
+	// 	log.Debug.Printf(errmsg)
+	// 	responses.SendRes(w, responses.Caravan_Not_Arrived, caravan, errmsg)
+	// 	return
+	// }
 
 	// VALID: Update user, warehouses, assistants, caravans DBs
 
-	// Get warehouse
-	wdb := (*h.Dbs)["warehouses"]
-	warehouseLocationSymbol := userData.Username + "|Warehouse-" + caravan.Destination
-	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
-	if warehousesErr != nil {
-		errmsg := fmt.Sprintf("Error in UnpackCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		log.Error.Printf(errmsg)
-		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
-		return
+	if len(caravan.Wares.Goods) > 0 || len(caravan.Wares.Seeds) > 0 || len(caravan.Wares.Produce) > 0 || len(caravan.Wares.Tools) > 0 {
+		// Get warehouse
+		wdb := (*h.Dbs)["warehouses"]
+		warehouseLocationSymbol := userData.Username + "|Warehouse-" + caravan.Destination
+		warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+		if warehousesErr != nil {
+			errmsg := fmt.Sprintf("Error in UnpackCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+			log.Error.Printf(errmsg)
+			responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+			return
+		}
+		if !foundWarehouse {
+			// Need to add new warehouse
+			warehouse = *schema.NewEmptyWarehouse(userData.Username, caravan.Destination)
+			userData.Warehouses = append(userData.Warehouses, warehouse.UUID)
+		}
+
+		// Update Warehouse
+		if len(caravan.Wares.Goods) > 0 {
+			for g, q := range caravan.Wares.Goods {
+				warehouse.AddGoods(g, q)
+			}
+		}
+		if len(caravan.Wares.Seeds) > 0 {
+			for s, q := range caravan.Wares.Seeds {
+				warehouse.AddSeeds(s, q)
+			}
+		}
+		if len(caravan.Wares.Tools) > 0 {
+			for t, q := range caravan.Wares.Tools {
+				warehouse.AddTools(t, q)
+			}
+		}
+		if len(caravan.Wares.Produce) > 0 {
+			for p, q := range caravan.Wares.Produce {
+				warehouse.AddProduce(p, q)
+			}
+		}
+
+		// Save Warehouse
+		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+		if saveWarehouseErr != nil {
+			log.Error.Printf("Error in UnpackCaravan, could not save warehouse. error: %v", saveWarehouseErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+			return
+		}
 	}
-	if !foundWarehouse {
-		// Need to add new warehouse
-		warehouse = *schema.NewEmptyWarehouse(userData.Username, caravan.Destination)
-		userData.Warehouses = append(userData.Warehouses, warehouse.UUID)
-	}
+	
 
 	// Update User
 	if len(userData.Caravans) <= 1 {
@@ -569,27 +624,7 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		userData.Caravans = remove(userData.Caravans, cUUID)
 	}
-	// Update Warehouse
-	if len(caravan.Wares.Goods) > 0 {
-		for g, q := range caravan.Wares.Goods {
-			warehouse.AddGoods(g, q)
-		}
-	}
-	if len(caravan.Wares.Seeds) > 0 {
-		for s, q := range caravan.Wares.Seeds {
-			warehouse.AddSeeds(s, q)
-		}
-	}
-	if len(caravan.Wares.Tools) > 0 {
-		for t, q := range caravan.Wares.Tools {
-			warehouse.AddTools(t, q)
-		}
-	}
-	if len(caravan.Wares.Produce) > 0 {
-		for p, q := range caravan.Wares.Produce {
-			warehouse.AddProduce(p, q)
-		}
-	}
+	
 	// Update and Save Assistants
 	adb := (*h.Dbs)["assistants"]
 	for _, aID := range caravan.Assistants {
@@ -609,13 +644,7 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
 		return
 	}
-	// Save Warehouse
-	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
-	if saveWarehouseErr != nil {
-		log.Error.Printf("Error in UnpackCaravan, could not save warehouse. error: %v", saveWarehouseErr)
-		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
-		return
-	}
+	
 	// Delete Caravan
 	delCaravanErr := schema.DeleteCaravanFromDB(cdb, cUUID)
 	if delCaravanErr != nil {
@@ -625,7 +654,7 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct and Send response
-	response := map[string]interface{}{"local_warehouse": &warehouse, "assistants_released": &caravan.Assistants}
+	response := map[string]interface{}{"assistants_released": &caravan.Assistants}
 	getPlotPlantResponseJsonString, getPlotPlantResponseJsonStringErr := responses.JSON(response)
 	if getPlotPlantResponseJsonStringErr != nil {
 		log.Error.Printf("Error in PlotInfo, could not format interact response as JSON. response: %v, error: %v", response, getPlotPlantResponseJsonStringErr)

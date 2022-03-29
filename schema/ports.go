@@ -8,5 +8,5 @@ type Port struct {
 	Connection string `yaml:"Connection" json:"connection" binding:"required"`
 	ConnectedLocation string `yaml:"ConnectedLocation" json:"connected_locations" binding:"required"`
 	Fare uint64 `yaml:"Fare" json:"fare" binding:"required"`
-	Duration uint16 `yaml:"Duration" json:"duration" binding:"required"`
+	Duration int `yaml:"Duration" json:"duration" binding:"required"`
 }
