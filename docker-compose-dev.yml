@@ -3,7 +3,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: live.Dockerfile
+      dockerfile: dev.Dockerfile
     ports:
       - "50520:8080"
     stdin_open: true

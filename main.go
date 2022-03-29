@@ -50,6 +50,8 @@ func initialize_dbs() {
 		log.Error.Fatalf("Could not ping redis server at %s", RedisAddr)
 	}
 
+	// Check to flush DBs
+	log.Info.Printf("Check Flush DBs: %v || %v : %v", flush_DBs, regenerate_auth_secret, flush_DBs || regenerate_auth_secret)
 	if flush_DBs || regenerate_auth_secret {
 		for _, db := range dbs {
 			db.Flush()
@@ -239,11 +241,10 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/plots/{plot-id}/interact", &handlers.InteractPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
 
 	// Setup ratelimiting
-	maxRequestsSec := 1
+	maxRequestsSec := 4
 	lmt := tollbooth.NewLimiter(float64(maxRequestsSec), &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
-	lmt.SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}).SetMethods([]string{"GET", "POST", "PATCH", "DELETE", "PUT"})
+	lmt.SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}).SetMethods([]string{"GET", "POST", "PATCH", "DELETE", "PUT"}).SetBurst(4)
 	mxr_tollbooth := tollbooth.LimitHandler(lmt, mxr)
-
 
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)
