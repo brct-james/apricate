@@ -25,7 +25,7 @@ TS-VD:
       Duration: 30
     Skellig:
       Name: Port Olisar
-      Symbol: TS-VD-PO
+      Symbol: TS-VD-POL
       Connection: Veldis to Skellig
       ConnectedLocation: TS-SK-PGM
       Fare: 100
@@ -46,7 +46,7 @@ TS-SK:
       Name: Port Gumpti
       Symbol: TS-SK-PGM
       Connection: Skellig to Veldis
-      ConnectedLocation: TS-VD-PO
+      ConnectedLocation: TS-VD-POL
       Fare: 100
       Duration: 60
     Boldor:
