@@ -29,9 +29,83 @@ var (
 	dbs = make(map[string]rdb.Database)
 	world schema.World
 	main_dictionary = schema.MainDictionary{}
-	flush_DBs = true
+	flush_DBs = false
 	regenerate_auth_secret = false
 )
+
+func load_config() {
+	// Ensure exists
+	filemngr.Touch("data/secrets.env")
+	// Load env file
+	lines, readErr := filemngr.ReadFileToLineSlice("data/secrets.env")
+	if readErr != nil {
+		// is mission-critical, using Fatal
+		log.Error.Fatalf("Could not read lines from secrets.env. Err: %v", readErr)
+	}
+	// Search existing file for identifiers
+	log.Info.Printf("Search for flush_dbs")
+	foundFlush, i := filemngr.KeyInSliceOfLines("flush_dbs=", lines)
+	if foundFlush {
+		// If true/false
+		splitStr := strings.Split(lines[i], "=")[1]
+		log.Info.Printf("Found flush_dbs: %s", splitStr)
+		if splitStr == "true" || splitStr == "dev" {
+			flush_DBs = true
+		} else {
+			flush_DBs = false
+		}
+		// Update existing secret
+		if splitStr != "dev" {
+			lines [i] = "flush_dbs=false"
+		}
+	} else {
+		// Create secret in env file since could not find one to update
+		// If empty file then replace 1st line else append to end
+		log.Info.Printf("Not found flush_dbs, creating")
+		log.Debug.Printf("Creating new secret in env file. secrets.env[0] == ''? %v", lines[0] == "")
+		if lines[0] == "" {
+			log.Debug.Printf("Blank secrets.env, replacing line 0")
+			lines[0] = "flush_dbs=false"
+		} else {
+			log.Debug.Printf("Not blank secrets.env, appending to end")
+			lines = append(lines, "flush_dbs=false")
+		}
+	}
+	// Search existing file for regenerate
+	log.Info.Printf("Search for regenerate_auth_secret")
+	foundRegenerate, i := filemngr.KeyInSliceOfLines("regenerate_auth_secret=", lines)
+	if foundRegenerate {
+		// If true/false
+		splitStr := strings.Split(lines[i], "=")[1]
+		log.Info.Printf("Found regenerate_auth_secret: %s", splitStr)
+		if splitStr == "true" {
+			regenerate_auth_secret = true
+		} else {
+			regenerate_auth_secret = false
+		}
+		// Update existing secret
+		lines [i] = "regenerate_auth_secret=false"
+	} else {
+		// Create secret in env file since could not find one to update
+		// If empty file then replace 1st line else append to end
+		log.Info.Printf("Not found regenerate_auth_secret, creating")
+		log.Debug.Printf("Creating new secret in env file. secrets.env[0] == ''? %v", lines[0] == "")
+		if lines[0] == "" {
+			log.Debug.Printf("Blank secrets.env, replacing line 0")
+			lines[0] = "regenerate_auth_secret=false"
+		} else {
+			log.Debug.Printf("Not blank secrets.env, appending to end")
+			lines = append(lines, "regenerate_auth_secret=false")
+		}
+	}
+	
+	// Join and write out
+	writeErr := filemngr.WriteLinesToFile("data/secrets.env", lines)
+	if writeErr != nil {
+		log.Error.Fatalf("Could not write secrets.env: %v", writeErr)
+	}
+	log.Info.Println("Wrote config to secrets.env")
+}
 
 func initialize_dbs() {
 	log.Info.Printf("Connecting to Redis server at %s", RedisAddr)
@@ -123,6 +197,9 @@ func setup_my_character() {
 func main() {
 	log.Info.Printf("Guild-Golems Rest API Server %s", apiVersion)
 	log.Info.Printf("Connecting to Redis DB")
+
+	// Load config or use defaults
+	load_config()
 
 	// Setup redis databases for each namespace
 	initialize_dbs()
