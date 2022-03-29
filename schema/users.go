@@ -80,7 +80,7 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 		starting_currencies = map[string]uint64{"Coins": 1000}
 		starting_favor = map[string]int8{"Vince Kosuga": 50}
 	} else {
-		startingFlux = 1
+		startingFlux = 10
 		starting_currencies = map[string]uint64{"Coins": 100}
 		starting_favor = map[string]int8{"Vince Kosuga": 50}
 	}

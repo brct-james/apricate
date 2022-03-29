@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"apricate/auth"
 	"apricate/filemngr"
@@ -14,6 +15,8 @@ import (
 	"apricate/responses"
 	"apricate/schema"
 
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
 	"github.com/gorilla/mux"
 )
 
@@ -235,7 +238,16 @@ func handle_requests(slur_filter []string) {
 	secure.Handle("/plots/{plot-id}/clear", &handlers.ClearPlot{Dbs: &dbs}).Methods("PUT")
 	secure.Handle("/plots/{plot-id}/interact", &handlers.InteractPlot{Dbs: &dbs, MainDictionary: &main_dictionary}).Methods("PATCH")
 
+	// Setup ratelimiting
+	maxRequestsSec := 1
+	lmt := tollbooth.NewLimiter(float64(maxRequestsSec), &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
+	lmt.SetIPLookups([]string{"RemoteAddr", "X-Forwarded-For", "X-Real-IP"}).SetMethods([]string{"GET", "POST", "PATCH", "DELETE", "PUT"})
+	mxr_tollbooth := tollbooth.LimitHandler(lmt, mxr)
+
+
 	// Start listening
 	log.Info.Printf("Listening on %s", ListenPort)
-	log.Error.Fatal(http.ListenAndServe(ListenPort, mxr))
+	if err := http.ListenAndServe(ListenPort, mxr_tollbooth); err != nil {
+		log.Error.Printf("ListenAndServe Uncaught Err: \n %v", err)
+	}
 }
