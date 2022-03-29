@@ -16,6 +16,7 @@ secrets.env
 
 # Ignore built binary
 apricate
+apricate-live
 
 # Ignore docker data folders
 data-live/
