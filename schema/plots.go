@@ -18,7 +18,7 @@ type Plot struct {
 	LocationSymbol string `json:"location_symbol" binding:"required"`
 	ID uint64 `json:"id" binding:"required"`
 	PlotSize Size `json:"size" binding:"required"`
-	Quantity uint16 `json:"plant_quantity" binding:"required"`
+	Quantity uint `json:"plant_quantity" binding:"required"`
 	GrowthCompleteTimestamp int64 `json:"growth_complete_timestamp" binding:"required"`
 	PlantedPlant *Plant `json:"plant" binding:"required"`
 }
@@ -54,7 +54,7 @@ type HarvestProduce struct {
 // Defines a plot plant request body
 type PlotPlantBody struct {
 	SeedName string `json:"name" binding:"required"`
-	SeedQuantity uint16`json:"quantity" binding:"required"`
+	SeedQuantity uint`json:"quantity" binding:"required"`
 	SeedSize Size `json:"size" binding:"required"`
 }
 
@@ -85,7 +85,7 @@ func (p *Plot) IsPlantable(ppb PlotPlantBody) responses.ResponseCode {
 	if ppb.SeedSize <= 0 {
 		return responses.Bad_Request
 	}
-	if ppb.SeedQuantity > uint16(p.PlotSize/ppb.SeedSize) {
+	if ppb.SeedQuantity > uint(p.PlotSize/ppb.SeedSize) {
 		return responses.Plot_Too_Small
 	}
 	return responses.Generic_Success
@@ -173,25 +173,62 @@ func (p *Plot) CalculateProduce(growthHarvest *GrowthHarvest) HarvestProduce {
 		Seeds: make(map[string]uint64),
 		Goods: make(map[string]uint64),
 	}
-	totalYield := p.PlantedPlant.Yield
+	quantityFloat := float64(p.Quantity)
 	size := p.PlantedPlant.Size
+	sizeFloat := float64(size)
+	totalYield := p.PlantedPlant.Yield
+	quantityModifier := 1 + ((totalYield - 1)/2)
+	quantityRNG := 0.8 + rand.Float64() * (1.2 - 0.8)
 	rand.Seed(time.Now().UnixNano())
-	randMin := 0.8
-	randMax := 1.2
-	yieldRNG := randMin + rand.Float64() * (randMax - randMin)
+	randMin := 0.0
+	randMax := 1.0
 	log.Debug.Println(growthHarvest)
+	// Calculate random rngModifiers for each plant
+	harvestRNG := make([]float64, p.Quantity)
+	for i := uint(0); i < p.Quantity; i++ {
+		harvestRNG[i] = randMin + rand.Float64() * (randMax - randMin)
+	}
 	// Calculate Produce - Quantity Affected By AddedYield NOT Size
-	for produceName, yieldModifier := range growthHarvest.Produce {
+	for produceName, harvestChance := range growthHarvest.Produce {
+		// For each plant, check if RNG is sufficient to harvest and then add quantity if so
+		pQuant := float64(0)
+		for _, rng := range harvestRNG {
+			if (harvestChance * totalYield) > rng {
+				// Able to harvest, calculate yield, if harvestChance > 1 it is intended to give more than 1 item each time, so make that happen
+				if harvestChance > 1 {
+					pQuant += quantityModifier * quantityRNG * harvestChance
+				} else {
+					pQuant += quantityModifier * quantityRNG
+				}
+			}
+		}
+		
 		sizedProduceName := produceName + "|" + size.String()
-		harvest.Produce[sizedProduceName] = uint64(math.Round(float64(p.Quantity) * yieldRNG * totalYield * yieldModifier))
+		harvest.Produce[sizedProduceName] = uint64(math.Floor(pQuant))
 	}
 	// Calculate Seeds - NOT Affected By AddedYield OR Size (Affected by Seed Yield Modifier and Yield RNG, however)
-	for seedName, yieldModifier := range growthHarvest.Seeds {
-		harvest.Seeds[seedName] = uint64(math.Round(float64(p.Quantity) * yieldRNG * yieldModifier))
+	for seedName, harvestChance := range growthHarvest.Seeds {
+		// Harvest exactly quantity * chance
+		harvest.Seeds[seedName] = uint64(math.Floor(quantityFloat * harvestChance * quantityRNG))
 	}
 	// Calculate Goods - Quantity Affected By AddedYield AND Size
-	for goodName, yieldModifier := range growthHarvest.Goods {
-		harvest.Goods[goodName] = uint64(math.Round(float64(size) * float64(p.Quantity) * yieldRNG * totalYield * yieldModifier))
+	for goodName, harvestChance := range growthHarvest.Goods {
+		// For each plant, check if RNG is sufficient to harvest and then add quantity if so
+		gQuant := float64(0)
+		gQM := math.Max(1, quantityModifier * (sizeFloat * 0.5)) // Nerfs how much of an impact size has on plants, ESPECIALLY miniature size
+		for _, rng := range harvestRNG {
+			if (harvestChance * totalYield) > rng {
+				// Able to harvest, calculate yield, if harvestChance > 1 it is intended to give more than 1 item each time, so make that happen
+				if harvestChance > 1 {
+					gQuant += gQM * quantityRNG * harvestChance
+				} else {
+					gQuant += gQM * quantityRNG
+				}
+			}
+		}
+		
+		harvest.Goods[goodName] = uint64(math.Floor(gQuant))
 	}
+	log.Debug.Printf("%v", harvest)
 	return harvest
 }

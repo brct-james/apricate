@@ -1000,13 +1000,13 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Validate timestamp
 	now := time.Now()
-	if userData.LatticeInterferenceRejectionEnd > now.Unix() {
-		// FAIL, rejection still in place
-		latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeInterferenceRejectionEnd - now.Unix())
-		log.Debug.Printf(latticeRejectionMsg)
-		responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
-		return
-	}
+	// if userData.LatticeInterferenceRejectionEnd > now.Unix() {
+	// 	// FAIL, rejection still in place
+	// 	latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeInterferenceRejectionEnd - now.Unix())
+	// 	log.Debug.Printf(latticeRejectionMsg)
+	// 	responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
+	// 	return
+	// }
 
 	// Get farm symbol from route
 	farmSymbol := GetVarEntries(r, "location-symbol", AllCaps)
@@ -1831,12 +1831,12 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Timestamp
-	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-		// too soon, reject
-		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-		return
-	}
+	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+	// 	// too soon, reject
+	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+	// 	return
+	// }
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody

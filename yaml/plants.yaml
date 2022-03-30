@@ -1,6 +1,9 @@
 ---
 # Notes:
 # Trees/Orchard-type plants should generally take 12 hours to fully mature and begin bearing fruit. Fruit should generally take no more than 6 hours to regrow
+# Ideas:
+# Sunflower: Harvest both Produce sunflower and Good sunflower seeds (seed is Moistened sunflower seeds - created via crafting), good because want yield modified by size
+# Some kind of fast growing plant with consumables that has a loooow chance for a certain good or produce, and always give seeds = quantity. so you want to automate growing it several times to get one of the items
 Grapevine:
   Name: Grapevine
   Description: Grapes grow on vines, and may be harvested periodically after the plants mature
@@ -148,9 +151,9 @@ Wagyu Fungus:
       GrowthTime: 21600
       Harvestable:
         Seeds: 
-          Uona Spore: 0.425
+          Uona Spore: 0.25
         Goods:
-          Wagyu Fungus Steak: 0.25
+          Wagyu Fungus Steak: 0.5
 Vocatus Zahra:
   Name: Vocatus Zahra
   Description: The Vocatus Zahra is a magical flower that is used to attune a spirit to the physical world, most commonly for summoning rituals. Though its ethereal beauty is legendary, most have never seen it in all its glory, as it is rare for the flower to fully bloom even in the most perfect conditions.
@@ -218,7 +221,7 @@ Vocatus Zahra:
           Convocare Bulb: 0.5
         Goods:
           Vocatus Blossom: 0.1
-          Vocatus Blossom In Perfect Bloom: 0.0027
+          Vocatus Blossom In Perfect Bloom: 0.001
         FinalHarvest: true
 Spectral Grass:
   Name: Spectral Grass
@@ -292,7 +295,7 @@ Spinosus Vas:
         Seeds:
           Spinosus Vas Seeds: 0.01
         Goods:
-          Water: 10.0
+          Water: 2.0
           Enchanted Water: 0.1
         FinalHarvest: true
 Cabbage:
@@ -428,7 +431,7 @@ Shelvis Fig:
       GrowthTime: 30
       Harvestable:
         Produce: 
-          Shelvis Fig: 0.75
+          Shelvis Fig: 0.5
     -
       Name: Adult Plant - Water
       Description: Shelvis Figs require additional water to provide fruit another time
@@ -444,7 +447,7 @@ Shelvis Fig:
       GrowthTime: 360
     -
       Name: Adult Plant - 2nd Harvest
-      Description: Shelvis Figs must be harvested a 2nd time, including gathering seeds
+      Description: Shelvis Figs must be harvested a 2nd time before the plant dies, including gathering seeds
       Action: Trim
       Harvestable:
         Produce: 
@@ -582,7 +585,7 @@ Gulb:
       Skippable: True
       Harvestable:
         Goods: 
-          Gulb Nut: 0.75
+          Gulb Nut: 0.5
         Seeds:
           Gulb Bulb: 0.5
         FinalHarvest: true
