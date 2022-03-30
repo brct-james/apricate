@@ -3,6 +3,8 @@
   Name: Water
   Prefixes: [Enchanted]
 -
+  Name: Barrel of Fish
+-
   Name: Cabbage
   IsProduce: true
   Prefixes: [Pickled]

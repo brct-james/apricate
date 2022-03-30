@@ -24,9 +24,9 @@ TS-PR-BG:
   Y: 0
   NPCs: [Bilgrith Yeldor, Tara Tyris]
 TS-PR-PFG:
-  Name: Port Fulgrath
-  Symbol: TS-PR-PFG
-  Description: A port-side fishing vilage
+  Name: Port Shoos
+  Symbol: TS-PR-PSH
+  Description: A port-side fishing village, the largest on Pria
   IslandName: Pria
   X: 26
   Y: 6

@@ -5,8 +5,8 @@ TS-PR:
   Description: The starting region, a rural and under-developed area that largely escaped the ravages of war by being too small to notice.
   Ports:
     Veldis:
-      Name: Port Fulgrath
-      Symbol: TS-PR-PFG
+      Name: Port Shoos
+      Symbol: TS-PR-PSH
       Connection: Pria to Veldis
       ConnectedLocation: TS-VD-PNN
       Fare: 500
@@ -20,7 +20,7 @@ TS-VD:
       Name: Port Nayanahd
       Symbol: TS-VD-PNN
       Connection: Veldis to Pria
-      ConnectedLocation: TS-PR-PFG
+      ConnectedLocation: TS-PR-PSH
       Fare: 500
       Duration: 30
     Skellig:
