@@ -21,6 +21,8 @@ func SaveMetrics() {
 		Coins: TrackingUserCoins.Coins, // Handled by TrackUserCall and TrackMarketBuySell
 		MarketData: TrackingMarket.MarketData, // Handled by TrackMarketBuySell
 		HarvestData: TrackingHarvests.HarvestData, // Handled by TrackHarvest
+		RitualData: TrackingRituals.RitualData, // Handled by TrackRitual
+		UserMagic: TrackingUserMagic.Magic, // Handled by TrackUserMagic
 	}
 	schema.Metrics_to_yaml("data/metrics.yaml", mYaml)
 }
@@ -41,6 +43,8 @@ func LoadMetrics() {
 	TrackingUserCoins.Coins = mYaml.Coins
 	TrackingMarket.MarketData = mYaml.MarketData
 	TrackingHarvests.HarvestData = mYaml.HarvestData
+	TrackingRituals.RitualData = mYaml.RitualData
+	TrackingUserMagic.Magic = mYaml.UserMagic
 
 	// If was blank, make sure it is still initialized
 	if TrackingHarvests.HarvestData == nil {
@@ -58,6 +62,12 @@ func LoadMetrics() {
 	if TrackingUniqueUsers.Usernames == nil {
 		TrackingUniqueUsers.Usernames = make([]string, 0)
 	}
+	if TrackingRituals.RitualData == nil {
+		TrackingRituals.RitualData = make(map[string]uint64, 0)
+	}
+	if TrackingUserMagic.Magic == nil {
+		TrackingUserMagic.Magic = make(map[string]map[string]float64, 0)
+	}
 }
 
 // Get metrics response
@@ -66,6 +76,8 @@ func GetMetricsResponse() (schema.MetricsResponse) {
 		MarketBuySell: TrackingMarket,
 		UserCoins: *TrackingUserCoins,
 		Harvests: TrackingHarvests,
+		Rituals: TrackingRituals,
+		UserMagic: *TrackingUserMagic,
 	}
 }
 
@@ -120,6 +132,8 @@ func TrackUserCall(username string) {
 // User Coins
 // See schema.User
 var TrackingUserCoins = &schema.TrackingUserCoins
+// See schema.User
+var TrackingUserMagic = &schema.TrackingUserMagic
 
 // Global Market Buy/Sell
 var TrackingMarket = schema.GlobalMarketBuySellMetric {
@@ -165,6 +179,18 @@ func TrackHarvest(plantName string) {
 	TrackingHarvests.HarvestData[plantName] ++
 	SaveMetrics()
 }
+
+// Rituals Cast
+var TrackingRituals = schema.TrackingRitualsMetric {
+	Metric: schema.Metric{Name:"Rituals Cast", Description:"Map of all rituals that have been cast and how many times that has occurred."},
+	RitualData: make(map[string]uint64),
+}
+func TrackRitual(riteRunes string, riteName string) {
+	log.Debug.Printf("Metrics:TrackRitual")
+	TrackingRituals.RitualData[riteRunes + ": " + riteName] ++
+	SaveMetrics()
+}
+
 
 // // Users by Achievement
 // var TrackingUsersByAchievement = schema.UsersByAchievementMetric {

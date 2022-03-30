@@ -90,6 +90,8 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 		plotIds = append(plotIds, plot.UUID)
 	}
 
+	TrackUserMagic(username, startingFlux, ConvertFluxToDistortion(startingFlux))
+
 	return &User{
 		Token: token,
 		PublicInfo: PublicInfo{

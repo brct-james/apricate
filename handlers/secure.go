@@ -1262,6 +1262,10 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Debug.Printf("Rite %s doesn't appear to have any special effects. Skipping", rite.RunicSymbol)
 	}
 
+	// Update metrics
+	metrics.TrackRitual(rite.RunicSymbol, rite.Name)
+	schema.TrackUserMagic(userData.Username, userData.ArcaneFlux, userData.DistortionTier)
+
 	// Send warehouse and user data
 	res := make(map[string]interface{})
 	res["user"] = userData
