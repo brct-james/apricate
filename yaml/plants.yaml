@@ -267,36 +267,52 @@ Spinosus Vas:
           Name: Enchanted Water
           Quantity: 5
           AddedYield: 0.25
-      GrowthTime: 30
+      GrowthTime: 120
     -
       Name: Young Plant - Shade
       Description: The Spinosus Vas may be shaded while it grows to improve yield
       Action: Shade
       Skippable: True
       AddedYield: 1.0
-      GrowthTime: 45
+      GrowthTime: 300
     -
       Name: Young Plant - Weed
       Description: The Spinosus Vas may be weeded to improve yield
       Action: Weed
       Skippable: True
       AddedYield: 0.25
-      GrowthTime: 15
+      GrowthTime: 120
     -
       Name: Young Plant - Grow
       Description: The Spinosus Vas takes a while to grow and absorb water
       Action: Wait
-      GrowthTime: 30
+      GrowthTime: 180
     -
       Name: Adult Plant
-      Description: The Spinosus Vas must be harvested as an adult, though rarely provides seeds
+      Description: The Spinosus Vas may be harvested regularly as an adult, though rarely provides seeds. You may optionally skip harvesting in the traditional way, and dig the whole plant up for additional materials
+      Action: Tap
+      Skippable: True
+      Repeatable: True
+      GrowthTime: 180
+      Harvestable:
+        Seeds:
+          Spinosa Seeds: 0.01
+        Goods:
+          Water: 1.5
+          Enchanted Water: 0.01
+    -
+      Name: Mature Plant - Final Harvest
+      Description: The Spinosus Vas may be dug up to provide additional materials
       Action: Dig
       Harvestable:
         Seeds:
-          Spinosus Vas Seeds: 0.01
+          Spinosa Seeds: 0.1
         Goods:
           Water: 2.0
           Enchanted Water: 0.1
+          Spinosa Meat: 0.75
+        Produce:
+          Spinosa Flower: 0.1
         FinalHarvest: true
 Cabbage:
   Name: Cabbage

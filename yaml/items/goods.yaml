@@ -25,6 +25,11 @@
   Name: Gulb Nut
   Prefixes: [Roasted]
 -
+  Name: Spinosa Meat
+-
+  Name: Bundle of Materials
+  Prefixes: [Quality]
+-
   Name: Vocatus Blossom
   Suffixes: [In Perfect Bloom]
   Enchantable: true

@@ -12,7 +12,7 @@ TS-PR-HF:
       Shelvis Fig Seeds: 50
       Spectral Grass Seeds: 1
       Gulb Bulb: 25
-      Spinosus Vas Seeds: 2
+      Spinosa Seeds: 2
       Convocare Bulb: 10
       Uona Spore: 250
       Grape Seeds: 5
@@ -28,7 +28,7 @@ TS-PR-HF:
       Shelvis Fig Seeds: 100
       Spectral Grass Seeds: 2
       Gulb Bulb: 50
-      Spinosus Vas Seeds: 5
+      Spinosa Seeds: 5
       Convocare Bulb: 25
       Uona Spore: 500
       Grape Seeds: 10
@@ -36,6 +36,7 @@ TS-PR-HF:
       Water: 2
       Fertilizer: 5
     Tools:
+      Tap: 50
       Spade: 100
       Hoe: 250
       Rake: 150
@@ -69,7 +70,7 @@ TS-PR-YD:
       Shelvis Fig Seeds: 100
       Spectral Grass Seeds: 2
       Gulb Bulb: 50
-      Spinosus Vas Seeds: 5
+      Spinosa Seeds: 5
       Convocare Bulb: 25
       Uona Spore: 500
       Grape Seeds: 10
