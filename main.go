@@ -271,6 +271,9 @@ func handle_requests(slur_filter []string) {
 	mxr.HandleFunc("/docs/alpha-guide", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/ZG9jOjQ3MDIzNTgw-alpha-guide", http.StatusPermanentRedirect)
 	})
+	mxr.HandleFunc("/docs/v0-6", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/ZG9jOjQ5NTYxNzYw-version-0-6", http.StatusPermanentRedirect)
+	})
 	// mxr.HandleFunc("/api", handlers.ApiSelection).Methods("GET")
 	// mxr.HandleFunc("/api/leaderboards", handlers.LeaderboardDescriptions).Methods("GET")
 	// mxr.HandleFunc("/api/leaderboards/{board}", handlers.GetLeaderboards).Methods("GET")
