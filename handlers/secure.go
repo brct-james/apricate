@@ -56,7 +56,7 @@ func (h *AssistantsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in AssistantsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistants)
@@ -93,7 +93,7 @@ func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistant, foundAssistant, assistantsErr := schema.GetAssistantFromDB(uuid, adb)
 	if assistantsErr != nil || !foundAssistant {
 		log.Debug.Printf("in AssistantInfo, could not get assistant from DB. foundAssistant: %v, error: %v", foundAssistant, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistant, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistant)
@@ -122,7 +122,7 @@ func (h *CaravansInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	caravans, foundCaravans, caravansErr := schema.GetCaravansFromDB(userData.Caravans, adb)
 	if caravansErr != nil {
 		log.Error.Printf("Error in CaravansInfo, could not get caravans from DB. foundCaravans: %v, error: %v", foundCaravans, caravansErr)
-		responses.SendRes(w, responses.DB_Get_Failure, caravans, "Could not get caravans, no err?")
+		responses.SendRes(w, responses.DB_Get_Failure, nil, "Could not get caravans, no err?")
 		return
 	}
 	if !foundCaravans {
@@ -172,7 +172,7 @@ func (h *CaravanInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	caravan, foundCaravan, caravansErr := schema.GetCaravanFromDB(uuid, adb)
 	if caravansErr != nil || !foundCaravan {
 		log.Debug.Printf("in CaravanInfo, could not get caravan from DB. foundCaravan: %v, error: %v", foundCaravan, caravansErr)
-		responses.SendRes(w, responses.DB_Get_Failure, caravan, caravansErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, caravansErr.Error())
 		return
 	}
 	// Modify Caravan SecondsTillArrival
@@ -461,12 +461,18 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// If found all, remove from local warehouse & save (dont need to add anywhere cause charter already specifies wares)
-		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
-		if saveWarehouseErr != nil {
-			log.Error.Printf("Error in CharterCaravan, could not save warehouse. error: %v", saveWarehouseErr)
-			responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
-			return
+		// If warehouse is empty now, delete it, else save it
+		if warehouse.TotalSize() == 0 {
+			userData.Warehouses = remove(userData.Warehouses, warehouse.UUID)
+			schema.DeleteWarehouseFromDB(wdb, warehouse.UUID)
+		} else {
+			// If found all, remove from local warehouse & save (dont need to add anywhere cause charter already specifies wares)
+			saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+			if saveWarehouseErr != nil {
+				log.Error.Printf("Error in CharterCaravan, could not save warehouse. error: %v", saveWarehouseErr)
+				responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+				return
+			}
 		}
 	}
 
@@ -686,7 +692,7 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in LocationsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// Get owned farm locations cause these always have vision
@@ -694,7 +700,7 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique locations visible in fow
@@ -732,7 +738,7 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in NearbyLocationsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// Get owned farm locations cause these always have vision
@@ -740,7 +746,7 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// use myLocs as a set
@@ -794,7 +800,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in LocationInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// Get owned farm locations cause these always have vision
@@ -802,7 +808,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique locations visible in fow
@@ -851,7 +857,7 @@ func (h *MarketsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in MarketsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique markets visible in fow
@@ -891,7 +897,7 @@ func (h *MarketInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in MarketInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique markets visible in fow
@@ -934,7 +940,7 @@ func (h *FarmsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, adb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in FarmsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	getFarmJsonString, getFarmJsonStringErr := responses.JSON(farms)
@@ -971,7 +977,7 @@ func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(uuid, adb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	getFarmJsonString, getFarmJsonStringErr := responses.JSON(farm)
@@ -1000,13 +1006,13 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Validate timestamp
 	now := time.Now()
-	// if userData.LatticeInterferenceRejectionEnd > now.Unix() {
-	// 	// FAIL, rejection still in place
-	// 	latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeInterferenceRejectionEnd - now.Unix())
-	// 	log.Debug.Printf(latticeRejectionMsg)
-	// 	responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
-	// 	return
-	// }
+	if userData.LatticeInterferenceRejectionEnd > now.Unix() {
+		// FAIL, rejection still in place
+		latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeInterferenceRejectionEnd - now.Unix())
+		log.Debug.Printf(latticeRejectionMsg)
+		responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
+		return
+	}
 
 	// Get farm symbol from route
 	farmSymbol := GetVarEntries(r, "location-symbol", AllCaps)
@@ -1017,7 +1023,7 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(fuuid, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 
@@ -1105,8 +1111,8 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wdb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(wuuid, wdb)
 	if warehousesErr != nil || !foundWarehouse {
-		log.Error.Printf("Error in WarehouseInfo, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+		log.Error.Printf("Error in ConductRitual, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, warehousesErr.Error())
 		return
 	}
 
@@ -1313,7 +1319,7 @@ func (h *ContractsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	contracts, foundContracts, contractsErr := schema.GetContractsFromDB(userData.Contracts, adb)
 	if contractsErr != nil || !foundContracts {
 		log.Error.Printf("Error in ContractsInfo, could not get contracts from DB. foundContracts: %v, error: %v", foundContracts, contractsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, contracts, contractsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, contractsErr.Error())
 		return
 	}
 	getContractJsonString, getContractJsonStringErr := responses.JSON(contracts)
@@ -1350,7 +1356,7 @@ func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	contract, foundContract, contractsErr := schema.GetContractFromDB(uuid, adb)
 	if contractsErr != nil || !foundContract {
 		log.Error.Printf("Error in ContractInfo, could not get contract from DB. foundContract: %v, error: %v", foundContract, contractsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, contract, contractsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, contractsErr.Error())
 		return
 	}
 	getContractJsonString, getContractJsonStringErr := responses.JSON(contract)
@@ -1379,7 +1385,7 @@ func (h *WarehousesInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	warehouses, foundWarehouses, warehousesErr := schema.GetWarehousesFromDB(userData.Warehouses, adb)
 	if warehousesErr != nil || !foundWarehouses {
 		log.Error.Printf("Error in WarehousesInfo, could not get warehouses from DB. foundWarehouses: %v, error: %v", foundWarehouses, warehousesErr)
-		responses.SendRes(w, responses.DB_Get_Failure, warehouses, warehousesErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, warehousesErr.Error())
 		return
 	}
 	getWarehousesJsonString, getWarehousesJsonStringErr := responses.JSON(warehouses)
@@ -1414,9 +1420,14 @@ func (h *WarehouseInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Printf("WarehouseInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(uuid, adb)
-	if warehousesErr != nil || !foundWarehouse {
+	if warehousesErr != nil {
 		log.Error.Printf("Error in WarehouseInfo, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, warehousesErr.Error())
+		return
+	}
+	if !foundWarehouse {
+		log.Debug.Printf("in WarehouseInfo, warehouse not found for specified uuid. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.Object_Not_Found, nil, "")
 		return
 	}
 	getWarehouseJsonString, getWarehouseJsonStringErr := responses.JSON(warehouse)
@@ -1446,7 +1457,7 @@ func (h *PlotsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, adb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in FarmsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// Get plots from farms
@@ -1501,7 +1512,7 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmSymbol, adb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	plot := farm.Plots[uuid]
@@ -1644,7 +1655,7 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in PlantPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// Validate plot available for planting and body meets internal plot validation
@@ -1745,7 +1756,7 @@ func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in ClearPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 
@@ -1821,7 +1832,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in InteractPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	plot := farm.Plots[uuid]
@@ -1835,12 +1846,12 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Timestamp
-	// if plot.GrowthCompleteTimestamp > time.Now().Unix() {
-	// 	// too soon, reject
-	// 	timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
-	// 	responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
-	// 	return
-	// }
+	if plot.GrowthCompleteTimestamp > time.Now().Unix() {
+		// too soon, reject
+		timestampMsg := fmt.Sprintf("Ready in %d seconds", plot.GrowthCompleteTimestamp - time.Now().Unix())
+		responses.SendRes(w, responses.Plants_Still_Growing, plot, timestampMsg)
+		return
+	}
 
 	// unmarshall request body to get action and consumables if applicable
 	var body schema.PlotInteractBody
@@ -2039,7 +2050,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in MarketOrder, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique markets visible in fow
@@ -2079,13 +2090,25 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get warehouse
 	wdb := (*h.Dbs)["warehouses"]
 	warehouseLocationSymbol := userData.Username + "|Warehouse-" + symbol
-	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
-	if warehousesErr != nil || !foundWarehouse {
-		errmsg := fmt.Sprintf("Error in MarketOrder, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		log.Error.Printf(errmsg)
-		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
-		return
+	var warehouse schema.Warehouse
+	if stringInSlice(warehouseLocationSymbol, userData.Warehouses) {
+		// Warehouse should exist, get from DB
+		var foundWarehouse bool
+		var warehousesErr error
+		warehouse, foundWarehouse, warehousesErr = schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+		if warehousesErr != nil || !foundWarehouse {
+			errmsg := fmt.Sprintf("Error in MarketOrder, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+			log.Error.Printf(errmsg)
+			responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+			return
+		}
+	} else {
+		// Warehouse needs to be created
+		log.Debug.Printf("In MarketOrder: Creating warehouse for %s with uuid %s", userData.Username, symbol)
+		warehouse = *schema.NewEmptyWarehouse(userData.Username, symbol)
+		userData.Warehouses = append(userData.Warehouses, warehouse.UUID)
 	}
+	
 
 	// Validate order parameters
 	if order.Quantity <= 0 {
@@ -2222,12 +2245,18 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	userData.Ledger.Currencies["Coins"] = coins
 
-	// Save warehouse
-	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
-	if saveWarehouseErr != nil {
-		log.Error.Printf("Error in MarketOrder, could not save warehouse. error: %v", saveWarehouseErr)
-		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
-		return
+	// If warehouse is empty now, delete it, else save it
+	if warehouse.TotalSize() == 0 {
+		userData.Warehouses = remove(userData.Warehouses, warehouse.UUID)
+		schema.DeleteWarehouseFromDB(wdb, warehouse.UUID)
+	} else {
+		// Save warehouse
+		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+		if saveWarehouseErr != nil {
+			log.Error.Printf("Error in MarketOrder, could not save warehouse. error: %v", saveWarehouseErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+			return
+		}
 	}
 
 	// Save user

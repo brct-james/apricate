@@ -2,7 +2,7 @@
 TS-SK-PGM:
   Name: Port Gumpti
   Symbol: TS-SK-PGM
-  Description: The calmer sibling to Port Ysili, Port Gumpti is still quite busy during normal working hours, as it is the vital primary artery to Veldis' vast food stocks
+  Description: The port connection to Veldis. The calmer sibling to Port Ysili, Port Gumpti is still quite busy during normal working hours, as it is the vital primary artery to Veldis' vast food stocks
   IslandName: Skellig
   X: 61
   Y: 17
@@ -10,7 +10,7 @@ TS-SK-PGM:
 TS-SK-PYS:
   Name: Port Ysili
   Symbol: TS-SK-PYS
-  Connection: Heavily trafficked by both the Merchant Guild's copious independent traders and the Simeralian Banking Clan's treasure fleet, this port is active around the clock
+  Connection: The port connection to Boldor. Heavily trafficked by both the Merchant Guild's copious independent traders and the Simeralian Banking Clan's treasure fleet, this port is active around the clock
   IslandName: Skellig
   X: 55
   Y: -17

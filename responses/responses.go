@@ -55,6 +55,7 @@ const (
 	Location_Not_Found ResponseCode = 28
 	Caravan_Not_Arrived ResponseCode = 29
 	Specified_Rite_Not_Found ResponseCode = 30
+	Object_Not_Found ResponseCode = 31
 )
 
 // Defines Response structure for output
@@ -203,6 +204,10 @@ var ResponseMap = map[ResponseCode]ResponseConfig{
 	},
 	Specified_Rite_Not_Found: {
 		Message: "[Specified_Rite_Not_Found] The specified rite was not found in the master dictionary",
+		HttpResponse: http.StatusNotFound,
+	},
+	Object_Not_Found: {
+		Message: "[Object_Not_Found] The specified object was not found, ensure the symbol is correct and object is not hidden by fog of war",
 		HttpResponse: http.StatusNotFound,
 	},
 }

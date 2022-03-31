@@ -2,7 +2,7 @@
 TS-TT-PHM:
   Name: Port Hamstrid
   Symbol: TS-TT-PHM
-  Connection: A moderatly busy passenger port, you will find the best accommodations reserved exclusively for warrior caste Tritumians, though there are still several establishments that welcome vacationing foreigners and the local peasant caste
+  Connection: The port connection to Veldis. A moderatly busy passenger port, you will find the best accommodations reserved exclusively for warrior caste Tritumians, though there are still several establishments that welcome vacationing foreigners and the local peasant caste
   IslandName: Tritum
   X: -49
   Y: 13
@@ -10,7 +10,7 @@ TS-TT-PHM:
 TS-TT-PTB:
   Name: Port Teleborgo
   Symbol: TS-TT-PTB
-  Connection: A much disused port, the route to Yoggoth is still periodically traveled by the Tritumian patrols, alongside the rare traveler or merchant
+  Connection: The port connection to Yoggoth. A much disused port, the route to Yoggoth is still periodically traveled by the Tritumian patrols, alongside the rare traveler or merchant
   IslandName: Tritum
   X: 42
   Y: -7

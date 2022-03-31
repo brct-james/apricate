@@ -23,10 +23,10 @@ TS-PR-BG:
   X: -24
   Y: 0
   NPCs: [Bilgrith Yeldor, Tara Tyris]
-TS-PR-PFG:
+TS-PR-PSH:
   Name: Port Shoos
   Symbol: TS-PR-PSH
-  Description: A port-side fishing village, the largest on Pria
+  Description: The port connection to Veldis. A port-side fishing village, the largest on Pria
   IslandName: Pria
   X: 26
   Y: 6

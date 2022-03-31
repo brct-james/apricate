@@ -41,6 +41,23 @@ func NewWarehouse(username string, locationSymbol string, starting_tools map[str
 	}
 }
 
+func (w *Warehouse) TotalSize() uint64 {
+	size := uint64(0)
+	for _, q := range w.Goods {
+		size += q
+	}
+	for _, q := range w.Tools {
+		size += q
+	}
+	for _, q := range w.Produce {
+		size += q
+	}
+	for _, q := range w.Seeds {
+		size += q
+	}
+	return size
+}
+
 func (w *Warehouse) AddTools(name string, quantity uint64) {
 	w.Tools[name] += quantity
 }
@@ -192,5 +209,13 @@ func SaveWarehouseToDB(tdb rdb.Database, warehouseData *Warehouse) error {
 func SaveWarehouseDataAtPathToDB(tdb rdb.Database, uuid string, path string, newValue interface{}) error {
 	log.Debug.Printf("Saving warehouse data at path %s to DB for uuid %s", path, uuid)
 	err := tdb.SetJsonData(uuid, path, newValue)
+	return err
+}
+
+// Attempt to delete warehouse, returns error or nil if successful
+func DeleteWarehouseFromDB(tdb rdb.Database, uuid string) error {
+	log.Debug.Printf("Saving warehouse %s to DB", uuid)
+	_, err := tdb.DelJsonData(uuid, ".")
+	// creationSuccess := rdb.CreateWarehouse(tdb, warehousename, uuid, 0)
 	return err
 }

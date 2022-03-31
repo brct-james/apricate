@@ -16,6 +16,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Is String in Slice
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 // Remove string from slice
 func remove(s []string, r string) []string {
     for i, v := range s {
