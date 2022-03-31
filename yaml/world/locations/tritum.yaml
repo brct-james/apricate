@@ -34,7 +34,7 @@ TS-TT-VN:
 TS-TT-SD:
   Name: Seminole Dravis
   Symbol: TS-TT-SD
-  Description: The only major peasant caste town, one whose existence is only tenuously permitted by the warrior caste. The long-standing limit on peasant caste population density has led to the sprawling shanty-town that is Seminole Dravis
+  Description: The only major peasant caste town, one whose existence is only tenuously permitted by the warrior caste. The long-standing limit on peasant caste population density has led to the sprawling shanty-town that is Seminole Dravis. You'll find all manner of professions here, from lumberjacks, farmers, and miners to doctors, lawyers, and merchants
   IslandName: Tritum
   X: -3
   Y: 17
@@ -42,7 +42,7 @@ TS-TT-SD:
 TS-TT-GS:
   Name: Gloria Sanctificare per Laborum
   Symbol: TS-TT-GS
-  Description: A prison camp run by the warrior caste. Unlike most things on Tritum, here you will find all those charged with crimes against Tritum, low and high born alike, toiling together to "achieve sanctifying glory through toil"
+  Description: A prison camp run by the warrior caste. Unlike most things on Tritum, here you will find all those charged with crimes against Tritum, low and high born alike, toiling together to "achieve sanctifying glory through toil". The prisoners almost exclusively work in on-site mines harvesting Dragon Fertilizer
   IslandName: Tritum
   X: -39
   Y: 23

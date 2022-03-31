@@ -5,6 +5,10 @@
 -
   Name: Barrel of Fish
 -
+  Name: Bag of Grain
+-
+  Name: Preserved Meat
+-
   Name: Cabbage
   IsProduce: true
   Prefixes: [Pickled]

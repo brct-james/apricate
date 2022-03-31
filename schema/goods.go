@@ -39,7 +39,9 @@ func GoodListGenerator(path_to_goods_yaml string) map[string]interface{} {
 	}
 	goodList := make(map[string]interface{}, 0)
 	for _, good := range rawGoods {
-		goodList[good.Name] = nil
+		if !good.IsProduce {
+			goodList[good.Name] = nil
+		}
 		if good.Enchantable {
 			goodList["Enchanted " + good.Name] = nil
 		}
