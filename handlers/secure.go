@@ -1069,7 +1069,7 @@ func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, distortion too high for rite")
 		return
 	}
-	if rite.ArcaneFlux > 0 && rite.ArcaneFlux > userData.ArcaneFlux {
+	if rite.ArcaneFlux > 1 && rite.ArcaneFlux + 1 > userData.ArcaneFlux {
 		// FAIL not enough arcane flux to power ritual
 		log.Debug.Printf("in ConductRitual, not enough arcane flux for rite (%v of %v)", userData.ArcaneFlux, rite.ArcaneFlux)
 		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, not enough arcane flux for rite")
