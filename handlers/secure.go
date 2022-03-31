@@ -563,15 +563,15 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate Timestamp
-	// now := time.Now()
-	// if caravan.ArrivalTime > now.Unix() {
-	// 	// Too early
-	// 	caravan.SecondsTillArrival = caravan.ArrivalTime - now.Unix()
-	// 	errmsg := fmt.Sprintf("caravan has not arrived yet, arrives in %d seconds", caravan.SecondsTillArrival)
-	// 	log.Debug.Printf(errmsg)
-	// 	responses.SendRes(w, responses.Caravan_Not_Arrived, caravan, errmsg)
-	// 	return
-	// }
+	now := time.Now()
+	if caravan.ArrivalTime > now.Unix() {
+		// Too early
+		caravan.SecondsTillArrival = caravan.ArrivalTime - now.Unix()
+		errmsg := fmt.Sprintf("caravan has not arrived yet, arrives in %d seconds", caravan.SecondsTillArrival)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Caravan_Not_Arrived, caravan, errmsg)
+		return
+	}
 
 	// VALID: Update user, warehouses, assistants, caravans DBs
 
