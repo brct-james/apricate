@@ -5,8 +5,8 @@ TS-PR:
   Description: The starting region, a rural and under-developed area that largely escaped the ravages of war by being too small to notice.
   Ports:
     Veldis:
-      Name: Port Fulgrath
-      Symbol: TS-PR-PFG
+      Name: Port Shoos
+      Symbol: TS-PR-PSH
       Connection: Pria to Veldis
       ConnectedLocation: TS-VD-PNN
       Fare: 500
@@ -20,12 +20,12 @@ TS-VD:
       Name: Port Nayanahd
       Symbol: TS-VD-PNN
       Connection: Veldis to Pria
-      ConnectedLocation: TS-PR-PFG
+      ConnectedLocation: TS-PR-PSH
       Fare: 500
       Duration: 30
     Skellig:
       Name: Port Olisar
-      Symbol: TS-VD-PO
+      Symbol: TS-VD-POL
       Connection: Veldis to Skellig
       ConnectedLocation: TS-SK-PGM
       Fare: 100
@@ -40,13 +40,13 @@ TS-VD:
 TS-SK:
   Name: Skellig
   Symbol: TS-SK
-  Description: Though relatively large, Skellig is 90% marshy wetland thanks to a large freshwater spring and is nearly always overcast or rainy. Residents build structures on stilts and largely subsist by filling enchanted barrels of water for sale to drier islands, or working as Mongera for the Simeralian Banking Clan.
+  Description: Though relatively large, Skellig is 90% marshy wetland thanks to a large freshwater spring and is nearly always overcast or rainy. Residents build structures on stilts and largely subsist by filling Tuns of water for sale to drier islands, or working as Mongera for the Simeralian Banking Clan.
   Ports:
     Veldis:
       Name: Port Gumpti
       Symbol: TS-SK-PGM
       Connection: Skellig to Veldis
-      ConnectedLocation: TS-VD-PO
+      ConnectedLocation: TS-VD-POL
       Fare: 100
       Duration: 60
     Boldor:
@@ -59,7 +59,7 @@ TS-SK:
 TS-TT:
   Name: Tritum
   Symbol: TS-TT
-  Description: Known before The Fracturing as The Bastion of the West, Tritum's population is divided into warrior and peasant castes. Peasants largely practice subsistence hunting and gathering in Tritum's vast forests, while the warrior caste is contracted by the Merchant Syndicate of Tyldia to guard the traderoute from Veldis.
+  Description: Known before The Fracturing as The Bastion of the West, Tritum's population is divided into warrior and peasant castes. Peasants largely practice subsistence hunting and gathering in Tritum's vast forests, while the warrior caste is contracted by the Merchant Syndicate of Tyldia to guard the traderoute from Veldis. One of the few places where Dragon Fertilizer can be harvested.
   Ports:
     Veldis:
       Name: Port Hamstrid

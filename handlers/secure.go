@@ -8,8 +8,10 @@ import (
 	"apricate/rdb"
 	"apricate/responses"
 	"apricate/schema"
+	"apricate/timecalc"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -54,7 +56,7 @@ func (h *AssistantsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in AssistantsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistants)
@@ -91,7 +93,7 @@ func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistant, foundAssistant, assistantsErr := schema.GetAssistantFromDB(uuid, adb)
 	if assistantsErr != nil || !foundAssistant {
 		log.Debug.Printf("in AssistantInfo, could not get assistant from DB. foundAssistant: %v, error: %v", foundAssistant, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistant, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	getAssistantJsonString, getAssistantJsonStringErr := responses.JSON(assistant)
@@ -104,6 +106,573 @@ func (h *AssistantInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responses.SendRes(w, responses.Generic_Success, assistant, "")
 	log.Debug.Println(log.Cyan("-- End AssistantInfo --"))
 }
+
+// Handler function for the secure route: /api/my/caravans
+type CaravansInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *CaravansInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- CaravansInfo --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+	adb := (*h.Dbs)["caravans"]
+	caravans, foundCaravans, caravansErr := schema.GetCaravansFromDB(userData.Caravans, adb)
+	if caravansErr != nil {
+		log.Error.Printf("Error in CaravansInfo, could not get caravans from DB. foundCaravans: %v, error: %v", foundCaravans, caravansErr)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, "Could not get caravans, no err?")
+		return
+	}
+	if !foundCaravans {
+		log.Debug.Printf("in CaravansInfo, could not get caravans from DB. foundCaravans: %v, error: %v, probably just none exist", foundCaravans, caravansErr)
+		responses.SendRes(w, responses.Generic_Success, caravans, "None Found")
+		return
+	}
+	// Modify Caravan SecondsTillArrival
+	for i, caravan := range caravans {
+		caravan.SecondsTillArrival = caravan.ArrivalTime - time.Now().Unix() 
+		if caravan.SecondsTillArrival < 0 {
+			caravan.SecondsTillArrival = 0
+		}
+		caravans[i] = caravan
+	}
+	getCaravanJsonString, getCaravanJsonStringErr := responses.JSON(caravans)
+	if getCaravanJsonStringErr != nil {
+		log.Error.Printf("Error in CaravansInfo, could not format caravans as JSON. caravans: %v, error: %v", caravans, getCaravanJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, caravans, getCaravanJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for CaravansInfo:\n%v", getCaravanJsonString)
+	responses.SendRes(w, responses.Generic_Success, caravans, "")
+	log.Debug.Println(log.Cyan("-- End CaravansInfo --"))
+}
+
+// Handler function for the secure route: /api/my/caravans/{uuid}
+type CaravanInfo struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *CaravanInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- CaravanInfo --"))
+	// Get symbol from route
+	id := GetVarEntries(r, "caravan-id", AllCaps)
+	// Get userinfoContext from validation middleware
+	userInfo, userInfoErr := GetValidationFromCtx(r)
+	if userInfoErr != nil {
+		// Fail state getting context
+		log.Error.Printf("Could not get validationpair in CaravanInfo")
+		userInfoErrMsg := fmt.Sprintf("userInfo is nil, check auth validation context %v:\n%v", auth.ValidationContext, r.Context().Value(auth.ValidationContext))
+		responses.SendRes(w, responses.No_AuthPair_Context, nil, userInfoErrMsg)
+		return
+	}
+	uuid := userInfo.Username + "|Caravan-" + id
+	log.Debug.Printf("CaravanInfo Requested for: %s", uuid)
+	adb := (*h.Dbs)["caravans"]
+	caravan, foundCaravan, caravansErr := schema.GetCaravanFromDB(uuid, adb)
+	if caravansErr != nil || !foundCaravan {
+		log.Debug.Printf("in CaravanInfo, could not get caravan from DB. foundCaravan: %v, error: %v", foundCaravan, caravansErr)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, caravansErr.Error())
+		return
+	}
+	// Modify Caravan SecondsTillArrival
+	caravan.SecondsTillArrival = caravan.ArrivalTime - time.Now().Unix() 
+	if caravan.SecondsTillArrival < 0 {
+		caravan.SecondsTillArrival = 0
+	}
+	getCaravanJsonString, getCaravanJsonStringErr := responses.JSON(caravan)
+	if getCaravanJsonStringErr != nil {
+		log.Error.Printf("Error in CaravanInfo, could not format caravans as JSON. caravans: %v, error: %v", caravan, getCaravanJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, caravan, getCaravanJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for CaravanInfo:\n%v", getCaravanJsonString)
+	responses.SendRes(w, responses.Generic_Success, caravan, "")
+	log.Debug.Println(log.Cyan("-- End CaravanInfo --"))
+}
+
+// Handler function for the secure route: PATCH: /api/my/caravans/
+type CharterCaravan struct {
+	Dbs *map[string]rdb.Database
+	World *schema.World
+}
+func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- CharterCaravan --"))
+	// Get user info
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+
+	// unmarshall request body to get charter including wares if applicable
+	var body schema.CaravanCharter
+	decoder := json.NewDecoder(r.Body)
+	if decodeErr := decoder.Decode(&body); decodeErr != nil {
+		// Fail case, could not decode
+		errmsg := fmt.Sprintf("Decode Error in CharterCaravan: %v", decodeErr)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, "Could not decode request body, ensure it conforms to expected json format.")
+		return
+	}
+
+	// Validate Caravan Charter Request Body
+	validationMap := schema.ValidateCaravanCharter(body)
+	if len(validationMap) > 0 {
+		// Failed basic validation
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", validationMap)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, validationMap, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+
+	// Get Assistants
+	adb := (*h.Dbs)["assistants"]
+	assistantLocationSymbols := make([]string, len(body.Assistants))
+	for i, assistantID := range body.Assistants {
+		assistantLocationSymbols[i] = userData.Username + "|Assistant-" + fmt.Sprintf("%d", assistantID)
+	}
+	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(assistantLocationSymbols, adb)
+	if assistantsErr != nil || !foundAssistants {
+		errmsg := fmt.Sprintf("Error in CharterCaravan, could not get assistants from DB. foundWarehouse: %v, error: %v", foundAssistants, assistantsErr)
+		log.Error.Printf(errmsg)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+		return
+	}
+
+	// Generate a timestamp for caravan id. Get slowest assistant speeds, total carry cap, set their location to caravan UUID
+	caravanTimestamp := time.Now()
+	caravanUUID := userData.Username + "|Caravan-" + fmt.Sprintf("%d", caravanTimestamp.UnixNano())
+	slowestSpeed := int(1000000)
+	carryCap := int(0)
+	assistantOriginValidation := make(map[string]string)
+	for i, assistant := range assistants {
+		if assistant.Location != body.Origin {
+			// Fail, assistant not at origin, prepare validation response will error later
+			assistantOriginValidation[fmt.Sprintf("Assistant-%s", i)] = fmt.Sprintf("Assistant not at origin (%s) specified in request", body.Origin)
+		}
+		if assistant.Speed < slowestSpeed {
+			slowestSpeed = assistant.Speed
+			log.Debug.Printf("Setting slowest speed to %d based on %d: %s", assistant.Speed, assistant.ID, assistant.Archetype.String())
+		}
+		carryCap += assistant.CarryCap
+		assistant.Location = caravanUUID
+		assistants[i] = assistant
+	}
+
+	if len(assistantOriginValidation) > 0 {
+		// Fail, found assitant not at origin
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", assistantOriginValidation)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, assistantOriginValidation, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+
+	// Calculate travel time and construct caravan
+	travelTimeValidationMap, caravanTravelTime, caravanFareCost := schema.CalculateTravelTime((*h.World), body.Origin, body.Destination, slowestSpeed)
+	if len(travelTimeValidationMap) > 0 {
+		// Fail, origin and destination could not be routed
+		errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", travelTimeValidationMap)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, travelTimeValidationMap, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+	// Update userdata with caravanFareCost deducted from ledger if enough (if not enough in wallet, fail validation)
+	coinsValidationMap := make(map[string]string)
+	if coins, coinsOk := userData.Ledger.Currencies["Coins"]; coinsOk {
+		if coins < caravanFareCost {
+			// Coins not enough, fail validation
+			coinsValidationMap["port_fare"] = fmt.Sprintf("Not enough coins in ledger to pay fare. Have %d need %d", coins, caravanFareCost)
+			log.Debug.Printf(coinsValidationMap["port_fare"])
+			responses.SendRes(w, responses.Bad_Request, travelTimeValidationMap, "Request body did not pass validation, see data for specifics.")
+			return
+		} else {
+			// Enough coins, deduct fare
+			userData.Ledger.Currencies["Coins"] = coins - caravanFareCost
+		}
+	} else {
+		// Coins not found in ledger for some reason, fail validation
+		coinsValidationMap["port_fare"] = fmt.Sprintf("'Coins' currency not found in ledger. This is atypical, as currencies are not usually removed once added and coins is added by default. Contact Developer.")
+		log.Error.Printf(coinsValidationMap["port_fare"])
+		responses.SendRes(w, responses.Bad_Request, travelTimeValidationMap, "Request body did not pass validation, see data for specifics.")
+		return
+	}
+	caravan := schema.NewCaravan(caravanUUID, caravanTimestamp, body.Origin, body.Destination, body.Assistants, body.Wares, caravanTravelTime)
+	log.Debug.Printf("Prepared caravan, now to validate wares. Caravan: %v", caravan)
+
+	// Validate wares if present
+	wareCategories := make(map[string]int)
+	if len(body.Wares.Goods) > 0 {
+		wareCategories["Goods"] = len(body.Wares.Goods)
+	}
+	if len(body.Wares.Produce) > 0 {
+		wareCategories["Produce"] = len(body.Wares.Produce)
+	}
+	if len(body.Wares.Seeds) > 0 {
+		wareCategories["Seeds"] = len(body.Wares.Seeds)
+	}
+	if len(body.Wares.Tools) > 0 {
+		wareCategories["Tools"] = len(body.Wares.Tools)
+	}
+	if len(wareCategories) >= 1 {
+		// Wares found
+		log.Debug.Printf("Wares found: %v", wareCategories)
+
+		// Get carry cap
+		log.Debug.Printf("carryCap before team_factor: %d", carryCap)
+		teamFactor := 1 + (float64(0.1) * float64(len(assistants) - 1))
+		carryCap := uint64(math.Ceil(float64(carryCap) * teamFactor))
+		log.Debug.Printf("carryCap after team_factor (%f): %d", teamFactor, carryCap)
+
+		// Get warehouse
+		wdb := (*h.Dbs)["warehouses"]
+		warehouseLocationSymbol := userData.Username + "|Warehouse-" + body.Origin
+		warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+		if warehousesErr != nil || !foundWarehouse {
+			errmsg := fmt.Sprintf("Error in CharterCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+			log.Error.Printf(errmsg)
+			responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+			return
+		}
+
+		// Validate warehouse contains wares in specified quantities and that there is enough carry capacity for specified goods (after multiplying produce quantity by size)
+		waresValidationMap := make(map[string]map[string]string)
+		carryCapNeeded := uint64(0)
+		for category := range wareCategories {
+			switch category {
+			case "Goods":
+				for item, quantity := range body.Wares.Goods {
+					if _, ok := warehouse.Goods[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["goods"]) < 1 {
+							waresValidationMap["goods"] = make(map[string]string)
+						}
+						waresValidationMap["goods"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Goods[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["goods"]) < 1 {
+							waresValidationMap["goods"] = make(map[string]string)
+						}
+						waresValidationMap["goods"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Goods[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Goods: %s %d", item, quantity)
+					carryCapNeeded += quantity
+					warehouse.RemoveGoods(item, quantity)
+				}
+			case "Produce":
+				for item, quantity := range body.Wares.Produce {
+					_, psize, splittable := warehouse.GetProduceNameSizeSlice(item)
+					if !splittable {
+						// FAIL produce must have size component
+						if len(waresValidationMap["produce"]) < 1 {
+							waresValidationMap["produce"] = make(map[string]string)
+						}
+						waresValidationMap["produce"][item] = fmt.Sprintf("Could not split to find produce size, ensure follows example format 'Potato|Tiny' (received name: %s)", item)
+						continue
+					}
+					if _, ok := warehouse.Produce[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["produce"]) < 1 {
+							waresValidationMap["produce"] = make(map[string]string)
+						}
+						waresValidationMap["produce"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Produce[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["produce"]) < 1 {
+							waresValidationMap["produce"] = make(map[string]string)
+						}
+						waresValidationMap["produce"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Produce[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Produce: %s %d", item, quantity)
+					
+					carryCapNeeded += quantity * uint64(schema.SizeToID[psize])
+					warehouse.RemoveProduce(item, quantity)
+				}
+			case "Seeds":
+				for item, quantity := range body.Wares.Seeds {
+					if _, ok := warehouse.Seeds[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["seeds"]) < 1 {
+							waresValidationMap["seeds"] = make(map[string]string)
+						}
+						waresValidationMap["seeds"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Seeds[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["seeds"]) < 1 {
+							waresValidationMap["seeds"] = make(map[string]string)
+						}
+						waresValidationMap["seeds"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Seeds[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Seeds: %s %d", item, quantity)
+					carryCapNeeded += quantity
+					warehouse.RemoveSeeds(item, quantity)
+				}
+			case "Tools":
+				for item, quantity := range body.Wares.Tools {
+					if _, ok := warehouse.Tools[item]; !ok {
+						// FAIL item not in warehouse
+						if len(waresValidationMap["tools"]) < 1 {
+							waresValidationMap["tools"] = make(map[string]string)
+						}
+						waresValidationMap["tools"][item] = fmt.Sprintf("Item not found in local warehouse (received name: %s)", item)
+						continue
+					}
+					if warehouse.Tools[item] < quantity {
+						// FAIL not enough item
+						if len(waresValidationMap["tools"]) < 1 {
+							waresValidationMap["tools"] = make(map[string]string)
+						}
+						waresValidationMap["tools"][item] = fmt.Sprintf("Not enough in local warehouse (requested: %d, have: %d)", quantity, warehouse.Tools[item])
+						continue
+					}
+					log.Debug.Printf("Passed Validation, Remove Tools: %s %d", item, quantity)
+					carryCapNeeded += quantity
+					warehouse.RemoveTools(item, quantity)
+				}
+			default:
+				errmsg := fmt.Sprintf("Error in CharterCaravan, unexpected ware category after validating wares: %s", category)
+				log.Error.Printf(errmsg)
+				responses.SendRes(w, responses.Internal_Server_Error, nil, errmsg)
+				return
+			}
+		}
+		if carryCapNeeded > carryCap {
+			// Too many wares or not enough assistants
+			if len(waresValidationMap["meta"]) < 1 {
+				waresValidationMap["meta"] = make(map[string]string)
+			}
+			waresValidationMap["meta"]["carrying_capacity"] = fmt.Sprintf("Not enough carrying capacity, have: %d, need: %d. Add more assistants or split into smaller loads", carryCap, carryCapNeeded)
+		}
+		if len(waresValidationMap) > 0 {
+			// Wares failed validation
+			resWareVMap := map[string]map[string]map[string]string{"wares": waresValidationMap}
+			errmsg := fmt.Sprintf("Validation Error in CharterCaravan: %v", resWareVMap)
+			log.Debug.Printf(errmsg)
+			responses.SendRes(w, responses.Bad_Request, resWareVMap, "Request body did not pass validation, see data for specifics.")
+			return
+		}
+
+		// If warehouse is empty now, delete it, else save it
+		if warehouse.TotalSize() == 0 {
+			userData.Warehouses = remove(userData.Warehouses, warehouse.UUID)
+			schema.DeleteWarehouseFromDB(wdb, warehouse.UUID)
+		} else {
+			// If found all, remove from local warehouse & save (dont need to add anywhere cause charter already specifies wares)
+			saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+			if saveWarehouseErr != nil {
+				log.Error.Printf("Error in CharterCaravan, could not save warehouse. error: %v", saveWarehouseErr)
+				responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+				return
+			}
+		}
+	}
+
+	// Caravan valid and prepared, save assistants, user, and save caravan
+	cdb := (*h.Dbs)["caravans"]
+	saveCaravanErr := schema.SaveCaravanToDB(cdb, caravan)
+	if saveCaravanErr != nil {
+		log.Error.Printf("Error in CharterCaravan, could not save caravan. error: %v", saveCaravanErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveCaravanErr.Error())
+		return
+	}
+
+	// Save user data including caravans and potentially updated currencies
+	caravanList := append(userData.Caravans, caravanUUID)
+	userData.Caravans = caravanList
+	saveUserErr := schema.SaveUserToDB(udb, &userData)
+	if saveUserErr != nil {
+		log.Error.Printf("Error in CharterCaravan, could not save user. error: %v", saveUserErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
+		return
+	}
+
+	for _, assistant := range assistants {
+		saveAssistantErr := schema.SaveAssistantDataAtPathToDB(adb, assistant.UUID, "location", assistant.Location)
+		if saveAssistantErr != nil {
+				log.Error.Printf("Error in CharterCaravan, could not save assistant. error: %v", saveAssistantErr)
+				responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+				return
+		}
+	}
+
+	// Construct and Send response
+	getCaravanJsonString, getCaravanJsonStringErr := responses.JSON(caravan)
+	if getCaravanJsonStringErr != nil {
+		log.Error.Printf("Error in CharterCaravan, could not format caravan response as JSON. response: %v, error: %v", caravan, getCaravanJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, caravan, getCaravanJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for CharterCaravan:\n%v", getCaravanJsonString)
+	responses.SendRes(w, responses.Generic_Success, caravan, "")
+	
+	log.Debug.Println(log.Cyan("-- End CharterCaravan --"))
+}
+
+// Handler function for the secure route: DELETE: /api/my/caravans/{caravan-id}
+type UnpackCaravan struct {
+	Dbs *map[string]rdb.Database
+}
+func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- UnpackCaravan --"))
+	// Get symbol from route
+	id := GetVarEntries(r, "caravan-id", None)
+
+	// Get user info
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+
+	// Parse ID
+	cIdSlice := strings.Split(id, "-")
+	var cId string
+	if len(cIdSlice) > 1 {
+		cId = cIdSlice[:len(cIdSlice)-1][0]
+	} else {
+		cId = cIdSlice[0]
+	}
+	
+	cUUID := userData.Username + "|Caravan-" + cId
+	log.Debug.Printf("UnpackCaravan UUID: %s", cUUID)
+
+	// Get Caravan
+	cdb := (*h.Dbs)["caravans"]
+	caravan, foundCaravan, caravanErr := schema.GetCaravanFromDB(cUUID, cdb)
+	if caravanErr != nil {
+		errmsg := fmt.Sprintf("Error in UnpackCaravan, could not get caravan from DB. foundCaravan: %v, error: %v", foundCaravan, caravanErr)
+		log.Error.Printf(errmsg)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+		return
+	}
+	if !foundCaravan {
+		// Validation error
+		errmsg := fmt.Sprintf("caravan of given id not found")
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+
+	// Validate Timestamp
+	now := time.Now()
+	if caravan.ArrivalTime > now.Unix() {
+		// Too early
+		caravan.SecondsTillArrival = caravan.ArrivalTime - now.Unix()
+		errmsg := fmt.Sprintf("caravan has not arrived yet, arrives in %d seconds", caravan.SecondsTillArrival)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Caravan_Not_Arrived, caravan, errmsg)
+		return
+	}
+
+	// VALID: Update user, warehouses, assistants, caravans DBs
+
+	if len(caravan.Wares.Goods) > 0 || len(caravan.Wares.Seeds) > 0 || len(caravan.Wares.Produce) > 0 || len(caravan.Wares.Tools) > 0 {
+		// Get warehouse
+		wdb := (*h.Dbs)["warehouses"]
+		warehouseLocationSymbol := userData.Username + "|Warehouse-" + caravan.Destination
+		warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+		if warehousesErr != nil {
+			errmsg := fmt.Sprintf("Error in UnpackCaravan, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+			log.Error.Printf(errmsg)
+			responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+			return
+		}
+		if !foundWarehouse {
+			// Need to add new warehouse
+			warehouse = *schema.NewEmptyWarehouse(userData.Username, caravan.Destination)
+			userData.Warehouses = append(userData.Warehouses, warehouse.UUID)
+		}
+
+		// Update Warehouse
+		if len(caravan.Wares.Goods) > 0 {
+			for g, q := range caravan.Wares.Goods {
+				warehouse.AddGoods(g, q)
+			}
+		}
+		if len(caravan.Wares.Seeds) > 0 {
+			for s, q := range caravan.Wares.Seeds {
+				warehouse.AddSeeds(s, q)
+			}
+		}
+		if len(caravan.Wares.Tools) > 0 {
+			for t, q := range caravan.Wares.Tools {
+				warehouse.AddTools(t, q)
+			}
+		}
+		if len(caravan.Wares.Produce) > 0 {
+			for p, q := range caravan.Wares.Produce {
+				warehouse.AddProduce(p, q)
+			}
+		}
+
+		// Save Warehouse
+		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+		if saveWarehouseErr != nil {
+			log.Error.Printf("Error in UnpackCaravan, could not save warehouse. error: %v", saveWarehouseErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+			return
+		}
+	}
+	
+
+	// Update User
+	if len(userData.Caravans) <= 1 {
+		userData.Caravans = make([]string, 0)
+	} else {
+		userData.Caravans = remove(userData.Caravans, cUUID)
+	}
+	
+	// Update and Save Assistants
+	adb := (*h.Dbs)["assistants"]
+	for _, aID := range caravan.Assistants {
+		aUUID := userData.Username + "|Assistant-" + fmt.Sprintf("%d", aID)
+		saveAssistantErr := schema.SaveAssistantDataAtPathToDB(adb, aUUID, "location", caravan.Destination)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in UnpackCaravan, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+	}
+
+	// Save User
+	saveUserErr := schema.SaveUserToDB(udb, &userData)
+	if saveUserErr != nil {
+		log.Error.Printf("Error in UnpackCaravan, could not save user. error: %v", saveUserErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
+		return
+	}
+	
+	// Delete Caravan
+	delCaravanErr := schema.DeleteCaravanFromDB(cdb, cUUID)
+	if delCaravanErr != nil {
+		log.Error.Printf("Error in UnpackCaravan, could not delete caravan. error: %v", delCaravanErr)
+		responses.SendRes(w, responses.Internal_Server_Error, nil, delCaravanErr.Error())
+		return
+	}
+
+	// Construct and Send response
+	response := map[string]interface{}{"assistants_released": &caravan.Assistants}
+	getPlotPlantResponseJsonString, getPlotPlantResponseJsonStringErr := responses.JSON(response)
+	if getPlotPlantResponseJsonStringErr != nil {
+		log.Error.Printf("Error in PlotInfo, could not format interact response as JSON. response: %v, error: %v", response, getPlotPlantResponseJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, response, getPlotPlantResponseJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for UnpackCaravan:\n%v", getPlotPlantResponseJsonString)
+	responses.SendRes(w, responses.Generic_Success, response, fmt.Sprintf("Caravan unpacked at %s", caravan.Destination))
+	
+	log.Debug.Println(log.Cyan("-- End UnpackCaravan --"))
+}
+
 
 // Handler function for the secure route: /api/my/locations
 // Returns a list of locations 
@@ -123,7 +692,7 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in LocationsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// Get owned farm locations cause these always have vision
@@ -131,13 +700,13 @@ func (h *LocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique locations visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	for _, farm := range farms {
 		myLocs[farm.LocationSymbol] = true
@@ -169,7 +738,7 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in NearbyLocationsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// Get owned farm locations cause these always have vision
@@ -177,13 +746,13 @@ func (h *NearbyLocationsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// use myLocs as a set
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	for _, farm := range farms {
 		myLocs[farm.LocationSymbol] = true
@@ -231,7 +800,7 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in LocationInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// Get owned farm locations cause these always have vision
@@ -239,13 +808,13 @@ func (h *LocationInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, fdb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in LocationsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique locations visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	for _, farm := range farms {
 		myLocs[farm.LocationSymbol] = true
@@ -288,18 +857,23 @@ func (h *MarketsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in MarketsInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique markets visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	// finally get all markets in each region
 	resMarkets := make([]schema.Market, 0)
 	for market := range myLocs {
-		resMarkets = append(resMarkets, h.MainDictionary.Markets[market])
+		marketEntry, meOk := h.MainDictionary.Markets[market]
+		if !meOk {
+			// location doesn't have market, skip
+			continue
+		}
+		resMarkets = append(resMarkets, marketEntry)
 	}
 	responses.SendRes(w, responses.Generic_Success, resMarkets, "")
 	log.Debug.Println(log.Cyan("-- End MarketsInfo --"))
@@ -323,13 +897,13 @@ func (h *MarketInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in MarketInfo, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique markets visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	// Get symbol from route
 	symbol := GetVarEntries(r, "location-symbol", UUID)
@@ -366,7 +940,7 @@ func (h *FarmsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, adb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in FarmsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	getFarmJsonString, getFarmJsonStringErr := responses.JSON(farms)
@@ -403,7 +977,7 @@ func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(uuid, adb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	getFarmJsonString, getFarmJsonStringErr := responses.JSON(farm)
@@ -415,6 +989,319 @@ func (h *FarmInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Printf("Sending response for FarmInfo:\n%v", getFarmJsonString)
 	responses.SendRes(w, responses.Generic_Success, farm, "")
 	log.Debug.Println(log.Cyan("-- End FarmInfo --"))
+}
+
+// Handler function for the secure route: POST: /api/my/farms/{location-symbol}/ritual/{runic-symbol}
+type ConductRitual struct {
+	Dbs *map[string]rdb.Database
+	MainDictionary *schema.MainDictionary
+}
+func (h *ConductRitual) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- ConductRitual --"))
+	udb := (*h.Dbs)["users"]
+	OK, userData, _ := secureGetUser(w, r, udb)
+	if !OK {
+		return // Failure states handled by secureGetUser, simply return
+	}
+
+	// Validate timestamp
+	now := time.Now()
+	if userData.LatticeInterferenceRejectionEnd > now.Unix() {
+		// FAIL, rejection still in place
+		latticeRejectionMsg := fmt.Sprintf("in ConductRitual, the lattice rejects your manipulation, you must wait %d seconds till you can cast another ritual", userData.LatticeInterferenceRejectionEnd - now.Unix())
+		log.Debug.Printf(latticeRejectionMsg)
+		responses.SendRes(w, responses.Bad_Request, nil, latticeRejectionMsg)
+		return
+	}
+
+	// Get farm symbol from route
+	farmSymbol := GetVarEntries(r, "location-symbol", AllCaps)
+	// Validate farm is user's
+	fuuid := userData.Username + "|Farm-" + farmSymbol
+	log.Debug.Printf("FarmInfo Requested for: %s", fuuid)
+	fdb := (*h.Dbs)["farms"]
+	farm, foundFarm, farmsErr := schema.GetFarmFromDB(fuuid, fdb)
+	if farmsErr != nil || !foundFarm {
+		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
+		return
+	}
+
+	// Get symbol from route
+	symbol := GetVarEntries(r, "runic-symbol", AllCaps)
+	// Get rite specified by symbol
+	ritesDict := (*h.MainDictionary).Rites
+	rite, riteOk := ritesDict[symbol]
+	if !riteOk {
+		// FAIL runic symbol could not be mapped to known rite
+		log.Debug.Printf("in ConductRitual, runic symbol could not be mapped to known rite")
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, runic symbol could not be mapped to known rite")
+		return
+	}
+
+	// Validate that farm contains buildings required by ritual
+	for building, level := range rite.RequiredBuildings {
+		fbLevel, fbOk := farm.Buildings[schema.BuildingsToID[building]]
+		if !fbOk {
+			// FAIL building not on farm
+			log.Debug.Printf("in ConductRitual, farm doesn't have building %s required for rite", building)
+			responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, farm doesn't have building required for rite")
+			return
+		}
+		if fbLevel < level {
+			// FAIL building too low level
+			log.Debug.Printf("in ConductRitual, farm doesn't have building %s of sufficient level (%v of %v) for rite", building, fbLevel, level)
+			responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, farm doesn't have building of sufficient level for rite")
+			return
+		}
+	}
+	
+	// Validate rite magic
+	if rite.MinimumDistortion > userData.DistortionTier {
+		// FAIL distortion too low
+		log.Debug.Printf("in ConductRitual, distortion too low for rite (%v of %v)", userData.DistortionTier, rite.MinimumDistortion)
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, distortion too low for rite")
+		return
+	}
+	if rite.MaximumDistortion < userData.DistortionTier {
+		// FAIL distortion too high
+		log.Debug.Printf("in ConductRitual, distortion too high for rite (%v of %v)", userData.DistortionTier, rite.MaximumDistortion)
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, distortion too high for rite")
+		return
+	}
+	if rite.ArcaneFlux > 1 && rite.ArcaneFlux + 1 > userData.ArcaneFlux {
+		// FAIL not enough arcane flux to power ritual
+		log.Debug.Printf("in ConductRitual, not enough arcane flux for rite (%v of %v)", userData.ArcaneFlux, rite.ArcaneFlux)
+		responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, not enough arcane flux for rite")
+		return
+	}
+
+	// Update user magic stuff
+	userData.ArcaneFlux += rite.ArcaneFlux
+	if userData.ArcaneFlux <= 0 {
+		userData.ArcaneFlux = 1
+	}
+	userData.DistortionTier = schema.ConvertFluxToDistortion(userData.ArcaneFlux)
+	userData.LatticeInterferenceRejectionEnd = timecalc.AddSecondsToTimestamp(now, rite.RejectionTime).Unix()
+
+	// Validate rite currencies
+	if len(rite.Currencies) > 0 {
+		// has currencies, validate
+		for currencyName, currencyQuantity := range rite.Currencies {
+			ledgerQuantity, lOk := userData.Ledger.Currencies[currencyName]
+			if !lOk {
+				// FAIL currency not in ledger
+				log.Debug.Printf("in ConductRitual, currency %s required for rite not found in ledger", currencyName)
+				responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, currency required for rite not found in ledger")
+				return
+			}
+			if currencyQuantity > ledgerQuantity {
+				// FAIL too little currency in ledger
+				log.Debug.Printf("in ConductRitual, not enough currency %s required for rite found in ledger (%v of %v)", currencyName, ledgerQuantity, currencyQuantity)
+				responses.SendRes(w, responses.Bad_Request, nil, "in ConductRitual, not enough currency required for rite not found in ledger")
+				return
+			}
+			// update ledger with new value
+			userData.Ledger.AddCurrency(currencyName, currencyQuantity)
+		}
+	}
+
+	// Get local warehouse
+	wuuid := userData.Username + "|Warehouse-" + farmSymbol
+	wdb := (*h.Dbs)["warehouses"]
+	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(wuuid, wdb)
+	if warehousesErr != nil || !foundWarehouse {
+		log.Error.Printf("Error in ConductRitual, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.DB_Get_Failure, nil, warehousesErr.Error())
+		return
+	}
+
+	// Validate rite goods
+	if len(rite.Materials.Goods) > 0 {
+		// has goods, validate
+		for goodName, goodQuantity := range rite.Materials.Goods {
+			warehouseQuantity, wOk := warehouse.Goods[goodName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, good %s required for rite not found in warehouse", goodName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if goodQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough good %s required for rite not found in warehouse", goodName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// update warehouse with new value
+			warehouse.RemoveGoods(goodName, goodQuantity)
+		}
+	}
+
+	// Validate rite seeds
+	if len(rite.Materials.Seeds) > 0 {
+		// has seeds, validate
+		for seedName, seedQuantity := range rite.Materials.Seeds {
+			warehouseQuantity, wOk := warehouse.Seeds[seedName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, seed %s required for rite not found in warehouse", seedName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if seedQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough seed %s required for rite not found in warehouse", seedName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// update warehouse with new value
+			warehouse.RemoveSeeds(seedName, seedQuantity)
+		}
+	}
+
+	// Validate rite produce
+	if len(rite.Materials.Produce) > 0 {
+		// has produce, validate
+		for produceName, produceQuantity := range rite.Materials.Produce {
+			warehouseQuantity, wOk := warehouse.Produce[produceName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, produce %s required for rite not found in warehouse", produceName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if produceQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough produce %s required for rite not found in warehouse", produceName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// update warehouse with new value
+			warehouse.RemoveProduce(produceName, produceQuantity)
+		}
+	}
+
+	// Validate rite tools
+	if len(rite.Materials.Tools) > 0 {
+		// has tools, validate
+		for toolsName, toolsQuantity := range rite.Materials.Tools {
+			warehouseQuantity, wOk := warehouse.Tools[toolsName]
+			if !wOk {
+				// FAIL currency not in warehouse
+				msg := fmt.Sprintf("in ConductRitual, tools %s required for rite not found in warehouse", toolsName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			if toolsQuantity > warehouseQuantity {
+				// FAIL too little currency in warehouse
+				msg := fmt.Sprintf("in ConductRitual, not enough tools %s required for rite not found in warehouse", toolsName)
+				log.Debug.Printf(msg)
+				responses.SendRes(w, responses.Bad_Request, nil, msg)
+				return
+			}
+			// tools not removed, don't update warehouse with new value
+			// warehouse.RemoveTools(toolsName, toolsQuantity)
+		}
+	}
+
+	// Rite Validated and updated currencies/etc. NOW do other effects as applicable
+	switch rite.RunicSymbol {
+	case "FLGJ": // Summon Familiar
+		log.Debug.Printf("Rite %s cast, summoning Familiar", rite.RunicSymbol)
+		newAssistant := schema.NewAssistant(userData.Username, len(userData.Assistants), schema.Familiar, farmSymbol)
+		// Save newAssistant
+		adb := (*h.Dbs)["assistants"]
+		saveAssistantErr := schema.SaveAssistantToDB(adb, newAssistant)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in ConductRitual, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+		// Add UUID to userdata
+		userData.Assistants = append(userData.Assistants, newAssistant.UUID)
+		// UserData saved later
+	case "HRTKTSK": // Get Vial of Blood
+		log.Debug.Printf("Rite %s cast, giving blood", rite.RunicSymbol)
+		warehouse.AddGoods("Vial of Blood", 1)
+		// Warehouse saved later
+	case "DWLTJ": // Summon Imp
+		log.Debug.Printf("Rite %s cast, summoning Imp", rite.RunicSymbol)
+		newAssistant := schema.NewAssistant(userData.Username, len(userData.Assistants), schema.Imp, farmSymbol)
+		// Save newAssistant
+		adb := (*h.Dbs)["assistants"]
+		saveAssistantErr := schema.SaveAssistantToDB(adb, newAssistant)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in ConductRitual, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+		// Add UUID to userdata
+		userData.Assistants = append(userData.Assistants, newAssistant.UUID)
+		// UserData saved later
+	case "ASTRVNRPRV": // Get Vial of Fairy Dust
+		log.Debug.Printf("Rite %s cast, giving Fairy Dust", rite.RunicSymbol)
+		warehouse.AddGoods("Vial of Fairy Dust", 1)
+		// Warehouse saved later
+	case "APCRPHNSPRGGNCRGNS": // Summon Sprite
+		log.Debug.Printf("Rite %s cast, summoning Sprite", rite.RunicSymbol)
+		newAssistant := schema.NewAssistant(userData.Username, len(userData.Assistants), schema.Sprite, farmSymbol)
+		// Save newAssistant
+		adb := (*h.Dbs)["assistants"]
+		saveAssistantErr := schema.SaveAssistantToDB(adb, newAssistant)
+		if saveAssistantErr != nil {
+			log.Error.Printf("Error in ConductRitual, could not save assistant. error: %v", saveAssistantErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveAssistantErr.Error())
+			return
+		}
+		// Add UUID to userdata
+		userData.Assistants = append(userData.Assistants, newAssistant.UUID)
+		// UserData saved later
+	default:
+		log.Debug.Printf("Rite %s doesn't appear to have any special effects. Skipping", rite.RunicSymbol)
+	}
+
+	// Update metrics
+	metrics.TrackRitual(rite.RunicSymbol, rite.Name)
+	schema.TrackUserMagic(userData.Username, userData.ArcaneFlux, userData.DistortionTier)
+
+	// Send warehouse and user data
+	res := make(map[string]interface{})
+	res["user"] = userData
+	res["warehouse"] = warehouse
+
+	// Save userdata
+	saveUserErr := schema.SaveUserToDB(udb, &userData)
+	if saveUserErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not save user. error: %v", saveUserErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveUserErr.Error())
+		return
+	}
+
+	// Save warehouse
+	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+	if saveWarehouseErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not save warehouse. error: %v", saveWarehouseErr)
+		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+		return
+	}
+
+	getResJsonString, getResJsonStringErr := responses.JSON(res)
+	if getResJsonStringErr != nil {
+		log.Error.Printf("Error in ConductRitual, could not format res as JSON. res: %v, error: %v", res, getResJsonStringErr)
+		responses.SendRes(w, responses.JSON_Marshal_Error, res, getResJsonStringErr.Error())
+		return
+	}
+	log.Debug.Printf("Sending response for ConductRitual:\n%v", getResJsonString)
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End ConductRitual --"))
 }
 
 // Handler function for the secure route: /api/my/contracts
@@ -432,7 +1319,7 @@ func (h *ContractsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	contracts, foundContracts, contractsErr := schema.GetContractsFromDB(userData.Contracts, adb)
 	if contractsErr != nil || !foundContracts {
 		log.Error.Printf("Error in ContractsInfo, could not get contracts from DB. foundContracts: %v, error: %v", foundContracts, contractsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, contracts, contractsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, contractsErr.Error())
 		return
 	}
 	getContractJsonString, getContractJsonStringErr := responses.JSON(contracts)
@@ -469,7 +1356,7 @@ func (h *ContractInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	contract, foundContract, contractsErr := schema.GetContractFromDB(uuid, adb)
 	if contractsErr != nil || !foundContract {
 		log.Error.Printf("Error in ContractInfo, could not get contract from DB. foundContract: %v, error: %v", foundContract, contractsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, contract, contractsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, contractsErr.Error())
 		return
 	}
 	getContractJsonString, getContractJsonStringErr := responses.JSON(contract)
@@ -498,7 +1385,7 @@ func (h *WarehousesInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	warehouses, foundWarehouses, warehousesErr := schema.GetWarehousesFromDB(userData.Warehouses, adb)
 	if warehousesErr != nil || !foundWarehouses {
 		log.Error.Printf("Error in WarehousesInfo, could not get warehouses from DB. foundWarehouses: %v, error: %v", foundWarehouses, warehousesErr)
-		responses.SendRes(w, responses.DB_Get_Failure, warehouses, warehousesErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, warehousesErr.Error())
 		return
 	}
 	getWarehousesJsonString, getWarehousesJsonStringErr := responses.JSON(warehouses)
@@ -533,9 +1420,14 @@ func (h *WarehouseInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Printf("WarehouseInfo Requested for: %s", uuid)
 	adb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(uuid, adb)
-	if warehousesErr != nil || !foundWarehouse {
+	if warehousesErr != nil {
 		log.Error.Printf("Error in WarehouseInfo, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		responses.SendRes(w, responses.DB_Get_Failure, warehouse, warehousesErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, warehousesErr.Error())
+		return
+	}
+	if !foundWarehouse {
+		log.Debug.Printf("in WarehouseInfo, warehouse not found for specified uuid. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+		responses.SendRes(w, responses.Object_Not_Found, nil, "")
 		return
 	}
 	getWarehouseJsonString, getWarehouseJsonStringErr := responses.JSON(warehouse)
@@ -565,7 +1457,7 @@ func (h *PlotsInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farms, foundFarms, farmsErr := schema.GetFarmsFromDB(userData.Farms, adb)
 	if farmsErr != nil || !foundFarms {
 		log.Error.Printf("Error in FarmsInfo, could not get farms from DB. foundFarms: %v, error: %v", foundFarms, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farms, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// Get plots from farms
@@ -620,7 +1512,7 @@ func (h *PlotInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmSymbol, adb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in FarmInfo, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	plot := farm.Plots[uuid]
@@ -702,6 +1594,37 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		responses.SendRes(w, responses.Item_Is_Not_Seed, nil, errmsg)
 		return
 	}
+	// Validate specified seed meets min/max size requirements
+	plantDict := (*h.MainDictionary).Plants
+	plantDef, plantDefOk := plantDict[plantName]
+	if !plantDefOk {
+		// Fail, could not lookup plant with matching seed name, internal error
+		errmsg := fmt.Sprintf("Error in PlantPlot, found seed but not plant in master dictionary... received seed name: %v", body.SeedName)
+		log.Error.Printf(errmsg)
+		responses.SendRes(w, responses.Internal_Server_Error, nil, errmsg)
+		return
+	}
+	if body.SeedSize.String() == "" {
+		// FAIL invalid size
+		errmsg := fmt.Sprintf("in PlantPlot, invalid size")
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	if uint16(body.SeedSize) < uint16(schema.SizeToID[plantDef.MinSize]) {
+		// FAIL, this plant won't grow that small
+		errmsg := fmt.Sprintf("in PlantPlot, this plant won't grow that small (%s), minsize: %v", body.SeedSize, plantDef.MinSize)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
+	if uint16(body.SeedSize) > uint16(schema.SizeToID[plantDef.MaxSize]) {
+		// FAIL, this plant won't grow that large
+		errmsg := fmt.Sprintf("in PlantPlot, this plant won't grow that large (%s), maxsize: %v", body.SeedSize, plantDef.MaxSize)
+		log.Debug.Printf(errmsg)
+		responses.SendRes(w, responses.Bad_Request, nil, errmsg)
+		return
+	}
 	// Get warehouses
 	wdb := (*h.Dbs)["warehouses"]
 	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
@@ -732,22 +1655,22 @@ func (h *PlantPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in PlantPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	// Validate plot available for planting and body meets internal plot validation
 	plot := farm.Plots[uuid]
 	switch plot.IsPlantable(body) {
 	case responses.Plot_Already_Planted:
-		log.Error.Printf("Error in PlantPlot, plot already planted")
+		log.Debug.Printf("in PlantPlot, plot already planted")
 		responses.SendRes(w, responses.Plot_Already_Planted, plot, "")
 		return
 	case responses.Bad_Request:
-		log.Error.Printf("Error in PlantPlot, seed size invalid")
+		log.Debug.Printf("in PlantPlot, seed size invalid")
 		responses.SendRes(w, responses.Bad_Request, plot, "Seed Size specified in request body was invalid")
 		return
 	case responses.Plot_Too_Small:
-		log.Error.Printf("Error in PlantPlot, plot too small")
+		log.Debug.Printf("in PlantPlot, plot too small")
 		responses.SendRes(w, responses.Plot_Too_Small, plot, "")
 		return
 	case responses.Generic_Success:
@@ -833,7 +1756,7 @@ func (h *ClearPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in ClearPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 
@@ -909,7 +1832,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	farm, foundFarm, farmsErr := schema.GetFarmFromDB(farmLocationSymbol, fdb)
 	if farmsErr != nil || !foundFarm {
 		log.Error.Printf("Error in InteractPlot, could not get farm from DB. foundFarm: %v, error: %v", foundFarm, farmsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, farm, farmsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, farmsErr.Error())
 		return
 	}
 	plot := farm.Plots[uuid]
@@ -986,7 +1909,7 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Error.Println(plotDefErrMsg)
 		responses.SendRes(w, responses.Internal_Server_Error, plot, plotDefErrMsg)
 	}
-	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime, errInfoMsg := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
+	plotValidationResponse, addedYield, usedConsumableQuantity, growthHarvest, growthTime, repeatStage, errInfoMsg := plot.IsInteractable(body, plantDef, consumableQuantityAvailable, warehouse.Tools)
 	switch plotValidationResponse {
 	case responses.Invalid_Plot_Action:
 		log.Debug.Printf("in PlotInteract, Invalid_Plot_Action")
@@ -1039,9 +1962,9 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		harvest := plot.CalculateProduce(growthHarvest)
 		log.Debug.Println("Harvest Calculated:")
 		log.Debug.Println(harvest)
-		for _, produce := range harvest.Produce {
-			log.Debug.Printf("Add produce quantity: %d", produce.Quantity)
-			warehouse.AddProduce(produce.Name, produce.Size, produce.Quantity)
+		for producename, producequantity := range harvest.Produce {
+			log.Debug.Printf("Add produce quantity: %d", producequantity)
+			warehouse.AddProduce(producename, producequantity)
 			log.Debug.Println(warehouse.Produce)
 		}
 		for seedname, seedquantity := range harvest.Seeds {
@@ -1064,14 +1987,18 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			farm.Plots[uuid] = plot
 		} else {
 			// not final harvest
-			// move up current stage, initialize nextStage for response
-			plot.PlantedPlant.CurrentStage++
+			// move up current stage if not repeat, initialize nextStage for response
+			if !repeatStage {
+				plot.PlantedPlant.CurrentStage++
+			}
 			nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
 		}
 	} else {
 		// if not harvest
-		// move up current stage, initialize nextStage for response
-		plot.PlantedPlant.CurrentStage++
+		// move up current stage if not repeat, initialize nextStage for response
+		if !repeatStage {
+			plot.PlantedPlant.CurrentStage++
+		}
 		nextStage = &h.MainDictionary.Plants[plot.PlantedPlant.PlantType].GrowthStages[plot.PlantedPlant.CurrentStage]
 	}
 
@@ -1123,13 +2050,13 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(userData.Assistants, adb)
 	if assistantsErr != nil || !foundAssistants {
 		log.Error.Printf("Error in MarketOrder, could not get assistants from DB. foundAssistants: %v, error: %v", foundAssistants, assistantsErr)
-		responses.SendRes(w, responses.DB_Get_Failure, assistants, assistantsErr.Error())
+		responses.SendRes(w, responses.DB_Get_Failure, nil, assistantsErr.Error())
 		return
 	}
 	// use myLocs as a set to get all unique markets visible in fow
 	myLocs := make(map[string]bool)
 	for _, assistant := range assistants {
-		myLocs[assistant.LocationSymbol] = true
+		myLocs[assistant.Location] = true
 	}
 	// Get symbol from route
 	symbol := GetVarEntries(r, "location-symbol", UUID)
@@ -1163,13 +2090,25 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get warehouse
 	wdb := (*h.Dbs)["warehouses"]
 	warehouseLocationSymbol := userData.Username + "|Warehouse-" + symbol
-	warehouse, foundWarehouse, warehousesErr := schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
-	if warehousesErr != nil || !foundWarehouse {
-		errmsg := fmt.Sprintf("Error in MarketOrder, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
-		log.Error.Printf(errmsg)
-		responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
-		return
+	var warehouse schema.Warehouse
+	if stringInSlice(warehouseLocationSymbol, userData.Warehouses) {
+		// Warehouse should exist, get from DB
+		var foundWarehouse bool
+		var warehousesErr error
+		warehouse, foundWarehouse, warehousesErr = schema.GetWarehouseFromDB(warehouseLocationSymbol, wdb)
+		if warehousesErr != nil || !foundWarehouse {
+			errmsg := fmt.Sprintf("Error in MarketOrder, could not get warehouse from DB. foundWarehouse: %v, error: %v", foundWarehouse, warehousesErr)
+			log.Error.Printf(errmsg)
+			responses.SendRes(w, responses.DB_Get_Failure, nil, errmsg)
+			return
+		}
+	} else {
+		// Warehouse needs to be created
+		log.Debug.Printf("In MarketOrder: Creating warehouse for %s with uuid %s", userData.Username, symbol)
+		warehouse = *schema.NewEmptyWarehouse(userData.Username, symbol)
+		userData.Warehouses = append(userData.Warehouses, warehouse.UUID)
 	}
+	
 
 	// Validate order parameters
 	if order.Quantity <= 0 {
@@ -1212,7 +2151,7 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sizeMod = 1
 	case schema.PRODUCE:
 		itemDict = ioField.Produce
-		warehouseDict = warehouse.GetSimpleProduceDict()
+		warehouseDict = warehouse.Produce
 		splitSlice := strings.Split(order.ItemName, "|")
 		if len(splitSlice) <= 1 {
 			// fail, no size specified
@@ -1259,6 +2198,10 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Execute buy
 		coins -= orderCost
+		if len(warehouseDict) == 0 {
+			// empty warehouseDict, create
+			warehouseDict = make(map[string]uint64)
+		}
 		warehouseDict[itemName] += order.Quantity
 		metrics.TrackMarketBuySell(itemName, true, order.Quantity)
 	} else {
@@ -1298,16 +2241,22 @@ func (h *MarketOrder) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case schema.TOOL:
 		warehouse.Tools = warehouseDict
 	case schema.PRODUCE:
-		warehouse.SetSimpleProduceDict(warehouseDict)
+		warehouse.Produce = warehouseDict
 	}
 	userData.Ledger.Currencies["Coins"] = coins
 
-	// Save warehouse
-	saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
-	if saveWarehouseErr != nil {
-		log.Error.Printf("Error in MarketOrder, could not save warehouse. error: %v", saveWarehouseErr)
-		responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
-		return
+	// If warehouse is empty now, delete it, else save it
+	if warehouse.TotalSize() == 0 {
+		userData.Warehouses = remove(userData.Warehouses, warehouse.UUID)
+		schema.DeleteWarehouseFromDB(wdb, warehouse.UUID)
+	} else {
+		// Save warehouse
+		saveWarehouseErr := schema.SaveWarehouseToDB(wdb, &warehouse)
+		if saveWarehouseErr != nil {
+			log.Error.Printf("Error in MarketOrder, could not save warehouse. error: %v", saveWarehouseErr)
+			responses.SendRes(w, responses.DB_Save_Failure, nil, saveWarehouseErr.Error())
+			return
+		}
 	}
 
 	// Save user

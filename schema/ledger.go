@@ -7,3 +7,14 @@ type Ledger struct {
 	Favor map[string]int8 `json:"favor" binding:"required"`
 	Escrow map[string]uint64 `json:"escrow" binding:"required"`
 }
+
+func (l *Ledger) AddCurrency (name string, quantity uint64) {
+	l.Currencies[name] += quantity
+}
+
+func (l *Ledger) RemoveCurrency(name string, quantity uint64) {
+	l.Currencies[name] -= quantity
+	if l.Currencies[name] <= 0 {
+		delete(l.Currencies, name)
+	}
+}

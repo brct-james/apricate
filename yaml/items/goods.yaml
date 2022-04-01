@@ -3,6 +3,12 @@
   Name: Water
   Prefixes: [Enchanted]
 -
+  Name: Barrel of Fish
+-
+  Name: Bag of Grain
+-
+  Name: Preserved Meat
+-
   Name: Cabbage
   IsProduce: true
   Prefixes: [Pickled]
@@ -24,3 +30,33 @@
 -
   Name: Gulb Nut
   Prefixes: [Roasted]
+-
+  Name: Spinosa Meat
+-
+  Name: Bundle of Materials
+  Prefixes: [Quality]
+-
+  Name: Vocatus Blossom
+  Suffixes: [In Perfect Bloom]
+  Enchantable: true
+-
+  Name: Wagyu Fungus Steak
+  Prefixes: [Cooked]
+-
+  Name: Vial of Blood
+  Enchantable: true
+-
+  Name: Vial of Fairy Dust
+  Enchantable: true
+-
+  Name: Empty Vial # 1 Unit of Liquid
+-
+  Name: Empty Flask # 5 Units of Liquid
+-
+  Name: Empty Cauldron # 25 Units of Liquid
+-
+  Name: Empty Cask # 125 Units of Liquid
+-
+  Name: Empty Barrel # 625 Units of Liquid
+-
+  Name: Empty Tun # 3125 Units of Liquid

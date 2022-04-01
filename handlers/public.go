@@ -24,6 +24,112 @@ func Homepage(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Cyan("-- End Homepage --"))
 }
 
+// Handler function for the route: /api/about
+func AboutSummary(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AboutSummary --"))
+	res := schema.AboutInfo{
+		Name: "About Summary",
+		Description: "Describes the various available /about/... endpoints available",
+		Information: map[string]interface{}{
+			"about/sizes": "Describes the Size enum used by the game for plots, plants, and produce. The information field is the map of string to integer size.",
+			"about/magic": "Describes various parts of the magic system including lore, arcane flux, and distortion. The information field is a map of string topic to string information.",
+			"about/plants": "Describes plants and the stages they go through during growth, as well as the actions used to advance them through these stages",
+			"about/world": "Describes the lore of the world, the player, and the mechanical grouping of locations",
+		},
+	}
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End AboutSummary --"))
+}
+
+// Handler function for the route: /api/about/sizes
+func AboutSizes(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AboutSizes --"))
+	res := schema.AboutInfo{
+		Name: "About Sizes",
+		Description: "Describes the Size enum used by the game for plots, plants, and produce. The information field is the map of string size to integer size.",
+		Information: map[string]interface{}{
+			"Miniature": 1,
+			"Tiny": 2,
+			"Small": 4,
+			"Modest": 8,
+			"Average": 16,
+			"Large": 32,
+			"Huge": 64,
+			"Gigantic": 256,
+			"Colossal": 1024,
+			"Titanic": 4096,
+		},
+	}
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End AboutSizes --"))
+}
+
+// Handler function for the route: /api/about/magic
+func AboutMagic(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AboutMagic --"))
+	res := schema.AboutInfo{
+		Name: "About Magic",
+		Description: "Describes various parts of the magic system including lore, arcane flux, and distortion. The information field is a map of string topic to string information.",
+		Information: map[string]interface{}{
+			"Lore": "The Lattice is the magical fabric of the universe. Mages like the player are like pins that can distort the lattice around them in nth dimensional space to cause various material effects.",
+			"Rituals": "Rituals are the spells of this world. The requirements for their casting are defined by a corresponding Rite.",
+			"Rites": "Rites are the instructions for conducting rituals. These instructions include the required buildings, any necessary component materials/currencies, and describe the change in arcane flux effected by the ritual, as well as the required min/max distortion tiers for casting. A mage of too high a distortion tier (i.e. with too much arcane flux) cannot modulate their power low enough to cast low tier spells, and similarly cannot cast certain spells without meeting their minimum tier.",
+			"Arcane Flux": "Arcane Flux is a measure of magic power available to a given mage. Rituals may add or remove various amounts of flux. Arcane Flux is bounded between 1 and 1 billion inclusive.",
+			"Distortion (Tier)": "Distortion, or Distortion Tier is a metric for the power level of a given mage or spell. It is equal to Log10(flux). Distortion is bounded between 0 and 9 inclusive.",
+			"Lattice Interference Rejection": "Casting rituals causes interference in the Lattice that prevents the mage from further magic for a given time depending on the ritual.",
+		},
+	}
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End AboutMagic --"))
+}
+
+// Handler function for the route: /api/about/plants
+func AboutPlants(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AboutPlants --"))
+	res := schema.AboutInfo{
+		Name: "About Plants",
+		Description: "Describes plants and the stages they go through during growth, as well as the actions used to advance them through these stages",
+		Information: map[string]interface{}{
+			"Plants": "Plants have very distinct stages of growth, each with a specific action that must be taken by the player to advance it to the next stage. Plant definitions can be queried which have all the info on individual plants, including min/max size and their growth stages.",
+			"Sizes": "Plants can often be planted in several 'sizes' which multiply both any consumable costs to grow the plant, as well as the plant's Yield modifier, which improves harvests.",
+			"Yield": "The Yield modifier starts at 1.0 and can typically be improved through optional growth actions or using better consumables like fertilizer. The Yield modifier is used with size to calculate harvest chance and quantity. Goods are affected by both yield and size, produce is affected only by yield, seeds are affected by neither.",
+			"Growth Actions": "Growth actions are how you advance a plant between growth stages. You must have the corresponding tool to use every action (except the Wait and Skip actions, which are tool-less).",
+			"Growth Stages": "Every plant has several growth stages that must be advanced between using growth actions. The plant definition describes these, including in-lore name/description, action name, and whether the stage added to the Yield modifier.",
+			"Growth Time": "Most growth stages specify a growth time, which is the cooldown on using another growth action.",
+			"Consumables": "Some stages specify a list of consumable options. If consumable options are present, one of the options MUST be specified in the growth action (unless the stage is optional). Higher quality consumables typically add to the Yield modifier when used, and/or may be required in lesser quantities. Consumable quantity is multiplied by plant size, and is always defined with respect to the miniature (1) size in the plant definition.",
+			"Harvestable Stages": "Some stages specify a harvestable object, which explains what can be harvested, and likelihood of harvesting the given item. As seeds are not affected by yield nor size, the number here is exactly the number of seeds you will get per plant (decimal dropped after multiplying by quantity, e.g. a plot with 3 plants and 0.5 seed chance is 1.5, but only gives 1 seed).",
+			"Optional Stages": "Some stages have the 'skippable' property set to True, meaning they are optional. To skip an optional stage, simply specify the Skip action. Skipping a stage means no consumables are used, nothing is harvested, and there is no growth time cooldown (you may immediately send the next growth action).",
+			"Repeatable Stages": "Some stages have the 'repeatable' property set to True, meaning the plant will not advance to the next stage when the growth action is sent. On each recurrence: any consumables are used, the plant is harvested if harvestable, the growth time cooldown applies, and any yield improvements are added to the Yield modifier. If the action is skippable, you may escape the recurrence loop with the Skip action. If the action is not skippable, you must clear the plot to get rid of the plant.",
+		},
+	}
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End AboutPlants --"))
+}
+
+// Handler function for the route: /api/about/world
+func AboutWorld(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- AboutWorld --"))
+	res := schema.AboutInfo{
+		Name: "About World",
+		Description: "Describes the lore of the world, the player, and the mechanical grouping of locations",
+		Information: map[string]interface{}{
+			"Name": "Astrid",
+			"Lore": "The world of Astrid is a high-magic fantasy world in the pre-industrial feudal era that has been constantly embroiled in large wars. In the recent past, a great magic catastrophy known as The Fracturing split apart the continents into thousands of small islands. Magical storms now blanket the seas, leaving few navigable routes.",
+			"The Player": "The player is an artificial life form created by an Arch Mage to serve in the war. After winning it for your masters, you grew tired of fighting and retired to a quiet farm on a backwater island called Pria. Here you plan to spend you days bringing life into the world for a chance, growing plants of mundane and magical origins, crafting potions and other wares to sell in neighboring towns, and so forth.",
+			"Locations": "Locations are the most local type of... location. They have markets and NPCs, as well as a warehouse for the player (once they need it).",
+			"Islands": "Islands are the next step up from locations, holding several. These are connected to each other by Ports.",
+			"Ports": "Ports connect one island to another in a 1-1 map. Port travel has a set travel time and a fare cost in Coins.",
+			"Regions": "Regions are the next step up from islands, holding several. Regions are more of a conceptual designation, and are not explicitly separated. Travel between regions occurs via island ports as typical.",
+			"Shatteres": "Shatteres are the next step up from regions, holding several. Shatteres are conceptual designations, and are not explicitly separated. Travel between shatters occurs via island port as typical.",
+			"The Central Wheel": "A large shattere composed of several regions, most of the powerful nations have capitals here. The Central Wheel is so named because the islands it represents are connected in a large loop around the equator.",
+			"The Nevish Extremities": "A small shattere composed of a few spur regions north of the Central Wheel shattere. In contrast to those in the Central Wheel, the islands here are generally self-governing without overarching nations. The only thing keeping them relatively independent of the fighting down south is the Treaty of Neversia, which binds all islands in this shattere in mutual defense.",
+			"The Tyldian Spur": "The Region the player starts in. It is part of the Nevish Extremities shattere, connected by Tyldia to the Neversian Bulwark region.",
+		},
+	}
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End AboutWorld --"))
+}
+
 // Handler function for the route: /api/users
 func UsersSummary(w http.ResponseWriter, r *http.Request) {
 	log.Debug.Println(log.Yellow("-- usersSummary --"))
@@ -130,6 +236,8 @@ func (h *UsernameInfo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Username: userData.Username,
 		Title: userData.Title,
 		Ledger: userData.Ledger,
+		ArcaneFlux: userData.ArcaneFlux,
+		DistortionTier: userData.DistortionTier,
 		Achievements: userData.Achievements,
 		UserSince: userData.UserSince,
 	}
@@ -264,4 +372,34 @@ func MetricsOverview(w http.ResponseWriter, r *http.Request) {
 	res := metrics.GetMetricsResponse()
 	responses.SendRes(w, responses.Generic_Success, res, "")
 	log.Debug.Println(log.Cyan("-- End MetricsOverview --"))
+}
+
+// Handler function for the route: /api/rites
+type RitesOverview struct {
+	MainDictionary *schema.MainDictionary
+}
+func (h *RitesOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RitesOverview --"))
+	res := h.MainDictionary.Rites
+	responses.SendRes(w, responses.Generic_Success, res, "")
+	log.Debug.Println(log.Cyan("-- End RitesOverview --"))
+}
+
+// Handler function for the route: /api/rites/{runic-symbol}
+type RiteOverview struct {
+	MainDictionary *schema.MainDictionary
+}
+func (h *RiteOverview) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debug.Println(log.Yellow("-- RiteOverview --"))
+	// Get username from route
+	rite_name := GetVarEntries(r, "runic-symbol", AllCaps)
+	log.Debug.Printf("RiteOverview Requested for: %s", rite_name)
+	// Get rite
+	if rite, ok := (*h.MainDictionary).Rites[rite_name]; ok {
+		res := rite
+		responses.SendRes(w, responses.Generic_Success, res, "")
+	} else {
+		responses.SendRes(w, responses.Specified_Rite_Not_Found, nil, "")
+	}
+	log.Debug.Println(log.Cyan("-- End RiteOverview --"))
 }

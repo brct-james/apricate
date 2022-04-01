@@ -17,6 +17,7 @@ const (
 	Building_Barn BuildingTypes = 5
 	Building_Kitchen BuildingTypes = 6
 	Building_Silo BuildingTypes = 7
+	Building_SummoningCircle BuildingTypes = 8
 )
 
 func (s BuildingTypes) String() string {
@@ -32,9 +33,10 @@ var buildingsToString = map[BuildingTypes]string {
 	Building_Barn: "Barn",
 	Building_Kitchen: "Kitchen",
 	Building_Silo: "Silo",
+	Building_SummoningCircle: "Summoning Circle",
 }
 
-var buildingsToID = map[string]BuildingTypes {
+var BuildingsToID = map[string]BuildingTypes {
 	"Home": Building_Home,
 	"Field": Building_Field,
 	"Altar": Building_Altar,
@@ -43,6 +45,7 @@ var buildingsToID = map[string]BuildingTypes {
 	"Barn": Building_Barn,
 	"Kitchen": Building_Kitchen,
 	"Silo": Building_Silo,
+	"Summoning Circle": Building_SummoningCircle,
 }
 
 // MarshalJSON marshals the enum as a text string
@@ -59,7 +62,7 @@ func (s *BuildingTypes) UnmarshalText(b []byte) error {
 		return err
 	}
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
-	*s = buildingsToID[j]
+	*s = BuildingsToID[j]
 	return nil
 }
 
@@ -79,6 +82,6 @@ func (s *BuildingTypes) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	// Note that if the string cannot be found then it will be set to the zero value, 'Created' in this case.
-	*s = buildingsToID[j]
+	*s = BuildingsToID[j]
 	return nil
 }

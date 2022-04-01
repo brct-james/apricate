@@ -4,6 +4,7 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -19,9 +20,11 @@ type User struct {
 	PublicInfo
 	Contracts []string `json:"contracts" binding:"required"`
 	Assistants []string `json:"assistants" binding:"required"`
+	Caravans []string `json:"caravans" binding:"required"`
 	Farms []string `json:"farms" binding:"required"`
 	Plots []string `json:"plots" binding:"required"`
 	Warehouses []string `json:"warehouses" binding:"required"`
+	LatticeInterferenceRejectionEnd int64 `json:"lattice_interference_rejection_end" binding:"required"`
 }
 
 // Defines the public User info for the /users/{username} endpoint
@@ -29,16 +32,24 @@ type PublicInfo struct {
 	Username string `json:"username" binding:"required"`
 	Title Achievement `json:"title" binding:"required"`
 	Ledger Ledger `json:"ledger" binding:"required"`
+	ArcaneFlux float64 `json:"arcane_flux" binding:"required"`
+	DistortionTier float64 `json:"distortion_tier" binding:"required"`
 	UserSince int64 `json:"user-since" binding:"required"`
 	Achievements []Achievement `json:"achievements" binding:"required"`
+}
+
+func ConvertFluxToDistortion(flux float64) float64 {
+	return math.Floor(math.Log10(flux) * 100) / 100
 }
 
 func NewUser(token string, username string, dbs map[string]rdb.Database, devUser bool) *User {
 	// starting location
 	startLocation := "TS-PR-HF"
 	// generate starting assistant
-	assistant := NewAssistant(username, 0, Hireling, startLocation)
+	assistant := NewAssistant(username, 0, Imp, startLocation)
+	assistant2 := NewAssistant(username, 1, Familiar, startLocation)
 	SaveAssistantToDB(dbs["assistants"], assistant)
+	SaveAssistantToDB(dbs["assistants"], assistant2)
 	// generate starting farm
 	farm := NewFarm(dbs["plots"], 0, username, startLocation)
 	SaveFarmToDB(dbs["farms"], farm)
@@ -48,9 +59,9 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	// generate starting warehouse
 	var warehouse *Warehouse
 	if devUser {
-		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Spade": 1, "Hoe": 1, "Rake": 1, "Pitchfork": 1, "Shears": 1, "Water Wand": 1, "Knife": 1, "Pestle and Mortar": 1, "Drying Rack": 1, "Sprouting Pot": 1, "Scroll of Hyperspecific Cloud Cover": 1, "Sickle": 1}, map[string]Produce{"Potato|Tiny": *NewProduce("Potato", Miniature, uint64(1000))}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosus Vas Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000})
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Liquid Tap": 1, "Spade": 1, "Hoe": 1, "Rake": 1, "Pitchfork": 1, "Shears": 1, "Water Wand": 1, "Knife": 1, "Pestle and Mortar": 1, "Drying Rack": 1, "Sprouting Pot": 1, "Scroll of Hyperspecific Cloud Cover": 1, "Sickle": 1, "Spirit Flute": 1, "Scroll of Bind Evil": 1}, map[string]uint64{"Potato|Tiny": uint64(1000)}, map[string]uint64{"Cabbage Seeds":1000,"Shelvis Fig Seeds":1000,"Potato Chunk":1000,"Spectral Grass Seeds":1000,"Gulb Bulb":1000,"Spinosa Seeds":1000,"Convocare Bulb":1000,"Uona Spore":1000,"Grape Seeds":1000}, map[string]uint64{"Fertilizer":1000, "Enchanted Fertilizer": 1000, "Dragon Fertilizer": 1000, "Enchanted Dragon Fertilizer": 1000, "Water": 1000, "Enchanted Water": 1000, "Vocatus Blossom": 1000, "Vocatus Blossom In Perfect Bloom": 1000, "Wagyu Fungus Steak": 1000})
 	} else {
-		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Shears": 1, "Sickle": 1}, map[string]Produce{}, map[string]uint64{"Cabbage Seeds":8,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{})
+		warehouse = NewWarehouse(username, startLocation, map[string]uint64{"Shears": 1, "Sickle": 1}, map[string]uint64{}, map[string]uint64{"Cabbage Seeds":8,"Potato Chunk":4,"Spectral Grass Seeds":16}, map[string]uint64{})
 	}
 	SaveWarehouseToDB(dbs["warehouses"], warehouse)
 	//TODO: generate each of these
@@ -58,13 +69,18 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	var starting_farm_warehouse_id string = warehouse.UUID
 	var starting_contract_id string = contract.UUID
 	var starting_assistant_id string = assistant.UUID
+	var starting_assistant_2_id string = assistant2.UUID
 
 	var starting_currencies map[string]uint64
 	var starting_favor map[string]int8
+
+	var startingFlux float64
 	if devUser {
+		startingFlux = 2200
 		starting_currencies = map[string]uint64{"Coins": 1000}
 		starting_favor = map[string]int8{"Vince Kosuga": 50}
 	} else {
+		startingFlux = 10
 		starting_currencies = map[string]uint64{"Coins": 100}
 		starting_favor = map[string]int8{"Vince Kosuga": 50}
 	}
@@ -73,6 +89,8 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 	for _, plot := range farm.Plots {
 		plotIds = append(plotIds, plot.UUID)
 	}
+
+	TrackUserMagic(username, startingFlux, ConvertFluxToDistortion(startingFlux))
 
 	return &User{
 		Token: token,
@@ -84,14 +102,18 @@ func NewUser(token string, username string, dbs map[string]rdb.Database, devUser
 				Favor: starting_favor,
 				Escrow: make(map[string]uint64),
 			},
+			ArcaneFlux: startingFlux,
+			DistortionTier: ConvertFluxToDistortion(startingFlux),
 			Achievements: []Achievement{Achievement_Noob},
 			UserSince: time.Now().Unix(),
 		},
+		LatticeInterferenceRejectionEnd: 0,
 		Contracts: []string{starting_contract_id},
 		Farms: []string{starting_farm_id},
 		Plots: plotIds,
 		Warehouses: []string{starting_farm_warehouse_id},
-		Assistants: []string{starting_assistant_id},
+		Assistants: []string{starting_assistant_id, starting_assistant_2_id},
+		Caravans: make([]string, 0),
 	}
 }
 

@@ -17,6 +17,8 @@ type MetricsResponse struct {
 	MarketBuySell GlobalMarketBuySellMetric `json:"Global Market Buy/Sell" binding:"required"`
 	UserCoins UserCoinsMetric `json:"User Coins" binding:"required"`
 	Harvests TrackingHarvestsMetric `json:"Harvests" binding:"required"`
+	Rituals TrackingRitualsMetric `json:"Rituals" binding:"required"`
+	UserMagic UserMagicMetric `json:"User Magic" binding:"required"`
 }
 
 type SaveMetricsYaml struct {
@@ -25,6 +27,8 @@ type SaveMetricsYaml struct {
 	Coins map[string]uint64 `yaml:"UserCoins"`
 	MarketData map[string]GMBSMarketData `yaml:"MarketData"`
 	HarvestData map[string]uint64 `yaml:"HarvestData"`
+	RitualData map[string]uint64 `yaml:"RitualData"`
+	UserMagic map[string]map[string]float64 `yaml:"UserMagic"`
 }
 
 type UsersMetricEndpointResponse struct {
@@ -41,6 +45,23 @@ var TrackingUserCoins = UserCoinsMetric {
 func TrackUserCoins(username string, coins uint64) {
 	log.Debug.Printf("Metrics:TrackUserCoins")
 	TrackingUserCoins.Coins[username] = coins
+}
+
+// Tracking User Flux for Metrics
+var TrackingUserMagic = UserMagicMetric {
+	Metric: Metric{Name:"User Magic Stats", Description:"Map of every registered user, their arcane flux, and distortion tier",},
+	Magic: make(map[string]map[string]float64),
+}
+func TrackUserMagic(username string, flux float64, distortionTier float64) {
+	log.Debug.Printf("Metrics:TrackUserMagic")
+	userMagic, mOk := TrackingUserMagic.Magic[username]
+	if !mOk {
+		userMagic = make(map[string]float64)
+	}
+	userMagic["Arcane Flux"] = flux
+	userMagic["Distortion Tier"] = distortionTier
+
+	TrackingUserMagic.Magic[username] = userMagic
 }
 
 // Unique Users
@@ -61,6 +82,12 @@ type UserCoinsMetric struct {
 	Coins map[string]uint64 `yaml:"UserCoins" json:"coins" binding:"required"`
 }
 
+// User Magic
+type UserMagicMetric struct {
+	Metric
+	Magic map[string]map[string]float64 `yaml:"UserMagic" json:"magic" binding:"required"`
+}
+
 // Global Market Buy/Sell
 type GlobalMarketBuySellMetric struct {
 	Metric
@@ -75,6 +102,12 @@ type GMBSMarketData struct {
 type TrackingHarvestsMetric struct {
 	Metric
 	HarvestData map[string]uint64 `yaml:"TotalHarvests" json:"total_harvests" binding:"required"`
+}
+
+// Rituals Cast
+type TrackingRitualsMetric struct {
+	Metric
+	RitualData map[string]uint64 `yaml:"TotalRituals" json:"total_rituals" binding:"required"`
 }
 
 // // Users by Achievement

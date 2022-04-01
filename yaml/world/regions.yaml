@@ -2,8 +2,8 @@
 TS:
   Name: Tyldian Spur
   Symbol: TS
-  RegionGroup: Northern Extremities
-  Description: The starting region, a small leg separated from the Central Wheel region-group by Tyldia
+  Shattere: Nevish Extremities
+  Description: The starting region, connected by Tyldia to the Neversian Vulpar region, which separates it from the Central Wheel shattere, keeping things relatively peaceful here.
   Islands:
     - 
       Name: Pria
@@ -26,3 +26,12 @@ TS:
     - 
       Name: Tyldia
       Symbol: TS-TD
+NB:
+  Name: Neversian Bulwark
+  Symbol: NB
+  Shattere: Nevish Extremities
+  Description: A highly fortified region with connections to all member regions of the Nevish Extremities. The Treat of Neversia binds all islands in the Nevish Extremities shattere to mutual defense, allowing the shattere to remain relatively unbothered by the constant warring in the Central Wheel.
+  Islands:
+    -
+      Name: Neversia
+      Symbol: NB-NV

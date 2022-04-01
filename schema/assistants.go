@@ -12,29 +12,56 @@ import (
 // enum for assistant types
 type AssistantTypes uint8
 const (
-	Hireling AssistantTypes = 0
+	Imp AssistantTypes = 0
 	Familiar AssistantTypes = 1
 	Golem AssistantTypes = 2
+	Oni AssistantTypes = 3
+	Sprite AssistantTypes = 4
+	Dragon AssistantTypes = 5
 )
+
+// define map of assistantType to base speed
+// note: largest land distance is 283, more typical travel between 40-90 so travel time will be Math.Ceil(distance_factor * distance) in seconds
+// distance factor = (1800 / Math.Sqrt(80000)) so max is 30 minutes from -100,-100 to 100,100 with speed 1
+var aTypeToBaseSpeed = map[AssistantTypes]int {
+	Imp: 5,
+	Familiar: 7,
+	Golem: 3,
+	Oni: 1, // slowest base cap
+	Sprite: 10, // fastest base cap
+	Dragon: 6,
+}
+
+// define map of assistantType to base carry cap
+var aTypeToBaseCarryCap = map[AssistantTypes]int {
+	Imp: 32,
+	Familiar: 16,
+	Golem: 128,
+	Oni: 512, // largest base cap
+	Sprite: 2, // smallest base cap - enough to carry a couple letters and not much else
+	Dragon: 256,
+}
 
 // Defines an assistant
 type Assistant struct {
 	UUID string `json:"uuid" binding:"required"`
-	ID uint64 `json:"id" binding:"required"`
+	ID int `json:"id" binding:"required"`
 	Archetype AssistantTypes `json:"archetype" binding:"required"`
+	Speed int `json:"speed" binding:"required"`
+	CarryCap int `json:"carrying_capacity" binding:"required"`
 	Improvements map[string]uint8 `json:"improvements" binding:"required"`
-	LocationSymbol string `json:"location_symbol" binding:"required"`
-	Route string `json:"route" binding:"required"`
+	Location string `json:"location" binding:"required"` // EITHER the location symbol OR the caravan UUID
 }
 
-func NewAssistant(username string, countOfUserAssistants uint64, archetype AssistantTypes, locationSymbol string) *Assistant {
+func NewAssistant(username string, countOfUserAssistants int, archetype AssistantTypes, locationSymbol string) *Assistant {
 	return &Assistant{
 		UUID: username + "|Assistant-" + fmt.Sprintf("%d", countOfUserAssistants),
 		ID: countOfUserAssistants,
 		Archetype: archetype,
+		Speed: aTypeToBaseSpeed[archetype],
+		CarryCap: aTypeToBaseCarryCap[archetype],
 		Improvements: make(map[string]uint8),
-		LocationSymbol: locationSymbol,
-		Route: "",
+		Location: locationSymbol,
 	}
 }
 
@@ -77,27 +104,27 @@ func GetAssistantFromDB (uuid string, tdb rdb.Database) (Assistant, bool, error)
 }
 
 // Get assistant from DB, bool is assistant found
-func GetAssistantsFromDB (uuids []string, tdb rdb.Database) ([]Assistant, bool, error) {
+func GetAssistantsFromDB (uuids []string, tdb rdb.Database) (map[string]Assistant, bool, error) {
 	// Get assistant json
 	someJson, getError := tdb.MGetJsonData(".", uuids)
 	if getError != nil {
 		if fmt.Sprint(getError) != "redis: nil" {
 			// assistant not found
-			return []Assistant{}, false, nil
+			return map[string]Assistant{}, false, nil
 		}
 		// error
-		return []Assistant{}, false, getError
+		return map[string]Assistant{}, false, getError
 	}
 	// Got successfully, unmarshal
-	someData := make([]Assistant, len(someJson))
-	for i, tempjson := range someJson {
+	someData := make(map[string]Assistant, len(someJson))
+	for _, tempjson := range someJson {
 		data := Assistant{}
 		unmarshalErr := json.Unmarshal(tempjson, &data)
 		if unmarshalErr != nil {
 			log.Error.Fatalf("Could not unmarshal assistant json from DB: %v", unmarshalErr)
-			return []Assistant{}, false, unmarshalErr
+			return map[string]Assistant{}, false, unmarshalErr
 		}
-		someData[i] = data
+		someData[data.UUID] = data
 	}
 	
 	return someData, true, nil
@@ -145,15 +172,21 @@ func (s AssistantTypes) String() string {
 }
 
 var assistantTypesToString = map[AssistantTypes]string {
-	Hireling: "Hireling",
+	Imp: "Imp",
 	Familiar: "Familiar",
 	Golem: "Golem",
+	Oni: "Oni",
+	Sprite: "Sprite",
+	Dragon: "Dragon",
 }
 
 var assistantTypesToID = map[string]AssistantTypes {
-	"Hireling": Hireling,
+	"Imp": Imp,
 	"Familiar": Familiar,
 	"Golem": Golem,
+	"Oni": Oni,
+	"Sprite": Sprite,
+	"Dragon": Dragon,
 }
 
 // MarshalJSON marshals the enum as a quoted json string

@@ -12,6 +12,7 @@ type GrowthStage struct {
 	Description string `yaml:"Description" json:"description" binding:"required"`
 	Action *GrowthAction `yaml:"Action" json:"action" binding:"required"`
 	Skippable bool `yaml:"Skippable" json:"skippable" binding:"required"` // send Skip action to skip stage (growth time of optional steps is skipped as well). 
+	Repeatable bool `yaml:"Repeatable" json:"repeatable" binding:"required"` // If true, growth stage remains the same unless skipped (if not skippable, must CLEAR plot to escape the loop). Allows infinite harvests and infinite yield boosts
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	AddedYield float64 `yaml:"AddedYield" json:"added_yield" binding:"required"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
 	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted
@@ -46,6 +47,7 @@ const (
 	GA_Sprout GrowthAction = 8 // Pot
 	GA_Shade GrowthAction = 9 // Shade Cloth
 	GA_Reap GrowthAction = 10 // Sickle
+	GA_Tap GrowthAction = 11 // Tap
 )
 
 var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
@@ -58,6 +60,7 @@ var growthActionsToToolTypes = map[GrowthAction]ToolTypes {
 	GA_Sprout: Tool_SproutingPot,
 	GA_Shade: Tool_ShadeScroll,
 	GA_Reap: Tool_Sickle,
+	GA_Tap: Tool_Tap,
 }
 
 // var toolTypesToGrowthActions = map[ToolTypes]GrowthAction {
@@ -78,6 +81,7 @@ var growthActionsToString = map[GrowthAction]string {
 	GA_Sprout: "Sprout",
 	GA_Shade: "Shade",
 	GA_Reap: "Reap",
+	GA_Tap: "Tap",
 }
 
 var growthActionsToID = map[string]GrowthAction {
@@ -92,6 +96,7 @@ var growthActionsToID = map[string]GrowthAction {
 	"Sprout": GA_Sprout,
 	"Shade": GA_Shade,
 	"Reap": GA_Reap,
+	"Tap": GA_Tap,
 }
 
 func (s GrowthAction) String() string {

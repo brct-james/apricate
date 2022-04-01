@@ -24,7 +24,8 @@ Json and code should use snake_case (go uses camelCase?)
 
 Modify the volumes to your local environment in the docker-compose file you want to use, then run the appropriate `run_dev.sh` / `start_live.sh` script.
 
-For the first run, ensure `refreshAuthSecret` in `main.go` is true. Make sure to set this to false for second run
+~~For the first run, ensure `refreshAuthSecret` in `main.go` is true. Make sure to set this to false for second run~~
+Now uses `secrets.env`
 
 DEV Listens on port `50520`
 LIVE Listens on port `50250`

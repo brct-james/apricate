@@ -3,31 +3,31 @@ TS-VD-IG:
   Name: Industrial Grain and Produce
   Symbol: TS-VD-IG
   Description: The local administration building for the Merchant Syndicate operations on Veldis. While primarily servicing contract caravans, will sell stock to independent traders.
-  RegionName: Veldis
+  IslandName: Veldis
   X: 0
   Y: 0
   NPCs: [Prescient Thomas Volgo]
 TS-VD-PNN:
   Name: Port Nayanahd
   Symbol: TS-VD-PNN
-  Description: The only way to or from Pria, primarily used to import livestock from Balgora
-  RegionName: Veldis
+  Description: The port connection to Pria. The only way to or from Pria, primarily used to import livestock from Balgora
+  IslandName: Veldis
   X: -60
   Y: 20
   NPCs: [Jospeh Tyris]
 TS-VD-POL:
   Name: Port Olisar
   Symbol: TS-VD-POL
-  Description: The largest port on Veldis, ships are coming and going constantly throughout the day as part of the trade route to Tyldia
-  RegionName: Veldis
+  Description: The port connection to Skellig. Olisar is the largest port on Veldis, with ships coming and going constantly throughout the day as part of the trade route to Tyldia
+  IslandName: Veldis
   X: 0
   Y: -45
   NPCs: [Prescient Ambrose Penworthy, Alessandro Rossi]
 TS-VD-PFG:
   Name: Port Fulgrath
   Symbol: TS-VD-PFG
-  Description: Though the least used port on Veldis, Port Fulgrath still sees regular traffic from the Tritumian mercenaries that protect the critical trade route to Tyldia
-  RegionName: Veldis
+  Description: The port connection to Trtium. Though the least used port on Veldis, Port Fulgrath still sees regular traffic from the Tritumian mercenaries that protect the critical trade route to Tyldia
+  IslandName: Veldis
   X: 75
   Y: 40
   NPCs: [Ermias Hiroshi, Aya Mohamad]
