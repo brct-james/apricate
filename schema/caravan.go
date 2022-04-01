@@ -14,7 +14,7 @@ import (
 type CaravanCharter struct {
 	Origin string `json:"origin" binding:"required"`
 	Destination string `json:"destination" binding:"required"`
-	Assistants []string `json:"assistants" binding:"required"`
+	Assistants []int64 `json:"assistants" binding:"required"`
 	Wares Wareset `json:"wares,omitempty"`
 }
 
@@ -42,7 +42,7 @@ type Caravan struct {
 	SecondsTillArrival int64 `json:"seconds_till_arrival" binding:"required"` // SHOULD BE STORED AS 0, ONLY FOR FORMATTING RESPONSE
 }
 
-func NewCaravan(UUID string, timestamp time.Time, origin string, destination string, assistants []string, wares Wareset, travelTimeSeconds int) *Caravan {
+func NewCaravan(UUID string, timestamp time.Time, origin string, destination string, assistants []int64, wares Wareset, travelTimeSeconds int) *Caravan {
 	return &Caravan{
 		UUID: UUID,
 		ID: timestamp.UnixNano(),

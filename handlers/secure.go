@@ -230,7 +230,7 @@ func (h *CharterCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	adb := (*h.Dbs)["assistants"]
 	assistantLocationSymbols := make([]string, len(body.Assistants))
 	for i, assistantID := range body.Assistants {
-		assistantLocationSymbols[i] = userData.Username + "|Assistant-" + assistantID
+		assistantLocationSymbols[i] = userData.Username + "|Assistant-" + fmt.Sprintf("%d", assistantID)
 	}
 	assistants, foundAssistants, assistantsErr := schema.GetAssistantsFromDB(assistantLocationSymbols, adb)
 	if assistantsErr != nil || !foundAssistants {
@@ -634,7 +634,7 @@ func (h *UnpackCaravan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Update and Save Assistants
 	adb := (*h.Dbs)["assistants"]
 	for _, aID := range caravan.Assistants {
-		aUUID := userData.Username + "|Assistant-" + aID
+		aUUID := userData.Username + "|Assistant-" + fmt.Sprintf("%d", aID)
 		saveAssistantErr := schema.SaveAssistantDataAtPathToDB(adb, aUUID, "location", caravan.Destination)
 		if saveAssistantErr != nil {
 			log.Error.Printf("Error in UnpackCaravan, could not save assistant. error: %v", saveAssistantErr)
