@@ -15,7 +15,7 @@ type GrowthStage struct {
 	Repeatable bool `yaml:"Repeatable" json:"repeatable" binding:"required"` // If true, growth stage remains the same unless skipped (if not skippable, must CLEAR plot to escape the loop). Allows infinite harvests and infinite yield boosts
 	ConsumableOptions []GrowthConsumable `yaml:"Consumables" json:"consumable_options,omitempty"` // One of the requirements from this list must be specified in action request. Goods used from local warehouse. Quantity multiplied by plant size.
 	AddedYield float64 `yaml:"AddedYield" json:"added_yield" binding:"required"` // For Gigantic, Colossal and Titanic sizes, yield exclusively impacts Quality (but too a much higher extent), rather than Quantity like with smaller varietals
-	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time,omitempty"` // Cannot make omitempty else intentional 0s will be omitted
+	GrowthTime *int64 `yaml:"GrowthTime" json:"growth_time" binding:"required"` // Cannot make omitempty else intentional 0s will be omitted
 	Harvestable *GrowthHarvest `yaml:"Harvestable" json:"harvestable,omitempty"` // Plants may be harvested at any stage where Harvestable is present, some may have additional stages beyond first harvest opportunity
 }
 
@@ -30,7 +30,7 @@ type GrowthHarvest struct { // If there's room in warehouse, harvest sets Harves
 	Produce map[string]float64 `yaml:"Produce" json:"produce,omitempty"`
 	Seeds map[string]float64 `yaml:"Seeds" json:"seeds,omitempty"`
 	Goods map[string]float64 `yaml:"Goods" json:"goods,omitempty"`
-	FinalHarvest bool `yaml:"FinalHarvest" json:"final_harvest,omitempty"` // If true, when harvested, clears the plot after
+	FinalHarvest bool `yaml:"FinalHarvest" json:"final_harvest" binding:"required"` // If true, when harvested, clears the plot after
 }
 
 // enum for growthaction types

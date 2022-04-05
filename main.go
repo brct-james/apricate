@@ -269,7 +269,7 @@ func handle_requests(slur_filter []string) {
 		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/YXBpOjQ1NTU3NTc2-apricate-api", http.StatusPermanentRedirect)
 	})
 	mxr.HandleFunc("/docs/alpha-guide", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/ZG9jOjQ3MDIzNTgw-alpha-guide", http.StatusPermanentRedirect)
+		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/ZG9jOjQ3MDIzNTgw-alpha-quickstart", http.StatusPermanentRedirect)
 	})
 	mxr.HandleFunc("/docs/v0-6", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "https://apricate.stoplight.io/docs/apricate/ZG9jOjQ5NTYxNzYw-version-0-6", http.StatusPermanentRedirect)
