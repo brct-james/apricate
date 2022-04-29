@@ -59,6 +59,9 @@ func (w *Warehouse) TotalSize() uint64 {
 }
 
 func (w *Warehouse) AddTools(name string, quantity uint64) {
+	if w.Tools == nil || len(w.Tools) == 0 {
+		w.Tools = make(map[string]uint64)
+	}
 	w.Tools[name] += quantity
 }
 
@@ -78,6 +81,9 @@ func (w *Warehouse) GetProduceNameSizeSlice(name string) (string, string, bool) 
 }
 
 func (w *Warehouse) AddProduce(name string, quantity uint64) {
+	if w.Produce == nil || len(w.Produce) == 0 {
+		w.Produce = make(map[string]uint64)
+	}
 	w.Produce[name] += quantity
 }
 
@@ -89,6 +95,9 @@ func (w *Warehouse) RemoveProduce(name string, quantity uint64) {
 }
 
 func (w *Warehouse) AddSeeds(name string, quantity uint64) {
+	if w.Seeds == nil || len(w.Seeds) == 0 {
+		w.Seeds = make(map[string]uint64)
+	}
 	w.Seeds[name] += quantity
 }
 
@@ -100,6 +109,9 @@ func (w *Warehouse) RemoveSeeds(name string, quantity uint64) {
 }
 
 func (w *Warehouse) AddGoods(name string, quantity uint64) {
+	if w.Goods == nil || len(w.Goods) == 0 {
+		w.Goods = make(map[string]uint64)
+	}
 	w.Goods[name] += quantity
 }
 
@@ -119,7 +131,7 @@ func CheckForExistingWarehouse (uuid string, tdb rdb.Database) (bool, error) {
 			// error
 			return false, getError
 		}
-		// warehouse not found
+		// warehouse not foaund
 		return false, nil
 	}
 	// Got successfully

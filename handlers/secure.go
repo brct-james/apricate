@@ -1963,21 +1963,25 @@ func (h *InteractPlot) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Debug.Println("Harvest Calculated:")
 		log.Debug.Println(harvest)
 		for producename, producequantity := range harvest.Produce {
-			log.Debug.Printf("Add produce quantity: %d", producequantity)
+			log.Debug.Printf("Add produce %s quantity: %d", producename, producequantity)
 			warehouse.AddProduce(producename, producequantity)
 			log.Debug.Println(warehouse.Produce)
 		}
 		for seedname, seedquantity := range harvest.Seeds {
-			log.Debug.Printf("Add seed quantity: %d", seedquantity)
+			log.Debug.Printf("Add seed %s quantity: %d", seedname, seedquantity)
 			warehouse.AddSeeds(seedname, seedquantity)
+			log.Debug.Println(warehouse.Seeds)
 		}
 		for goodname, goodquantity := range harvest.Goods {
-			log.Debug.Printf("Add good quantity: %d", goodquantity)
+			log.Debug.Printf("Add good %s quantity: %d", goodname, goodquantity)
 			warehouse.AddGoods(goodname, goodquantity)
+			log.Debug.Println(warehouse.Goods)
 		}
 
+		log.Debug.Printf("Track Harvest Metric")
 		metrics.TrackHarvest(plantDef.Name)
 		
+		log.Debug.Printf("Check if is final harvest")
 		// check if final harvest
 		if growthHarvest.FinalHarvest {
 			// is final harvest
