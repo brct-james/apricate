@@ -29,24 +29,7 @@ func WriteEnvLinesToFile(env_path string, lines []string) {
 }
 
 func HandleServerConfigFlushDBs(lines []string) []string {
-	fdb_lines_index, flush_dbs := filemngr.GetKeyFromLines("flush_dbs", lines)
-	if flush_dbs == "" {
-		log.Important.Printf("flush_dbs not found in server_config.env, creating with default value of false")
-		// Create secret in env file since could not find one to update
-		// If empty file then replace 1st line else append to end
-		log.Debug.Printf("Creating new secret in env file. server_config.env[0] == ''? %v", lines[0] == "")
-		if lines[0] == "" {
-			log.Debug.Printf("Line 0 empty in server_config.env, replacing line 0")
-			lines[0] = "flush_dbs=false"
-			fdb_lines_index = 0
-			flush_dbs = "false"
-		} else {
-			log.Debug.Printf("Not blank server_config.env, appending to end")
-			lines = append(lines, "flush_dbs=false")
-			fdb_lines_index = len(lines)-1
-			flush_dbs = "false"
-		}
-	}
+	fdb_lines_index, flush_dbs, lines := GetValueFromServerConfigByKey(lines, "flush_dbs", "false")
 	if flush_dbs == "true" || flush_dbs == "dev" {
 		// flush
 		log.Important.Printf("flush_dbs = %s, flushing", flush_dbs)
@@ -62,24 +45,7 @@ func HandleServerConfigFlushDBs(lines []string) []string {
 }
 
 func HandleServerConfigRegenerateAuthSecret(lines []string) []string {
-	ras_lines_index, regenerate_auth_secret := filemngr.GetKeyFromLines("regenerate_auth_secret", lines)
-	if regenerate_auth_secret == "" {
-		log.Important.Printf("regenerate_auth_secret not found in server_config.env, creating with default value of false")
-		// Create secret in env file since could not find one to update
-		// If empty file then replace 1st line else append to end
-		log.Debug.Printf("Creating new secret in env file. server_config.env[0] == ''? %v", lines[0] == "")
-		if lines[0] == "" {
-			log.Debug.Printf("Line 0 empty in server_config.env, replacing line 0")
-			lines[0] = "regenerate_auth_secret=false"
-			ras_lines_index = 0
-			regenerate_auth_secret = "false"
-		} else {
-			log.Debug.Printf("Not blank server_config.env, appending to end")
-			lines = append(lines, "regenerate_auth_secret=false")
-			ras_lines_index = len(lines)-1
-			regenerate_auth_secret = "false"
-		}
-	}
+	ras_lines_index, regenerate_auth_secret, lines := GetValueFromServerConfigByKey(lines, "regenerate_auth_secret", "false")
 	if regenerate_auth_secret == "true" {
 		// regen
 		log.Important.Printf("regenerate_auth_secret = %s, flushing", regenerate_auth_secret)
@@ -92,16 +58,45 @@ func HandleServerConfigRegenerateAuthSecret(lines []string) []string {
 	return lines
 }
 
-func ProcessServerConfig(lines []string) []string {
+func GetValueFromServerConfigByKey(lines []string, key string, default_value string) (int, string, []string) {
+	key_lines_index, key_value := filemngr.GetKeyFromLines(key, lines)
+	if key_value == "" {
+		log.Important.Printf("key %s not found in server_config.env, creating with default value of %s", key, default_value)
+		// Create key:value in env file since could not find one to update
+		// If empty file then replace 1st line else append to end
+		log.Debug.Printf("Creating new key:value in env file. server_config.env[0] == ''? %v", lines[0] == "")
+		if lines[0] == "" {
+			log.Debug.Printf("Line 0 empty in server_config.env, replacing line 0")
+			lines[0] = key + "=" + default_value
+			key_lines_index = 0
+			key_value = default_value
+		} else {
+			log.Debug.Printf("Not blank server_config.env, appending to end")
+			lines = append(lines, key + "=" + default_value)
+			key_lines_index = len(lines)-1
+			key_value = default_value
+		}
+	}
+	return key_lines_index, key_value, lines
+}
+
+func ProcessServerConfig(lines []string) ([]string, []string) {
 	lines = HandleServerConfigFlushDBs(lines)
 	lines = HandleServerConfigRegenerateAuthSecret(lines)
-
-	return lines
+	_, listen_port, lines := GetValueFromServerConfigByKey(lines, "listen_port", ":8080")
+	_, redis_addr, lines := GetValueFromServerConfigByKey(lines, "redis_addr", "rdb:6379")
+	_, api_version, lines := GetValueFromServerConfigByKey(lines, "api_version", "0.5.0")
+	misc_res := []string{listen_port, redis_addr, api_version}
+	return lines, misc_res
 }
 
 func main() {
 	log.Important.Printf("Hello, World")
 	server_config_lines := LoadEnvFileToLines("data/server_config.env")
-	server_config_lines = ProcessServerConfig(server_config_lines)
+	server_config_lines, misc_server_config := ProcessServerConfig(server_config_lines)
+	listen_port := misc_server_config[0]
+	redis_addr := misc_server_config[1]
+	api_version := misc_server_config[2]
+	log.Info.Println(listen_port, redis_addr, api_version)
 	WriteEnvLinesToFile("data/server_config.env", server_config_lines)
 }
