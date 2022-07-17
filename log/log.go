@@ -7,9 +7,11 @@ import (
 )
 
 var (
+	// _, b, _, _ = runtime.Caller(0)
+    // basepath   = filepath.Dir(b)
 	Info *log.Logger
 	Important *log.Logger
-	Test *log.Logger
+	Check *log.Logger
 	Error *log.Logger
 	Debug *log.Logger
 	RoutineDebug *log.Logger
@@ -17,9 +19,11 @@ var (
 
 func init() {
 	// Handle logging to file
-	var logpath = "./data/debug.ansi"
+	basepath := "/home/green/apricate.io"
+	// log.Printf("Basepath: %s", basepath)
+	var logpath = basepath + "/data/debug.ansi"
 	var debugFile, logErr = os.Create(logpath)
-	var rlogpath = "./data/rdebug.ansi"
+	var rlogpath = basepath + "/data/rdebug.ansi"
 	var rdebugFile, rlogErr = os.Create(rlogpath)
 
 	if logErr != nil {
@@ -45,7 +49,7 @@ func init() {
 	Important = log.New(multiOut, Yellow("IMPORTANT: "), log.LstdFlags|log.Lshortfile)
 
 	// Test writes logs in the color White on Magenta Background with "TEST: " as prefix
-	Test = log.New(multiOut, White(CyanBackground("TEST:")) + " ", log.LstdFlags|log.Lshortfile)
+	Check = log.New(multiOut, White(CyanBackground("CHECK:")) + " ", log.LstdFlags|log.Lshortfile)
 
 	// Error writes logs in the color Red with "ERROR: " as prefix
 	Error = log.New(allOut, Red("ERROR: "), log.LstdFlags|log.Lshortfile)

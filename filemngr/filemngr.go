@@ -1,3 +1,4 @@
+// Package filemngr provides functions for dealing with files
 package filemngr
 
 import (
@@ -7,11 +8,13 @@ import (
 	"strings"
 )
 
+// TODO: Test
 // Delete file if it exists, else continue (ignore errors)
 func DeleteIfExists(path string) {
 	os.Remove(path)
 }
 
+// TODO: Test
 // Ensure file exists, if not create it
 func Touch(name string) error {
 	log.Debug.Printf("Ensuring %s exists", name)
@@ -23,6 +26,7 @@ func Touch(name string) error {
 	return file.Close()
 }
 
+// TODO: Test
 // Reads file at string path to a slice of strings by line
 func ReadFileToLineSlice(filePath string) ([]string, error) {
 	input, err := ioutil.ReadFile(filePath)
@@ -34,6 +38,7 @@ func ReadFileToLineSlice(filePath string) ([]string, error) {
 	return lines, nil
 }
 
+// TODO: Test
 // Search slice for search key, returns true, index if found, else false
 func KeyInSliceOfLines(searchKey string, lines []string) (bool, int) {
 	for i, line := range lines {
@@ -45,6 +50,20 @@ func KeyInSliceOfLines(searchKey string, lines []string) (bool, int) {
 	return false, 0
 }
 
+// TODO: Test
+// Search slice for search key, returns list of all lines where found
+func GetLinesContainingKey(searchKey string, lines []string) ([]string) {
+	res := []string{}
+	for i, line := range lines {
+		if strings.Contains(line, searchKey) {
+			log.Debug.Printf("Found search key %s at line: %v", searchKey, i)
+			res = append(res, line)
+		}
+	} 
+	return res
+}
+
+// TODO: Test
 // Write slice of lines to file at path
 func WriteLinesToFile(filePath string, lines []string) error {
 	output := strings.Join(lines, "\n")
@@ -56,6 +75,7 @@ func WriteLinesToFile(filePath string, lines []string) error {
 	return nil
 }
 
+// TODO: Test
 // Converts os.File to bytes slice
 func ConvertFileToBytes(file *os.File) []byte {
 	log.Debug.Println("Reading from file")
@@ -63,6 +83,7 @@ func ConvertFileToBytes(file *os.File) []byte {
 	return byteValue
 }
 
+// TODO: Test
 // Writes file with specified bytes
 func WriteBytesToFile(path string, bytes []byte) error {
 	log.Debug.Printf("Writing bytes to file at %s", path)
@@ -71,6 +92,7 @@ func WriteBytesToFile(path string, bytes []byte) error {
 	return err
 }
 
+// TODO: Test
 // Reads specified file, returns byte slice
 func ReadFileToBytes(path string) ([]byte, error) {
 	readFile, err := os.Open(path)
@@ -82,6 +104,7 @@ func ReadFileToBytes(path string) ([]byte, error) {
 	return ConvertFileToBytes(readFile), nil
 }
 
+// TODO: Test
 // Reads every file in directory, returning slice of bytevalues
 func ReadFilesToBytes(path_to_directory string) ([][]byte, error) {
 	files, err := ioutil.ReadDir(path_to_directory)
@@ -98,4 +121,34 @@ func ReadFilesToBytes(path_to_directory string) ([][]byte, error) {
 		}
 	}
 	return bytes, nil
+}
+
+// Searches a slice of strings for a specified key-value pair and returns the value if it exists
+func GetKeyFromLines(key string, lines []string) string {
+	found := GetLinesContainingKey(key, lines)
+	if len(found) < 1 {
+		log.Info.Printf("Key not found: %s", key)
+		return ""
+	}
+	res := []string{}
+	for _, line := range found {
+		kv_pair := strings.Split(line, "=")
+		if len(kv_pair) < 2 {
+			continue
+		}
+		if key != kv_pair[0] { // Additional check for case where key is substring or found later in the line
+			continue
+		}
+		value := strings.Join(kv_pair[1:], "=") // join in-case value has an = for some reason
+		res = append(res, value)
+	}
+	if len(res) < 1 {
+		log.Info.Printf("Key not found: %s", key)
+		return ""
+	} else if len(res) > 1 {
+		log.Error.Printf("Multiple matching keys (%s) in file, returning none: %v", key, res)
+		return ""
+	} else {
+		return res[0]
+	}
 }
