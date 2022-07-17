@@ -52,15 +52,17 @@ func KeyInSliceOfLines(searchKey string, lines []string) (bool, int) {
 
 // TODO: Test
 // Search slice for search key, returns list of all lines where found
-func GetLinesContainingKey(searchKey string, lines []string) ([]string) {
-	res := []string{}
+func GetLinesContainingKey(searchKey string, lines []string) ([]int, []string) {
+	res_s := []string{}
+	res_i := []int{}
 	for i, line := range lines {
 		if strings.Contains(line, searchKey) {
 			log.Debug.Printf("Found search key %s at line: %v", searchKey, i)
-			res = append(res, line)
+			res_s = append(res_s, line)
+			res_i = append(res_i, i)
 		}
 	} 
-	return res
+	return res_i, res_s
 }
 
 // TODO: Test
@@ -124,14 +126,15 @@ func ReadFilesToBytes(path_to_directory string) ([][]byte, error) {
 }
 
 // Searches a slice of strings for a specified key-value pair and returns the value if it exists
-func GetKeyFromLines(key string, lines []string) string {
-	found := GetLinesContainingKey(key, lines)
-	if len(found) < 1 {
+func GetKeyFromLines(key string, lines []string) (int, string) {
+	foundIndeces, foundLines := GetLinesContainingKey(key, lines)
+	if len(foundLines) < 1 {
 		log.Info.Printf("Key not found: %s", key)
-		return ""
+		return -1, ""
 	}
-	res := []string{}
-	for _, line := range found {
+	res_indeces := []int{}
+	res_strings := []string{}
+	for i, line := range foundLines {
 		kv_pair := strings.Split(line, "=")
 		if len(kv_pair) < 2 {
 			continue
@@ -140,15 +143,16 @@ func GetKeyFromLines(key string, lines []string) string {
 			continue
 		}
 		value := strings.Join(kv_pair[1:], "=") // join in-case value has an = for some reason
-		res = append(res, value)
+		res_strings = append(res_strings, value)
+		res_indeces = append(res_indeces, foundIndeces[i])
 	}
-	if len(res) < 1 {
+	if len(res_strings) < 1 {
 		log.Info.Printf("Key not found: %s", key)
-		return ""
-	} else if len(res) > 1 {
-		log.Error.Printf("Multiple matching keys (%s) in file, returning none: %v", key, res)
-		return ""
+		return -1, ""
+	} else if len(res_strings) > 1 {
+		log.Error.Printf("Multiple matching keys (%s) in file, returning none: %v", key, res_strings)
+		return -1, ""
 	} else {
-		return res[0]
+		return res_indeces[0], res_strings[0]
 	}
 }
