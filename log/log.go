@@ -19,7 +19,10 @@ var (
 
 func init() {
 	// Handle logging to file
-	basepath := "/home/green/apricate.io"
+	basepath := os.Getenv("APRICATE_BASEPATH")
+	if len(basepath) <= 0 {
+		basepath = "."
+	}
 	// log.Printf("Basepath: %s", basepath)
 	var logpath = basepath + "/data/debug.ansi"
 	var debugFile, logErr = os.Create(logpath)
