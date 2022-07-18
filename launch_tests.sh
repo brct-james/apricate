@@ -1,1 +1,1 @@
-APRICATE_BASEPATH=/home/green/apricate.io gotestsum --format testname
+APRICATE_BASEPATH=/home/green/apricate.io gotestsum --format testname -- -coverprofile=cover.out ./...; go tool cover -html=cover.out -o cover.html
