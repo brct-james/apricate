@@ -4,6 +4,7 @@ import (
 	"apricate/auth"
 	"apricate/filemngr"
 	"apricate/log"
+	"apricate/metrics"
 	"apricate/rdb"
 	"context"
 )
@@ -13,7 +14,7 @@ var (
 	server_config_env_path = "data/server_config.env"
 	auth_secret_path = "data/secrets.env"
 	flush_DBs = false
-	r_a_s = false
+	regen_auth_sec = false
 	// Define relationship between string database name and redis db
 	dbs = make(map[string]rdb.Database)
 // 	world schema.World
@@ -42,7 +43,7 @@ func HandleServerConfigRegenerateAuthSecret(lines []string, auth_secret_path str
 		// regen
 		log.Important.Printf("regenerate_auth_secret = %s, flushing", regenerate_auth_secret)
 		auth.CreateOrUpdateAuthSecretInFile(auth_secret_path)
-		r_a_s = true
+		regen_auth_sec = true
 		// Update lines
 		lines[ras_lines_index] = "regenerate_auth_secret=false"
 	} else {
@@ -102,7 +103,7 @@ func initialize_dbs(redis_addr string) {
 	}
 
 	// Check to flush DBs
-	regenerate_auth_secret := r_a_s
+	regenerate_auth_secret := regen_auth_sec
 	log.Info.Printf("Check Flush DBs: %v || %v : %v", flush_DBs, regenerate_auth_secret, flush_DBs || regenerate_auth_secret)
 	if flush_DBs || regenerate_auth_secret {
 		for _, db := range dbs {
@@ -136,13 +137,13 @@ func main() {
 	initialize_dbs(redis_addr)
 
 	// Reset or Load Metrics
-	// log.Info.Printf("Loading metrics.yaml")
-	// if flush_DBs || regenerate_auth_secret {
-	// 	// Need to reset metrics
-	// 	log.Important.Printf("Cleared data/metrics.yaml")
-	// 	filemngr.DeleteIfExists("data/metrics.yaml")
-	// }
-	// metrics.LoadMetrics()
+	log.Info.Printf("Loading metrics.yaml")
+	if flush_DBs || regen_auth_sec {
+		// Need to reset metrics
+		log.Important.Printf("Cleared data/metrics.yaml")
+		filemngr.DeleteIfExists("data/metrics.yaml")
+	}
+	metrics.LoadMetrics()
 
 	// setup_my_character()
 
