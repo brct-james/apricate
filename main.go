@@ -4,14 +4,18 @@ import (
 	"apricate/auth"
 	"apricate/filemngr"
 	"apricate/log"
+	"apricate/rdb"
+	"context"
 )
 
 // Global vars
 var (
 	server_config_env_path = "data/server_config.env"
 	auth_secret_path = "data/secrets.env"
-//  // Define relationship between string database name and redis db
-// 	dbs = make(map[string]rdb.Database)
+	flush_DBs = false
+	r_a_s = false
+	// Define relationship between string database name and redis db
+	dbs = make(map[string]rdb.Database)
 // 	world schema.World
 // 	main_dictionary = schema.MainDictionary{}
 )
@@ -21,7 +25,7 @@ func HandleServerConfigFlushDBs(lines []string) []string {
 	if flush_dbs == "true" || flush_dbs == "dev" {
 		// flush
 		log.Important.Printf("flush_dbs = %s, flushing", flush_dbs)
-		//TODO
+		flush_DBs = true
 	} else {
 		log.Debug.Printf("flush_dbs neither true nor dev, skipping flush")
 	}
@@ -38,6 +42,7 @@ func HandleServerConfigRegenerateAuthSecret(lines []string, auth_secret_path str
 		// regen
 		log.Important.Printf("regenerate_auth_secret = %s, flushing", regenerate_auth_secret)
 		auth.CreateOrUpdateAuthSecretInFile(auth_secret_path)
+		r_a_s = true
 		// Update lines
 		lines[ras_lines_index] = "regenerate_auth_secret=false"
 	} else {
@@ -78,6 +83,34 @@ func ProcessServerConfig(lines []string, auth_secret_path string) ([]string, []s
 	return lines, misc_res
 }
 
+// TODO: Test
+func initialize_dbs(redis_addr string) {
+	log.Info.Printf("Connecting to Redis server at %s", redis_addr)
+
+	dbs["users"] = rdb.NewDatabase(redis_addr, 0)
+	dbs["assistants"] = rdb.NewDatabase(redis_addr, 1)
+	dbs["farms"] = rdb.NewDatabase(redis_addr, 2)
+	dbs["contracts"] = rdb.NewDatabase(redis_addr, 3)
+	dbs["warehouses"] = rdb.NewDatabase(redis_addr, 4)
+	dbs["caravans"] = rdb.NewDatabase(redis_addr, 5)
+	dbs["clearinghouse"] = rdb.NewDatabase(redis_addr, 5)
+
+	// Ping server
+	_, err := dbs["users"].Goredis.Ping(context.Background()).Result()
+	if err != nil {
+		log.Error.Fatalf("Could not ping redis server at %s", redis_addr)
+	}
+
+	// Check to flush DBs
+	regenerate_auth_secret := r_a_s
+	log.Info.Printf("Check Flush DBs: %v || %v : %v", flush_DBs, regenerate_auth_secret, flush_DBs || regenerate_auth_secret)
+	if flush_DBs || regenerate_auth_secret {
+		for _, db := range dbs {
+			db.Flush()
+		}
+	}
+}
+
 func main() {
 	log.Info.Printf("--==Apricate.io REST API Server==--")
 	
@@ -96,8 +129,22 @@ func main() {
 	log.Info.Printf("API Version %s", api_version)
 	log.Info.Printf("Finished Loading Server Config")
 
+	log.Info.Println("Loading secrets from envfile")
+	auth.LoadSecretsToEnv()
+
 	// Setup redis databases for each namespace
-	// initialize_dbs()
+	initialize_dbs(redis_addr)
+
+	// Reset or Load Metrics
+	// log.Info.Printf("Loading metrics.yaml")
+	// if flush_DBs || regenerate_auth_secret {
+	// 	// Need to reset metrics
+	// 	log.Important.Printf("Cleared data/metrics.yaml")
+	// 	filemngr.DeleteIfExists("data/metrics.yaml")
+	// }
+	// metrics.LoadMetrics()
+
+	// setup_my_character()
 
 
 }
