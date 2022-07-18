@@ -6,13 +6,16 @@ import (
 	"apricate/log"
 	"apricate/metrics"
 	"apricate/rdb"
+	"apricate/schema"
 	"context"
+	"strings"
 )
 
 // Global vars
 var (
 	server_config_env_path = "data/server_config.env"
 	auth_secret_path = "data/secrets.env"
+	slur_filter_path = "data/slur_filter.txt"
 	flush_DBs = false
 	regen_auth_sec = false
 	// Define relationship between string database name and redis db
@@ -112,6 +115,19 @@ func initialize_dbs(redis_addr string) {
 	}
 }
 
+// TODO: Test
+func setup_my_character() {
+	if flush_DBs || regen_auth_sec {
+		schema.PregenerateUser("Greenitthe", dbs, true)
+		metrics.TrackNewUser("Greenitthe")
+		schema.PregenerateUser("Viridis", dbs, false)
+		metrics.TrackNewUser("Viridis")
+		schema.PregenerateUser("Green", dbs, true)
+		metrics.TrackNewUser("Green")
+	}
+	log.Info.Println("Neither flushing DBs, nor regenerating auth secret. Token for user: Greenitthe should already exist in secrets.env. Skipping creation")
+}
+
 func main() {
 	log.Info.Printf("--==Apricate.io REST API Server==--")
 	
@@ -145,7 +161,31 @@ func main() {
 	}
 	metrics.LoadMetrics()
 
-	// setup_my_character()
+	setup_my_character()
 
+	// Preload 
+	// Ensure exists
+	filemngr.Touch(slur_filter_path)
+	// Read file to lines array splitting by newline
+	read_slur_filter, readErr := filemngr.ReadFileToLineSlice(slur_filter_path)
+	if readErr != nil {
+		// Auth is mission-critical, using Fatal
+		log.Error.Fatalf("Could not read lines from slur_filter.txt. Err: %v", readErr)
+	}
+	slur_filter := make([]string, len(read_slur_filter))
+	for i, word := range read_slur_filter {
+		slur_filter[i] = strings.ToUpper(word)
+	}
+	log.Info.Printf("Created/Loaded Username Slur Filter")
 
+	// // Load World from YAML
+	// world = schema.World_load("./yaml/world/regions.yaml", "./yaml/world/islands", "./yaml/world/locations")
+	// log.Debug.Println(world)
+	// log.Info.Printf("Loaded world")
+
+	// // Initialize dictionaries
+	// initialize_dictionaries()
+
+	// // Begin Serving
+	// handle_requests(slur_filter)
 }
