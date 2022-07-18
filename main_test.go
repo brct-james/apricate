@@ -65,8 +65,9 @@ func TestHandleServerConfigFlushDBs(t *testing.T) {
 
 func TestHandleServerConfigRegenerateAuthSecret(t *testing.T) {
 	t.Run("return regenerate_auth_secret=false when initially true", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"regenerate_auth_secret=true"}
-		got := HandleServerConfigRegenerateAuthSecret(lines)
+		got := HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 		want := []string{"regenerate_auth_secret=false"}
 
 		if !comparison.StringSlicesEqual(got, want) {
@@ -74,8 +75,9 @@ func TestHandleServerConfigRegenerateAuthSecret(t *testing.T) {
 		}
 	})
 	t.Run("return regenerate_auth_secret=dev when initially dev", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"regenerate_auth_secret=dev"}
-		got := HandleServerConfigRegenerateAuthSecret(lines)
+		got := HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 		want := []string{"regenerate_auth_secret=dev"}
 
 		if !comparison.StringSlicesEqual(got, want) {
@@ -83,8 +85,9 @@ func TestHandleServerConfigRegenerateAuthSecret(t *testing.T) {
 		}
 	})
 	t.Run("return regenerate_auth_secret=false when initially false", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"regenerate_auth_secret=dev"}
-		got := HandleServerConfigRegenerateAuthSecret(lines)
+		got := HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 		want := []string{"regenerate_auth_secret=dev"}
 
 		if !comparison.StringSlicesEqual(got, want) {
@@ -92,8 +95,9 @@ func TestHandleServerConfigRegenerateAuthSecret(t *testing.T) {
 		}
 	})
 	t.Run("return regenerate_auth_secret=false appended when regenerate_auth_secret missing", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"other_key=boring"}
-		got := HandleServerConfigRegenerateAuthSecret(lines)
+		got := HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 		want := []string{"other_key=boring", "regenerate_auth_secret=false"}
 
 		if !comparison.StringSlicesEqual(got, want) {
@@ -101,8 +105,9 @@ func TestHandleServerConfigRegenerateAuthSecret(t *testing.T) {
 		}
 	})
 	t.Run("return regenerate_auth_secret=false inserted when regenerate_auth_secret missing and first line empty", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{""}
-		got := HandleServerConfigRegenerateAuthSecret(lines)
+		got := HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 		want := []string{"regenerate_auth_secret=false"}
 
 		if !comparison.StringSlicesEqual(got, want) {
@@ -110,8 +115,9 @@ func TestHandleServerConfigRegenerateAuthSecret(t *testing.T) {
 		}
 	})
 	t.Run("return regenerate_auth_secret=false inserted when regenerate_auth_secret missing and first line empty", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"", "other_key=boring"}
-		got := HandleServerConfigRegenerateAuthSecret(lines)
+		got := HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 		want := []string{"regenerate_auth_secret=false", "other_key=boring"}
 
 		if !comparison.StringSlicesEqual(got, want) {
@@ -177,8 +183,9 @@ func TestGetValueFromServerConfigByKey(t *testing.T) {
 
 func TestProcessServerConfig(t *testing.T) {
 	t.Run("empty config file", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{""}
-		got_lines, got_misc_config := ProcessServerConfig(lines)
+		got_lines, got_misc_config := ProcessServerConfig(lines, auth_secret_path)
 		want_lines := []string{"flush_dbs=false", "regenerate_auth_secret=false", "listen_port=:8080", "redis_addr=rdb:6379", "api_version=0.5.0"}
 		want_misc_config := []string{":8080", "rdb:6379", "0.5.0"}
 
@@ -187,8 +194,9 @@ func TestProcessServerConfig(t *testing.T) {
 		}
 	})
 	t.Run("flush=dev regenerate=false", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"flush_dbs=dev", "regenerate_auth_secret=false"}
-		got_lines, got_misc_config := ProcessServerConfig(lines)
+		got_lines, got_misc_config := ProcessServerConfig(lines, auth_secret_path)
 		want_lines := []string{"flush_dbs=dev", "regenerate_auth_secret=false", "listen_port=:8080", "redis_addr=rdb:6379", "api_version=0.5.0"}
 		want_misc_config := []string{":8080", "rdb:6379", "0.5.0"}
 
@@ -197,8 +205,9 @@ func TestProcessServerConfig(t *testing.T) {
 		}
 	})
 	t.Run("flush=dev regenerate=true", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"flush_dbs=dev", "regenerate_auth_secret=true"}
-		got_lines, got_misc_config := ProcessServerConfig(lines)
+		got_lines, got_misc_config := ProcessServerConfig(lines, auth_secret_path)
 		want_lines := []string{"flush_dbs=dev", "regenerate_auth_secret=false", "listen_port=:8080", "redis_addr=rdb:6379", "api_version=0.5.0"}
 		want_misc_config := []string{":8080", "rdb:6379", "0.5.0"}
 
@@ -207,8 +216,9 @@ func TestProcessServerConfig(t *testing.T) {
 		}
 	})
 	t.Run("flush=true regenerate=false", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"flush_dbs=true", "regenerate_auth_secret=false"}
-		got_lines, got_misc_config := ProcessServerConfig(lines)
+		got_lines, got_misc_config := ProcessServerConfig(lines, auth_secret_path)
 		want_lines := []string{"flush_dbs=false", "regenerate_auth_secret=false", "listen_port=:8080", "redis_addr=rdb:6379", "api_version=0.5.0"}
 		want_misc_config := []string{":8080", "rdb:6379", "0.5.0"}
 
@@ -217,8 +227,9 @@ func TestProcessServerConfig(t *testing.T) {
 		}
 	})
 	t.Run("flush=false regenerate=true", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"flush_dbs=false", "regenerate_auth_secret=true"}
-		got_lines, got_misc_config := ProcessServerConfig(lines)
+		got_lines, got_misc_config := ProcessServerConfig(lines, auth_secret_path)
 		want_lines := []string{"flush_dbs=false", "regenerate_auth_secret=false", "listen_port=:8080", "redis_addr=rdb:6379", "api_version=0.5.0"}
 		want_misc_config := []string{":8080", "rdb:6379", "0.5.0"}
 
@@ -227,8 +238,9 @@ func TestProcessServerConfig(t *testing.T) {
 		}
 	})
 	t.Run("flush=true regenerate=true", func(t *testing.T) {
+		auth_secret_path := "data/secrets.env"
 		lines := []string{"flush_dbs=true", "regenerate_auth_secret=true"}
-		got_lines, got_misc_config := ProcessServerConfig(lines)
+		got_lines, got_misc_config := ProcessServerConfig(lines, auth_secret_path)
 		want_lines := []string{"flush_dbs=false", "regenerate_auth_secret=false", "listen_port=:8080", "redis_addr=rdb:6379", "api_version=0.5.0"}
 		want_misc_config := []string{":8080", "rdb:6379", "0.5.0"}
 
