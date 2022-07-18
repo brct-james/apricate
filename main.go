@@ -1,32 +1,20 @@
 package main
 
 import (
+	"apricate/auth"
 	"apricate/filemngr"
 	"apricate/log"
 )
 
-// TODO: Test
-func LoadEnvFileToLines(env_path string) []string {
-	// Ensure exists
-	filemngr.Touch(env_path)
-	// Load config file
-	lines, readErr := filemngr.ReadFileToLineSlice(env_path)
-	if readErr != nil {
-		// is mission-critical, using Fatal
-		log.Error.Fatalf("Could not read lines from %s. Err: %v", env_path, readErr)
-	}
-	return lines
-}
-
-// TODO: Test
-func WriteEnvLinesToFile(env_path string, lines []string) {
-	// Join and write out
-	writeErr := filemngr.WriteLinesToFile(env_path, lines)
-	if writeErr != nil {
-		log.Error.Fatalf("Could not write %s: %v", env_path, writeErr)
-	}
-	log.Info.Printf("Wrote config to %s", env_path)
-}
+// Global vars
+var (
+	server_config_env_path = "data/server_config.env"
+	auth_secret_path = "data/secrets.env"
+//  // Define relationship between string database name and redis db
+// 	dbs = make(map[string]rdb.Database)
+// 	world schema.World
+// 	main_dictionary = schema.MainDictionary{}
+)
 
 func HandleServerConfigFlushDBs(lines []string) []string {
 	fdb_lines_index, flush_dbs, lines := GetValueFromServerConfigByKey(lines, "flush_dbs", "false")
@@ -44,13 +32,13 @@ func HandleServerConfigFlushDBs(lines []string) []string {
 	return lines
 }
 
-func HandleServerConfigRegenerateAuthSecret(lines []string) []string {
+func HandleServerConfigRegenerateAuthSecret(lines []string, auth_secret_path string) []string {
 	ras_lines_index, regenerate_auth_secret, lines := GetValueFromServerConfigByKey(lines, "regenerate_auth_secret", "false")
 	if regenerate_auth_secret == "true" {
 		// regen
 		log.Important.Printf("regenerate_auth_secret = %s, flushing", regenerate_auth_secret)
-		//TODO
-		// Update
+		auth.CreateOrUpdateAuthSecretInFile(auth_secret_path)
+		// Update lines
 		lines[ras_lines_index] = "regenerate_auth_secret=false"
 	} else {
 		log.Debug.Printf("regenerate_auth_secret neither true nor dev, skipping flush")
@@ -80,9 +68,9 @@ func GetValueFromServerConfigByKey(lines []string, key string, default_value str
 	return key_lines_index, key_value, lines
 }
 
-func ProcessServerConfig(lines []string) ([]string, []string) {
+func ProcessServerConfig(lines []string, auth_secret_path string) ([]string, []string) {
 	lines = HandleServerConfigFlushDBs(lines)
-	lines = HandleServerConfigRegenerateAuthSecret(lines)
+	lines = HandleServerConfigRegenerateAuthSecret(lines, auth_secret_path)
 	_, listen_port, lines := GetValueFromServerConfigByKey(lines, "listen_port", ":8080")
 	_, redis_addr, lines := GetValueFromServerConfigByKey(lines, "redis_addr", "rdb:6379")
 	_, api_version, lines := GetValueFromServerConfigByKey(lines, "api_version", "0.5.0")
@@ -91,12 +79,25 @@ func ProcessServerConfig(lines []string) ([]string, []string) {
 }
 
 func main() {
-	log.Important.Printf("Hello, World")
-	server_config_lines := LoadEnvFileToLines("data/server_config.env")
-	server_config_lines, misc_server_config := ProcessServerConfig(server_config_lines)
+	log.Info.Printf("--==Apricate.io REST API Server==--")
+	
+	// Load config or use defaults
+	log.Info.Printf("Loading Server Config from %s", server_config_env_path)
+	server_config_lines := filemngr.LoadEnvFileToLines(server_config_env_path)
+	server_config_lines, misc_server_config := ProcessServerConfig(server_config_lines, auth_secret_path)
 	listen_port := misc_server_config[0]
 	redis_addr := misc_server_config[1]
 	api_version := misc_server_config[2]
 	log.Info.Println(listen_port, redis_addr, api_version)
-	WriteEnvLinesToFile("data/server_config.env", server_config_lines)
+	filemngr.WriteEnvLinesToFile(server_config_env_path, server_config_lines)
+
+	log.Info.Printf("Listen Port %s", listen_port)
+	log.Info.Printf("Redis Address %s", redis_addr)
+	log.Info.Printf("API Version %s", api_version)
+	log.Info.Printf("Finished Loading Server Config")
+
+	// Setup redis databases for each namespace
+	// initialize_dbs()
+
+
 }

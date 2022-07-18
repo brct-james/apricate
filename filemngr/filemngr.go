@@ -125,6 +125,29 @@ func ReadFilesToBytes(path_to_directory string) ([][]byte, error) {
 	return bytes, nil
 }
 
+// TODO: Test
+func LoadEnvFileToLines(env_path string) []string {
+	// Ensure exists
+	Touch(env_path)
+	// Load config file
+	lines, readErr := ReadFileToLineSlice(env_path)
+	if readErr != nil {
+		// is mission-critical, using Fatal
+		log.Error.Fatalf("Could not read lines from %s. Err: %v", env_path, readErr)
+	}
+	return lines
+}
+
+// TODO: Test
+func WriteEnvLinesToFile(env_path string, lines []string) {
+	// Join and write out
+	writeErr := WriteLinesToFile(env_path, lines)
+	if writeErr != nil {
+		log.Error.Fatalf("Could not write %s: %v", env_path, writeErr)
+	}
+	log.Info.Printf("Wrote config to %s", env_path)
+}
+
 // Searches a slice of strings for a specified key-value pair and returns the value if it exists
 func GetKeyFromLines(key string, lines []string) (int, string) {
 	foundIndeces, foundLines := GetLinesContainingKey(key, lines)
